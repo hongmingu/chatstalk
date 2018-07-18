@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Demo</title>
+    {% include 'others/header_static.html' %}
+    {% include 'others/favicon.html' %}
+
+    {% load static from staticfiles %}
+    <script src="{% static 'js/navbar.js' %}"></script>
+    <script src="{% static 'js/a_selected.js' %}"></script>
+    <script src="{% static 'js/re_socket.js' %}"></script>
+    <script src="{% static 'js/nav_badge.js' %}"></script>
+
+    <link href="https://fonts.googleapis.com/css?family=Tauri" rel="stylesheet">
+    {% if user.is_authenticated %}
+    {% else %}
+    {% endif %}
+
+    <style>
+        .write_new_post{
+            font-weight: bold; color: white; width: 100%
+        }
+        .new_post_heading{
+            font-weight: bold; font-size: 24px;
+        }
+        .select_open{
+            font-weight:bold; color: white; font-size: 16px; background-color: #2ac31b;
+        }
+        .select_close{
+            font-weight:bold; color:grey; font-size: 16px; background-color: white;
+        }
+        .open_or_close{
+            font-weight:bold; font-size: 20px;
+        }
+    </style>
+
+
+</head>
+<body class="light_background_color height_100">
+<!--navbar start-->
+{% include 'baseapp/_navbar.html' %}
+
+<!--navbar end-->
+<!--page info-->
+{% include 'others/bootstrap_tester.html' %}
+
+<div class="hidden" id="page_kind" data-u="home"></div>
+<div class="hidden" id="last_num" data-u=""></div>
+
+{% if user.is_authenticated %}
+    <div class="hidden" id="num" data-u="{{ user.username }}"></div>
+{% endif %}
+<!--page info end -->
+
+<div class="container-fluid margin_top_50">
+    <div class="row">
+        <div class="col-xs-12 col-sm-offset-3 col-sm-6 col-md-offset-4 col-md-4">
+            <div class="row" id="content">
+                <!--여기서 modal -->
+
+                <div class="row div_base">
+                    <div align="center"><span class="new_post_heading">New Post</span></div>
+                    <div class="col-xs-6">
+                        <div align="center"><a href=""><div class="clickable padding_5 main_background_color write_new_post">Your Profile</div></a></div>
+                    </div>
+                    <div class="col-xs-6">
+                        <div align="center"><a href=""><div class="clickable padding_5 main_background_color write_new_post">Other Profile</div></a></div>
+                    </div>
+                    <div align="center"><span class="open_or_close">Would you make the post be open?</span></div>
+                    <div class="col-xs-6">
+                        <a href=""><div class="clickable padding_5 select_open" align="center">open</div></a>
+                    </div>
+                    <div class="col-xs-6">
+                        <a href=""><div class="clickable padding_5 select_close" align="center">close</div></a>
+                    </div>
+                    <div class="col-xs-12">
+                        <div align="center"><a href=""><div class="clickable padding_5 main_background_color write_new_post">Create</div></a></div>
+
+                    </div>
+                </div>
+                <!--ajax는 ajax고 websocket은 websocket 이다. 둘을 분리한다. 구버전 브라우저는 포기해 일단 채팅과 알림만 websocket 쓴다.-->
+
+            </div>
+        </div>
+    </div>
+</div>
+  <!-- MODAL TO CROP THE IMAGE -->
+  <div class="modal fade" id="modal_new_post" data-backdrop="static">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <h4 class="modal-title">Crop the photo</h4>
+        </div>
+        <div class="modal-body padding_0">
+          <img src="" id="img_crop" class="max_width_100p">
+        </div>
+        <div class="modal-footer">
+          <div class="btn-group pull-left" role="group">
+            <button type="button" class="btn btn-default js-zoom-in">
+              <span class="glyphicon glyphicon-zoom-in"></span>
+            </button>
+            <button type="button" class="btn btn-default js-zoom-out">
+              <span class="glyphicon glyphicon-zoom-out"></span>
+            </button>
+          </div>
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary js-crop-and-upload">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+<script>
+    function base_request() {
+        var last_num = $('#last_num').attr('data-u')
+        var kind = $('#page_kind').attr('data-u')
+
+        $(function () {
+            if (kind === 'home'){
+                $.ajax({url:'/re/task/', type:'post', dataType:'json', cache:false,
+                    data:{
+                        command:'home',
+                        last_num:last_num
+                    },
+                    success:function (data) {
+                        if (data.res === 1) {
+                            var append = ''
+                            $('#content').append(append);
+                        }
+                    }
+                });
+            }
+        })
+    }
+    base_request()
+
+
+</script>
+<script>
+    $(function () {
+                    $("#modal_crop").modal("show");
+          };
+          reader.readAsDataURL(this.files[0]);
+        }
+      });
+
+      /* SCRIPTS TO HANDLE THE CROPPER BOX */
+    var image;
+      var cropper
+      $("#modal_crop").on("shown.bs.modal", function () {
+          image = document.getElementById('img_crop');
+          cropper = new Cropper(image, {
+                viewMode: 2,
+                minCropBoxWidth: 300,
+                minCropBoxHeight: 300,
+                aspectRatio: 1/1,
+          });
+
+      }).on("hidden.bs.modal", function () {
+        cropper.destroy();
+        var agent = navigator.userAgent.toLowerCase();
+
+        if ( (navigator.appName == 'Netscape' && navigator.userAgent.search('Trident') != -1) || (agent.indexOf("msie") != -1) ){
+            // ie 일때 input[type=file] init.
+            $('#input_file').replaceWith( $('#input_file').clone(true) );
+        } else {
+            //other browser 일때 input[type=file] init.
+                $('#input_file').val("");
+        }
+    });
+    })
+</script>
+</html>
