@@ -316,45 +316,39 @@ def main_create_log_in(request):
                                                                  UserCreateForm())
 
             if form.is_valid():
-                try:
-                    with transaction.atomic():
 
-                        username = form.cleaned_data['username']
-                        password = form.cleaned_data['password']
-                        user = authenticate(username=username, password=password)
+                username = form.cleaned_data['username']
+                password = form.cleaned_data['password']
+                user = authenticate(username=username, password=password)
 
-                        if user is not None:
+                if user is not None:
 
-                            try:
-                                user_delete = UserDelete.objects.get(user=user)
-                            except UserDelete.DoesNotExist:
-                                user_delete = None
-                            if user_delete is not None:
-                                user_delete.delete()
-                            if user.is_active is False:
-                                user.is_active = True
-                                user.save()
-                            login(request, user)
+                    try:
+                        user_delete = UserDelete.objects.get(user=user)
+                    except UserDelete.DoesNotExist:
+                        user_delete = None
+                    if user_delete is not None:
+                        user_delete.delete()
+                    if user.is_active is False:
+                        user.is_active = True
+                        user.save()
+                    login(request, user)
 
-                            ####################################################
-                            ####################################################
-                            return redirect(reverse('baseapp:user_main', kwargs={'user_username': user.userusername.username}))
+                    ####################################################
+                    ####################################################
+                    return redirect(reverse('baseapp:main_create_log_in'))
 
-                        else:
-                            data = {
-                                'username': username,
-                            }
-                            return render_with_clue_loginform_createform_log_in(request, 'authapp/main_first.html',
-                                                                         texts.LOGIN_FAILED, LoginForm(data),
-                                                                         UserCreateForm())
-                except Exception:
+                else:
+                    data = {
+                        'username': username,
+                    }
                     return render_with_clue_loginform_createform_log_in(request, 'authapp/main_first.html',
-                                                                 texts.UNEXPECTED_ERROR, LoginForm(data),
+                                                                 texts.LOGIN_FAILED, LoginForm(data),
                                                                  UserCreateForm())
 
     else:
         if request.user.is_authenticated:
-            return redirect(reverse('baseapp:user_main', kwargs={'user_username': request.user.userusername.username}))
+            return render(request, 'baseapp/user_home.html')
         return render_with_clue_loginform_createform(request, 'authapp/main_first.html', None, LoginForm(), UserCreateForm())
 
 

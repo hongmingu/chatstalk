@@ -71,3 +71,23 @@ def task(request):
 
         return JsonResponse({'res': 2})
 
+@ensure_csrf_cookie
+def create_new(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                if request.POST.get('whose', None) == 'self':
+                    new_post = Post.objects.create()
+                    # 우선 만들되 비공개로 한다. 그러면 현재 만들어져있지만 비공개인 상태.
+                    # 이 상황에선 POSTCHAT_START랑 POSTCHAT_REST가 만들어져 있는 상태여야 한다. 에러를 막기 위해서.
+                    # 그 다음 칸에서 프로필사진, 첫 문장들 설정.
+                    # 여기서 첫 문장이 특별한게 없으면 REST가 정해져 있는 그대로 진행된다. 여기서 첫 문장이 있는 경우에만
+                    # 바로 REST 가 삭제된다. 삭제하는 게 낫다. 그냥 삭제해. REST를 따로 표시할 때 여기에 REST가 몇개나 있는지
+                    # 그런것도 판단하기엔 무리가 있다. 그러므로 REST를 삭제하라. 괜히 0개인 REST가 존재해서 귀찮아질 필요가 없다. 
+
+                    pass
+                elif request.POST.get('whose', None) == 'other':
+                    pass
+
+
+        return JsonResponse({'res': 2})

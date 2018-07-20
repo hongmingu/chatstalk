@@ -22,7 +22,7 @@ application = ProtocolTypeRouter({
     # add users and sessions - see http://channels.readthedocs.io/en/latest/topics/authentication.html
     "websocket": AuthMiddlewareStack(
         URLRouter([
-            re_path(r'^re_settings/socket/$', ReSettingsConsumer),
+            re_path(r'^re/socket/$', ReSettingsConsumer),
         ]),
     ),
 })

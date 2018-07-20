@@ -8,4 +8,4 @@ def user_profile(request, user_username):
 
 def create_new(request):
     if request.method == "GET":
-        return render(request, 'baseapp/create_post.html')
+        return render(request, 'baseapp/create_new.html')

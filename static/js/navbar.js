@@ -1,4 +1,9 @@
-    $(document).ready(function () {
+
+    $(function () {
+        $('#nav_li_a_menu').click(function (e) {
+            e.preventDefault();
+           $('#modal_menu').modal('show')
+        });
         var width = $(window).width();
         if (!(width>=768)){
             if(!$("#nav_div_ul_li_search").length){

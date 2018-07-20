@@ -14,7 +14,8 @@ urlpatterns = [
 
     re_path(r'^re_settings/ajax/$', auth_ajax_views.re_settings, name='re_settings'),
     re_path(r'^re_settings/ajax/upload_user_photo/$', auth_ajax_views.upload_user_photo, name='upload_user_photo'),
-    re_path(r'^re/task/$', base_ajax_views.task, name='re_task')
+    re_path(r'^re/task/$', base_ajax_views.task, name='re_task'),
+    re_path(r'^re/create/new/$', base_ajax_views.create_new, name='create_new')
 
     # re_path(r'^email/key/send/$', views.email_key_send, name='email_key_send'),
     # re_path(r'^email/key/confirm/(?P<uid>([A-Za-z0-9_](?:(?:[A-Za-z0-9_]|(?:\.(?!\.))){0,28}(?:[A-Za-z0-9_]))?))/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',

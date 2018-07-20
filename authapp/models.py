@@ -100,7 +100,7 @@ def get_file_path(instance, filename):
     now_date = now.strftime('%Y-%m-%d-%H-%M-%S')
     filename = "300_%s_%s.%s" % (now_date, uuid.uuid4(), ext)
 
-    return os.path.join('userphoto/%s' % usernum, filename)
+    return os.path.join('photo/%s/userphoto' % usernum, filename)
 
 
 def get_file_path_50(instance, filename):
@@ -112,7 +112,7 @@ def get_file_path_50(instance, filename):
     now_date = now.strftime('%Y-%m-%d-%H-%M-%S')
     filename = "50_%s_%s.%s" % (now_date, uuid.uuid4(), ext)
 
-    return os.path.join('userphoto/%s' % usernum, filename)
+    return os.path.join('photo/%s/userphoto' % usernum, filename)
 
 
 class UserPhoto(models.Model):
