@@ -20,6 +20,34 @@ class UserUsername(models.Model):
         return "UserUsername for %s" % self.user
 
 
+class UserBirthday(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    birthday = models.DateField(blank=True, null=True)
+    updated = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return "UserBrithday for %s" % self.user
+
+
+STATUS_CHOICES = (
+    (2, "female"),
+    (1, "male"),
+)
+
+
+class UserGender(models.Model):
+
+    gender = models.IntegerField(choices=STATUS_CHOICES, default=0)
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    updated = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return "UserGender for %s" % self.user
+
+
 class UserTextName(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 

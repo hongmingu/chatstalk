@@ -225,6 +225,18 @@ def main_create_log_in(request):
                             user=new_user_create,
                         )
 
+                        birthday = str(form.cleaned_data['year']) + '-' + str(
+                            form.cleaned_data['month']) + '-' + str(form.cleaned_data['day'])
+
+                        new_user_birthday = UserBirthday.objects.create(
+                            user=new_user_create,
+                            birthday=birthday
+                        )
+                        new_user_gender = UserGender.objects.create(
+                            user=new_user_create,
+                            gender=form.cleaned_data['gender']
+                        )
+
                 except Exception:
                     return render_with_clue_loginform_createform(request, 'authapp/main_second.html',
                                                              texts.CREATING_USER_EXTRA_ERROR, LoginForm(),
