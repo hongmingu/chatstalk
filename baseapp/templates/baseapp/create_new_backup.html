@@ -94,9 +94,10 @@
                             <div class="clickable padding_5 main_background_color choice_unselected" id="other_profile">Other Profile</div>
                         </a></div>
                     </div>
-                    <div>
+                    <div class="hidden" id="name_fill">
                         <br><br><br><br>
                         <div align="center"><span class="open_or_close">Profile's name?</span></div>
+                        <div align="center"><span class="h5" id="name_clue">name that is to be displayed</span></div>
                         <div class="col-xs-12 padding_top_5">
                             <div class="input-group-lg">
                                 <input class="width_100_i" id="input_name" placeholder="name input" type="text">
@@ -124,12 +125,43 @@
                     <br>
                     <br>
                     <br>
+
+                    <div align="center"><span class="open_or_close">Title?</span></div>
+                    <br>
+                    <div class="col-xs-6">
+                        <a href="">
+                            <div class="clickable padding_5 choice_selected" id="open" align="center">need not</div>
+                        </a>
+                    </div>
+                    <div class="col-xs-6">
+                        <a href="">
+                            <div class="clickable padding_5 choice_unselected" id="close" align="center">add</div>
+                        </a>
+                    </div>
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                    <div align="center"><span class="open_or_close">Description?</span></div>
+                    <br>
+                    <div class="col-xs-6">
+                        <a href="">
+                            <div class="clickable padding_5 choice_selected" id="open" align="center">need not</div>
+                        </a>
+                    </div>
+                    <div class="col-xs-6">
+                        <a href="">
+                            <div class="clickable padding_5 choice_unselected" id="close" align="center">add</div>
+                        </a>
+                    </div>
+                    <br>
+                    <br>
+                    <br>
                     <br>
                     <div class="col-xs-12">
                         <div align="center"><a href="">
                             <div class="clickable padding_5 main_background_color write_new_post" id="create">Create</div>
                         </a></div>
-
                     </div>
                 </div>
                 <!--ajax는 ajax고 websocket은 websocket 이다. 둘을 분리한다. 구버전 브라우저는 포기해 일단 채팅과 알림만 websocket 쓴다.-->
@@ -141,7 +173,7 @@
 </body>
 <script>
     $(function () {
-        var whose, open, name;
+        var whose, name;
         $('#your_profile').click(function (e) {
             e.preventDefault()
             if($(this).hasClass('choice_unselected')){
@@ -151,6 +183,9 @@
                 $('#other_profile').toggleClass('choice_selected choice_unselected')
             }
             whose='self'
+            if(!$('#name_fill').hasClass('hidden')){
+                $('#name_fill').toggleClass('hidden')
+            }
         });
         $('#other_profile').click(function (e) {
             e.preventDefault()
@@ -161,8 +196,11 @@
                 $('#your_profile').toggleClass('choice_selected choice_unselected')
             }
             whose='other'
+            if($('#name_fill').hasClass('hidden')){
+                $('#name_fill').toggleClass('hidden')
+            }
         })
-
+        var open;
         $('#open').click(function (e) {
             e.preventDefault()
             if($(this).hasClass('choice_unselected')){
@@ -186,6 +224,11 @@
 
         $('#create').click(function () {
             name = $('#input_name').val()
+            if (!(1 <= name.length && name.length <= 30)){
+                $('#name_clue').html('name should be 1 <= name <= 30 greater than or equal to 6, less than or equal to 30');
+                return false;
+
+            }
             $.ajax({
                 url:'re/create/new/',
                 type:'post',
@@ -195,7 +238,6 @@
                 contentType: false,
                 data:{
                     whose: whose,
-                    open: open,
                     name: name,
                 },
                 success:function (data) {

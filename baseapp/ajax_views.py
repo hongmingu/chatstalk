@@ -25,10 +25,13 @@ from django.http import JsonResponse
 from authapp import options
 from authapp import texts
 from object.models import *
+from .forms import PostProfilePhotoForm
 from relation.models import *
 from .models import *
 from django.contrib.auth import update_session_auth_hash
 from django.utils.html import escape, _js_escapes, normalize_newlines
+from object.numbers import *
+
 
 # Create your models here.
 # 좋아요 비공개 할 수 있게
@@ -72,22 +75,167 @@ def task(request):
         return JsonResponse({'res': 2})
 
 @ensure_csrf_cookie
-def create_new(request):
+def re_create_new_upload_photo(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+
+            if request.is_ajax():
+                try:
+                    post = Post.objects.get(pk=request.POST['post_num'])
+                except:
+                    return JsonResponse({'res': 0})
+                try:
+                    post_profile = PostProfile.objects.get(post=post)
+                except:
+                    return JsonResponse({'res': 0})
+                form = PostProfilePhotoForm(request.POST, request.FILES, instance=post_profile)
+                if form.is_valid():
+
+                    DJANGO_TYPE = request.FILES['file'].content_type
+
+                    if DJANGO_TYPE == 'image/jpeg':
+                        PIL_TYPE = 'jpeg'
+                        FILE_EXTENSION = 'jpg'
+                    elif DJANGO_TYPE == 'image/png':
+                        PIL_TYPE = 'png'
+                        FILE_EXTENSION = 'png'
+                        # DJANGO_TYPE == 'image/gif
+                    else:
+                        return JsonResponse({'res': 0, 'message': texts.UNEXPECTED_ERROR})
+
+                    from io import BytesIO
+                    from PIL import Image
+                    from django.core.files.uploadedfile import SimpleUploadedFile
+                    import os
+                    x = float(request.POST['x'])
+                    y = float(request.POST['y'])
+                    width = float(request.POST['width'])
+                    height = float(request.POST['height'])
+                    rotate = float(request.POST['rotate'])
+                    # Open original photo which we want to thumbnail using PIL's Image
+                    try:
+                        with transaction.atomic():
+
+                            image = Image.open(BytesIO(request.FILES['file'].read()))
+                            image_modified = image.rotate(-1 * rotate, expand=True).crop((x, y, x + width, y + height))
+                            # use our PIL Image object to create the thumbnail, which already
+                            image = image_modified.resize((300, 300), Image.ANTIALIAS)
+
+                            # Save the thumbnail
+                            temp_handle = BytesIO()
+                            image.save(temp_handle, PIL_TYPE, quality=90)
+                            temp_handle.seek(0)
+
+                            # Save image to a SimpleUploadedFile which can be saved into ImageField
+                            # print(os.path.split(request.FILES['file'].name)[-1])
+                            suf = SimpleUploadedFile(os.path.split(request.FILES['file'].name)[-1],
+                                                     temp_handle.read(), content_type=DJANGO_TYPE)
+                            # Save SimpleUploadedFile into image field
+                            post_profile.file_300.save(
+                                '%s.%s' % (os.path.splitext(suf.name)[0], FILE_EXTENSION),
+                                suf, save=True)
+
+                            # request.FILES['file'].seek(0)
+                            # image = Image.open(BytesIO(request.FILES['file'].read()))
+
+                            # use our PIL Image object to create the thumbnail, which already
+                            image = image_modified.resize((50, 50), Image.ANTIALIAS)
+
+                            # Save the thumbnail
+                            temp_handle = BytesIO()
+                            image.save(temp_handle, PIL_TYPE, quality=90)
+                            temp_handle.seek(0)
+
+                            # Save image to a SimpleUploadedFile which can be saved into ImageField
+                            # print(os.path.split(request.FILES['file'].name)[-1])
+                            suf = SimpleUploadedFile(os.path.split(request.FILES['file'].name)[-1],
+                                                     temp_handle.read(), content_type=DJANGO_TYPE)
+                            # Save SimpleUploadedFile into image field
+                            # print(os.path.splitext(suf.name)[0])
+                            # user_photo.file_50.save(
+                            #     '50_%s.%s' % (os.path.splitext(suf.name)[0], FILE_EXTENSION),
+                            #     suf, save=True)
+                            post_profile.file_50.save(
+                                '%s.%s' % (os.path.splitext(suf.name)[0], FILE_EXTENSION),
+                                suf, save=True)
+                            return JsonResponse({'res': 1, 'url': post_profile.file_300.url})
+                    except Exception:
+                        return JsonResponse({'res': 0, 'message': texts.UNEXPECTED_ERROR})
+
+            return JsonResponse({'res': 0, 'message': texts.UNEXPECTED_ERROR})
+
+
+
+
+@ensure_csrf_cookie
+def re_create_new_remove_photo(request):
     if request.method == "POST":
         if request.user.is_authenticated:
             if request.is_ajax():
-                if request.POST.get('whose', None) == 'self':
-                    new_post = Post.objects.create()
-                    # 우선 만들되 비공개로 한다. 그러면 현재 만들어져있지만 비공개인 상태.
-                    # 이 상황에선 POSTCHAT_START랑 POSTCHAT_REST가 만들어져 있는 상태여야 한다. 에러를 막기 위해서.
-                    # 그 다음 칸에서 프로필사진, 첫 문장들 설정.
-                    # 여기서 첫 문장이 특별한게 없으면 REST가 정해져 있는 그대로 진행된다. 여기서 첫 문장이 있는 경우에만
-                    # 바로 REST 가 삭제된다. 삭제하는 게 낫다. 그냥 삭제해. REST를 따로 표시할 때 여기에 REST가 몇개나 있는지
-                    # 그런것도 판단하기엔 무리가 있다. 그러므로 REST를 삭제하라. 괜히 0개인 REST가 존재해서 귀찮아질 필요가 없다. 
-
-                    pass
+                if request.POST.get('command', None) == 'remove_photo':
+                    post_num = request.POST.get('post_num', None)
+                    try:
+                        post = Post.objects.get(pk=post_num)
+                    except:
+                        return JsonResponse({'res': 0})
+                    try:
+                        post_profile = PostProfile.objects.get(post=post)
+                    except:
+                        return JsonResponse({'res': 0})
+                    post_profile.file_50 = None
+                    post_profile.file_300 = None
+                    post_profile.save()
+                    return JsonResponse({'res': 1})
                 elif request.POST.get('whose', None) == 'other':
                     pass
 
+
+        return JsonResponse({'res': 2})
+
+
+@ensure_csrf_cookie
+def re_create_new_text(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_pk = request.POST.get('post_pk', None)
+                try:
+                    post = Post.objects.get(pk=post_pk)
+                except:
+                    return JsonResponse({'res': 0})
+                post_chat_last = None
+                try:
+                    post_chat_last = PostChat.objects.filter(post=post).last()
+                    print(post_chat_last.pk)
+                except PostChat.DoesNotExist:
+                    return JsonResponse({'res': 0})
+                post_chat = PostChat.objects.create(kind=POSTCHAT_TEXT, before=post_chat_last)
+                post_chat_text = PostChatText.objects.create(post_chat=post_chat, text=request.POST.get('text', None))
+                return JsonResponse({'res': 1, 'text': post_chat.get_value()})
+
+        return JsonResponse({'res': 2})
+
+# 2018-07-28 해야 할 일: postchatphoto 업로드 테스트.
+
+
+@ensure_csrf_cookie
+def re_create_new_chat_photo(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_pk = request.POST.get('post_pk', None)
+                try:
+                    post = Post.objects.get(pk=post_pk)
+                except:
+                    return JsonResponse({'res': 0})
+                post_chat_last = None
+                try:
+                    post_chat_last = PostChat.objects.filter(post=post).last()
+                except PostChat.DoesNotExist:
+                    return JsonResponse({'res': 0})
+                post_chat = PostChat.objects.create(kind=POSTCHAT_PHOTO, before=post_chat_last)
+                post_chat_photo = PostChatPhoto.objects.create(file=request.POST.get('post_pk', None))
+
+                return JsonResponse({'res': 1, 'data': post_chat.get_data})
 
         return JsonResponse({'res': 2})

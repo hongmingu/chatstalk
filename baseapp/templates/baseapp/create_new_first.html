@@ -21,28 +21,9 @@
 
     <style>
 
-        .created_title {
-            color: #2ac31b;
-            font-size: 20px
-        }
 
-        .created_title_content {
-            font-size: 20px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            max-width: 100%;
-        }
-
-        .created_description {
-            color: #2ac31b;
-            font-size: 16px
-        }
-
-        .created_description_content {
-            font-size: 16px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            max-width: 100%;
+        .create_description_textarea{
+            resize: none; height: 60px;
         }
     </style>
 
@@ -106,54 +87,6 @@
                     <br>
                     <br>
                     <br>
-                    <div align="center"><span class="open_or_close">Add your first chat?</span></div>
-
-                    <div style="overflow-y: auto; height: 300px; background-color: lightyellow;">
-                        <div class="margin_top_15" style="margin-left: 10px">
-                            <div class="chat_detail_others_wrapper" style="width: 80%">
-                                <div><span class="chat_detail_others_name">Someone</span></div>
-                                <div class="chat_detail_others">ljaslkfjwlekfjwjaslkfjwlekfjwjaslkfjwlekfjwjaslkfjwlekfjwjaslkfjwlekfjwjaslkfjwlekfjwjaslkfjwlekfjwjaslkfjwlekfjw
-                                </div>
-                                <div class="delete" align="right">hey</div>
-
-                            </div>
-                        </div>
-                        <div class="margin_top_15" style="margin-right: 10px;" align="right">
-                            <div class="chat_detail_others_wrapper" style="width: 80%">
-                                <div><span class="chat_detail_others_name" style="">You</span></div>
-                                <div class="chat_detail_mine">
-                                    wefkjsdlkfjaslkfjwlekfjwjaslkfjwlekfjwjaslkfjwlekfj   wjaslkfjwlekfjwjaslkfjwlekfjwjaslkfjwlekfjwlkef
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-xs-6">
-                        <div align="center"><a href="">
-                            <div class="clickable padding_5 main_background_color choice_selected" id="your_profile">
-                                You Says
-                            </div>
-                        </a></div>
-                    </div>
-                    <div class="col-xs-6">
-                        <div align="center"><a href="">
-                            <div class="clickable padding_5 main_background_color choice_unselected" id="other_profile">
-                                Someone Says
-                            </div>
-                        </a></div>
-                    </div>
-                    <div align="center">
-                        <form class="padding_top_5">
-                            <div align="center"><a href="#"><span class="glyphicon glyphicon-picture"></span></a></div>
-                            <div class="input-group input-group-sm chat_detail_wrapper">
-                                <textarea class="form-control chat_detail_textarea" placeholder="손채영"></textarea>
-                                <div class="input-group-btn">
-                                    <button class="btn btn-default chat_detail_send" type="submit"><i
-                                            class="glyphicon glyphicon-send"></i></button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
 
                     <div align="center"><span class="open_or_close">Title?</span></div>
                     <br>
@@ -200,8 +133,8 @@
                         </div>
                         <div class="col-xs-12 padding_top_5">
                             <div class="input-group-lg">
-                                <textarea class="width_100_i" id="input_desc"
-                                          placeholder="description input"></textarea>
+                                <textarea class="width_100_i create_description_textarea" id="input_desc"
+                                          placeholder="description input" style=""></textarea>
                             </div>
                         </div>
 
@@ -379,12 +312,28 @@
         $('#title_content').val($('#input_title').val())
         $('#description_content').val($('#input_desc').val())
         var name = $('#input_name').val()
+        var title = $('#input_title').val()
+        var description = $('#input_desc').val()
         if ($('#whose').val() === 'other') {
             if (!(1 <= name.length && name.length <= 30)) {
                 $('#name_clue').html('1 < name length < 30').css('color', 'red')
                 $('html, body').animate({
                     scrollTop: 30
                 }, 500);
+                return false
+            }
+        }
+        if ($('#title').val() === 'on') {
+            if (!(1 <= title.length && title.length <= 1000)) {
+                $('#title_clue').html('1 < title length < 1000').css('color', 'red')
+                alert('1 < title length < 1000')
+                return false
+            }
+        }
+        if ($('#description').val() === 'on') {
+            if (!(1 <= description.length && description.length <= 2000)) {
+                $('#desc_clue').html('1 < description length < 2000').css('color', 'red')
+                alert('1 < description length < 2000')
                 return false
             }
         }
