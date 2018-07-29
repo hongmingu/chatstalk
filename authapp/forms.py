@@ -121,4 +121,3 @@ class UserPhotoForm(forms.ModelForm):
     class Meta:
         model = UserPhoto
         fields = ('file_300', 'file_50', 'x', 'y', 'width', 'height', 'rotate',)
-

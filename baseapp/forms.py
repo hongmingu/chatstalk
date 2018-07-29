@@ -1,5 +1,5 @@
 from django import forms
-from object.models import Post, PostProfile
+from object.models import Post, PostProfile, PostChatPhoto
 
 
 class PostCreateForm(forms.ModelForm):
@@ -26,3 +26,11 @@ class PostProfilePhotoForm(forms.ModelForm):
     class Meta:
         model = PostProfile
         fields = ('file_300', 'file_50', 'x', 'y', 'width', 'height', 'rotate',)
+
+
+class PostChatPhotoForm(forms.ModelForm):
+    rotate = forms.FloatField(widget=forms.HiddenInput())
+
+    class Meta:
+        model = PostChatPhoto
+        fields = ('file', 'rotate',)

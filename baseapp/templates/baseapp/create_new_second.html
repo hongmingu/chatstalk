@@ -434,23 +434,24 @@
             $('#input_chat_file').replaceWith( $('#input_chat_file').clone(true) );
         } else {
             //other browser 일때 input[type=file] init.
-                $('#input_chat_file').val("");
+            $('#input_chat_file').val("");
         }
     });
 
-            $(".chat-upload").click(function () {
+    $(".chat-upload").click(function () {
         var cropData = cropper.getData();
 
-        var form_file = $('#form_upload')[0];
+        var form_file = $('#chat_upload')[0];
         var form_data = new FormData(form_file);
         form_data.append('x', cropData["x"]);
         form_data.append('y', cropData["y"]);
         form_data.append('height', cropData["height"]);
         form_data.append('width', cropData["width"]);
         form_data.append('rotate', cropData["rotate"]);
+        form_data.append('post_pk', $('#post_pk').attr('data-u'));
 
         $.ajax({
-            url:'/re_settings/ajax/upload_user_photo/',
+            url:'/re/create/new/chat_photo/',
             type:'post',
             dataType:'json',
             cache:false,
@@ -460,12 +461,11 @@
             success:function (data) {
                 $("#modal_crop").modal("hide");
                 if (data.res === 1){
-                    $('#img_300').attr('src', data.url)
-
+                    console.log(data.url)
                 }
             }
         });
-      });
+    });
         $('textarea').on("keypress", function(e) {
             /* ENTER PRESSED*/
             if (e.keyCode == 13 && !e.shiftKey) {

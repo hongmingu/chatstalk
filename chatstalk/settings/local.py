@@ -29,12 +29,14 @@ INSTALLED_APPS = [
     'authapp',
     'baseapp',
     'debug_toolbar',
+    'object',
+    'relation',
 ]
 # django debug-toolbar
 INTERNAL_IPS = ('127.0.0.1',)
 
 SITE_ID = 1
-WSGI_APPLICATION = 'chatkaboo.wsgi.local.application'
+WSGI_APPLICATION = 'chatstalk.wsgi.local.application'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -99,7 +101,7 @@ CHANNEL_LAYERS = {
 
 
 # ASGI_APPLICATION should be set to your outermost router
-ASGI_APPLICATION = 'chatkaboo.routing.application'
+ASGI_APPLICATION = 'chatstalk.routing.application'
 
 # Cache (It's different from channels)
 '''

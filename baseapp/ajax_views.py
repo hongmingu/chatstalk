@@ -25,7 +25,7 @@ from django.http import JsonResponse
 from authapp import options
 from authapp import texts
 from object.models import *
-from .forms import PostProfilePhotoForm
+from .forms import PostProfilePhotoForm, PostChatPhotoForm
 from relation.models import *
 from .models import *
 from django.contrib.auth import update_session_auth_hash
@@ -206,7 +206,6 @@ def re_create_new_text(request):
                 post_chat_last = None
                 try:
                     post_chat_last = PostChat.objects.filter(post=post).last()
-                    print(post_chat_last.pk)
                 except PostChat.DoesNotExist:
                     return JsonResponse({'res': 0})
                 post_chat = PostChat.objects.create(kind=POSTCHAT_TEXT, before=post_chat_last)
@@ -223,19 +222,60 @@ def re_create_new_chat_photo(request):
     if request.method == "POST":
         if request.user.is_authenticated:
             if request.is_ajax():
-                post_pk = request.POST.get('post_pk', None)
+                post_pk = request.POST['post_pk']
                 try:
                     post = Post.objects.get(pk=post_pk)
                 except:
                     return JsonResponse({'res': 0})
-                post_chat_last = None
                 try:
                     post_chat_last = PostChat.objects.filter(post=post).last()
                 except PostChat.DoesNotExist:
                     return JsonResponse({'res': 0})
-                post_chat = PostChat.objects.create(kind=POSTCHAT_PHOTO, before=post_chat_last)
-                post_chat_photo = PostChatPhoto.objects.create(file=request.POST.get('post_pk', None))
+                form = PostChatPhotoForm(request.POST, request.FILES)
+                if form.is_valid():
+                    post_chat = PostChat.objects.create(kind=POSTCHAT_PHOTO, post=post, before=post_chat_last)
+                    post_chat_photo = PostChatPhoto.objects.create(post_chat=post_chat)
 
-                return JsonResponse({'res': 1, 'data': post_chat.get_data})
+                    DJANGO_TYPE = request.FILES['file'].content_type
+
+                    if DJANGO_TYPE == 'image/jpeg':
+                        PIL_TYPE = 'jpeg'
+                        FILE_EXTENSION = 'jpg'
+                    elif DJANGO_TYPE == 'image/png':
+                        PIL_TYPE = 'png'
+                        FILE_EXTENSION = 'png'
+                        # DJANGO_TYPE == 'image/gif
+                    else:
+                        return JsonResponse({'res': 0, 'message': texts.UNEXPECTED_ERROR})
+
+                    from io import BytesIO
+                    from PIL import Image
+                    from django.core.files.uploadedfile import SimpleUploadedFile
+                    import os
+                    rotate = float(request.POST['rotate'])
+                    # Open original photo which we want to thumbnail using PIL's Image
+
+                    image = Image.open(BytesIO(request.FILES['file'].read()))
+                    image = image.rotate(-1 * rotate, expand=True)
+                    # use our PIL Image object to create the thumbnail, which already
+                    # Save the thumbnail
+                    temp_handle = BytesIO()
+                    image.save(temp_handle, PIL_TYPE, quality=70)
+                    temp_handle.seek(0)
+
+                    # Save image to a SimpleUploadedFile which can be saved into ImageField
+                    # print(os.path.split(request.FILES['file'].name)[-1])
+                    suf = SimpleUploadedFile(os.path.split(request.FILES['file'].name)[-1],
+                                             temp_handle.read(), content_type=DJANGO_TYPE)
+                    # Save SimpleUploadedFile into image field
+                    post_chat_photo.file.save(
+                        '%s.%s' % (os.path.splitext(suf.name)[0], FILE_EXTENSION),
+                        suf, save=True)
+
+                    # request.FILES['file'].seek(0)
+                    # image = Image.open(BytesIO(request.FILES['file'].read()))
+
+                    # use our PIL Image object to create the thumbnail, which already
+                    return JsonResponse({'res': 1, 'url': post_chat_photo.file.url})
 
         return JsonResponse({'res': 2})

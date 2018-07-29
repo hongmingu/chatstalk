@@ -531,3 +531,33 @@ transform: translateX(10px) translateY(-10px)
         .height_10{
             height: 10px;
         }
+
+                .write_new_post {
+            font-weight: bold;
+            color: white;
+            width: 100%
+        }
+
+        .new_post_heading {
+            font-weight: bold;
+            font-size: 24px;
+        }
+
+        .choice_selected {
+            font-weight: bold;
+            color: white;
+            font-size: 16px;
+            background-color: #2ac31b;
+        }
+
+        .choice_unselected {
+            font-weight: bold;
+            color: grey;
+            font-size: 16px;
+            background-color: white;
+        }
+
+        .open_or_close {
+            font-weight: bold;
+            font-size: 20px;
+        }

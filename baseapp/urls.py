@@ -22,7 +22,7 @@ urlpatterns = [
     re_path(r'^re/create/new/remove_photo/$', base_ajax_views.re_create_new_remove_photo, name='re_create_new_remove_photo'),
     re_path(r'^re/create/new/text/$', base_ajax_views.re_create_new_text,
             name='re_create_new_text'),
-    re_path(r'^re/create/new/chat/photo/$', base_ajax_views.re_create_new_chat_photo,
+    re_path(r'^re/create/new/chat_photo/$', base_ajax_views.re_create_new_chat_photo,
             name='re_create_new_chat_photo'),
 
     # re_path(r'^email/key/send/$', views.email_key_send, name='email_key_send'),
