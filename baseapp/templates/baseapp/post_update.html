@@ -12,7 +12,7 @@
     <script src="{% static 'js/nav_badge.js' %}"></script>
 
     <script src="{% static 'js/post_profile_upload_photo.js' %}"></script>
-
+    <script src="{% static 'js/post_update.js' %}"></script>
     <link rel="stylesheet" href="{% static 'cropper/cropper.min.css' %}">
     <script src="{% static 'cropper/cropper.min.js' %}"></script>
     <link href="https://fonts.googleapis.com/css?family=Tauri" rel="stylesheet">
@@ -106,6 +106,9 @@
         .chat_preview_img{
             max-width: 100%;
         }
+        .remove_add_t_d{
+            background-color: #2ac31b; color: white;
+        }
     </style>
 
 
@@ -120,6 +123,7 @@
 
 <div class="hidden" id="page_kind" data-u="create_new"></div>
 <div class="hidden" id="last_num" data-u=""></div>
+<div class="hidden" id="just_created" data-u="{{ just_created.ok }}"></div>
 
 {% if user.is_authenticated %}
     <div class="hidden" id="num" data-u="{{ user.username }}"></div>
@@ -128,6 +132,25 @@
     <div class="hidden" id="post_pk" data-u="{{ post.pk }}"></div>
 {% endif %}
 <!--page info end -->
+{% if post.has_title %}
+    <div class="hidden" id="post_title" data-u="{{ post.posttitle.title }}"></div>
+{% endif %}
+
+{% if post.has_description %}
+    <div class="hidden" id="post_description" data-u="{{ post.postdescription.description}}"></div>
+{% endif %}
+
+{% if just_created.ok == "on" %}
+    <div class="hidden" id="just_created" data-u="on"></div>
+{% else %}
+    <div class="hidden" id="just_created" data-u="off"></div>
+
+    {% if just_created.current == "open" %}
+        <div class="hidden" id="current_open" data-u="open"></div>
+    {% else %}
+        <div class="hidden" id="current_open" data-u="close"></div>
+    {% endif %}
+{% endif %}
 
 <div class="container-fluid margin_top_50">
     <div class="row">
@@ -136,20 +159,92 @@
                 <!--여기서 modal -->
 
                 <div class="row div_base">
-                    <div align="center"><span class="new_post_heading">Post Created</span></div>
+                    <br>
+                    <br>
+                    {% if post.title %}
+                        <div class="div_title" id="title_discriminant">
+                            <div align="left"><span class="padding_5 created_title">title: </span></div>
+                            <div><input class="width_100_i" id="title_input" type="text" value="{{ post.title }}"></div>
+                            <br/>
+                            <div align="right">
+                                <a href=""><span class="padding_5 clickable remove_add_t_d title_toggle" id="remove_title">remove title</span></a>
+                            </div>
+                        </div>
+                        <div class="div_title hidden">
+                            <div align="right">
+                                <a href=""><span class="padding_5 clickable remove_add_t_d title_toggle" id="add_title">add title</span></a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="div_title hidden">
+                            <div align="left"><span class="padding_5 created_title">title: </span></div>
+                            <div><input class="width_100_i" id="title_input" type="text" value=""></div>
+                            <br/>
+                            <div align="right">
+                                <a href=""><span class="padding_5 clickable remove_add_t_d title_toggle" id="remove_title">remove title</span></a>
+                            </div>
+                        </div>
+                        <div class="div_title">
+                            <div align="right">
+                                <a href=""><span class="padding_5 clickable remove_add_t_d title_toggle" id="add_title">add title</span></a>
+                            </div>
+                        </div>
+                    {% endif %}
+                <br/>
+                    {% if post.description %}
+                        <div class="div_desc" id="desc_discriminant">
+                            <div align="left"><span class="padding_5 created_description">description: </span></div>
+                            <div><textarea class="width_100_i create_description_textarea" id="desc_input">{{ post.description }}</textarea></div>
+                            <br/>
+                            <div align="right">
+                                <a href=""><span class="padding_5 clickable remove_add_t_d desc_toggle" id="remove_description">remove description</span></a>
+                            </div>
+                        </div>
+                        <div class="div_desc hidden">
+                            <div align="right">
+                                <a href=""><span class="padding_5 clickable remove_add_t_d desc_toggle" id="add_description">add description</span></a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="div_desc hidden" id="desc_discriminant">
+                            <div align="left"><span class="padding_5 created_description">description: </span></div>
+                            <div><textarea class="width_100_i create_description_textarea" id="desc_input"></textarea></div>
+                            <br/>
+                            <div align="right">
+                                <a href=""><span class="padding_5 clickable remove_add_t_d desc_toggle" id="remove_description">remove description</span></a>
+                            </div>
+                        </div>
+                        <div class="div_desc">
+                            <div align="right">
+                                <a href=""><span class="padding_5 clickable remove_add_t_d desc_toggle" id="add_description">add description</span></a>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <!--여기는 프로필 사진 -->
                     <br>
                     <br>
                     <br>
+                    <div class="col-xs-6">
+                        <a href="">
+                            <div class="clickable padding_5 choice_selected" id="open" align="center">open</div>
+                        </a>
+                    </div>
+                    <div class="col-xs-6">
+                        <a href="">
+                            <div class="clickable padding_5 choice_unselected" id="close" align="center">close</div>
+                        </a>
+                    </div>
+                    <br>
+                    <br>
+                    <br>
+                    <div class="col-xs-12">
+                        <div align="center"><a href="">
+                            <div class="clickable padding_5 main_background_color write_new_post" id="ok">OK</div>
+                        </a></div>
 
-                    {% if post.has_title %}
-                        <div align="left"><span class="padding_5 created_title">Title: </span>
-                            <span class="created_title_content" style="">{{ post.posttitle.title }}</span></div>
-                    {% endif %}
-                    {% if post.has_description %}
-                        <div align="left"><span class="padding_5 created_description">Description: </span>
-                            <span class="created_description_content"
-                                  style="">{{ post.postdescription.description }}</span></div>
-                    {% endif %}
+                    </div>
+
+                    <br/><br/><br/><br/>
                     {% if post.has_another_profile %}
 
                         <div align="left"><span class="padding_5 created_description">Profile name: </span>
@@ -166,19 +261,15 @@
                                     id="span_base_reset">BaseReset</span></a></p>
                         </div>
                     {% endif %}
-                    <!--여기는 프로필 사진 -->
-                    <br>
-                    <br>
-                    <br>
-                    <br>
-                    <div align="center"><span class="open_or_close">Add your first chat?</span></div>
+                    <br/><br/>
+                    <br/>
+                    <div align="center"><span class="open_or_close">Add your chat?</span></div>
 
                     <div class="chat_preview" id="chat_preview">
                         <div class="chat_preview_wrapper">
                             <div class="chat_preview_size">
                                 <div><span class="chat_preview_name">Someone</span></div>
-                                <div class="chat_preview_someone_saying">
-                                    ljaslkfjwlekfjwjaslkfjwlekfjwjaslkfjwlekfjwjaslkfjwlekfjwjaslkfjwlekfjwjaslkfjwlekfjwjaslkfjwlekfjwjaslkfjwlekfjw
+                                <div class="chat_preview_someone_saying">ljaslkfjwlekfjwjaslkfjwlekfjwjaslkfjwlekfjwjaslkfjwlekfjwjaslkfjwlekfjwjaslkfjwlekfjwjaslkfjwlekfjwjaslkfjwlekfjw
                                 </div>
                                 <div class="chat_preview_delete_wrapper" align="right"><a href=""><span class="chat_preview_delete clickable">delete</span></a></div>
                             </div>
@@ -247,33 +338,15 @@
 
                     <br>
                     <br>
+                    <button id="btn_test">test</button>
                     <br>
                     <br>
-                    <br>
-                    <div class="col-xs-6">
-                        <a href="">
-                            <div class="clickable padding_5 choice_selected" id="open" align="center">open</div>
-                        </a>
-                    </div>
-                    <div class="col-xs-6">
-                        <a href="">
-                            <div class="clickable padding_5 choice_unselected" id="close" align="center">close</div>
-                        </a>
-                    </div>
-                    <br>
-                    <br>
-                    <br>
-                    <br>
-                    <br>
-                    <br>
-                    <br>
-                    <br>
-                    <div class="col-xs-12">
-                        <div align="center"><a href="">
-                            <div class="clickable padding_5 main_background_color write_new_post" id="ok">OK</div>
-                        </a></div>
 
-                    </div>
+                    <br/>
+                <br/>
+                <br/>
+                <br/>
+
                 </div>
                 <!--ajax는 ajax고 websocket은 websocket 이다. 둘을 분리한다. 구버전 브라우저는 포기해 일단 채팅과 알림만 websocket 쓴다.-->
 
@@ -356,6 +429,7 @@
         </div>
     </div>
 </div>
+
 <form class="hidden" method="post" enctype="multipart/form-data" id="form_upload">
     <input type="file" name="file" id="input_file" accept="image/jpeg, image/png" required>
 </form>
@@ -366,29 +440,15 @@
 
 </body>
 <script>
-
+    var modify_last_delete = function modify_last_delete(){
+        $('.chat_preview_delete').addClass('hidden')
+        if ($('.chat_preview_delete').last().hasClass('hidden')){
+            console.log($('.chat_preview_delete').last().attr('data-u')+'has hidden')
+            $('.chat_preview_delete').last().removeClass('hidden')
+        }
+    }
     $(function () {
-        var open;
-        $('#open').click(function (e) {
-            e.preventDefault()
-            if ($(this).hasClass('choice_unselected')) {
-                $(this).toggleClass('choice_selected choice_unselected')
-            }
-            if ($('#close').hasClass('choice_selected')) {
-                $('#close').toggleClass('choice_selected choice_unselected')
-            }
-            open = 'open'
-        });
-        $('#close').click(function (e) {
-            e.preventDefault()
-            if ($(this).hasClass('choice_unselected')) {
-                $(this).toggleClass('choice_selected choice_unselected')
-            }
-            if ($('#open').hasClass('choice_selected')) {
-                $('#open').toggleClass('choice_selected choice_unselected')
-            }
-            open = 'close'
-        })
+
         var you_say = 'you';
         $('#you_say').click(function (e) {
             e.preventDefault()
@@ -405,11 +465,100 @@
             if ($(this).hasClass('choice_unselected')) {
                 $(this).toggleClass('choice_selected choice_unselected')
             }
-            if ($('#you_says').hasClass('choice_selected')) {
-                $('#you_says').toggleClass('choice_selected choice_unselected')
+            if ($('#you_say').hasClass('choice_selected')) {
+                $('#you_say').toggleClass('choice_selected choice_unselected')
             }
             you_say = 'someone'
         })
+
+
+        $('textarea').on("keypress", function (e) {
+            /* ENTER PRESSED*/
+            if (e.keyCode == 13 && !e.shiftKey) {
+                var text = $(this).val()
+
+                $.ajax({
+                    url: '/re/create/new/text/',
+                    type: 'post',
+                    dataType: 'json',
+                    cache: false,
+                    data: {
+                        you_say: you_say,
+                        text: text,
+                        post_pk: $('#post_pk').attr('data-u')
+                    },
+                    success: function (data) {
+                        if (data.res === 1) {
+                            if (data.content.you_say === true) {
+                                var chat_preview = $('<div class="chat_preview_wrapper" id="chat_'+data.content.id+'"align="right">\n' +
+                                    '<div class="chat_preview_size">\n' +
+                                    '<div><span class="chat_preview_name">You</span></div>\n' +
+                                    '<div class="chat_preview_you_saying">' + data.content.text + '</div>\n' +
+                                    '<div class="chat_preview_delete_wrapper" align="left"><a href=""><span class="chat_preview_delete clickable hidden" data-u="'+data.content.id+'" >delete</span></a></div>\n' +
+                                    '</div>\n' +
+                                    '</div>')
+                                chat_preview.find('.chat_preview_delete').on('click', function (e) {
+                                    e.preventDefault()
+                                    var id = $(this).attr('data-u')
+                                    $.ajax({
+                                        url: '/re/post/chat/remove/', type: 'post', dataType:'json', cache: false,
+                                        data: {
+                                            post_chat_id: id,
+                                        },
+                                        success: function (data) {
+                                            console.log(id)
+                                            $('#chat_'+id).remove()
+                                            $.when($('#chat_'+id).remove()).then(modify_last_delete());
+                                        }
+                                    })
+
+                                    modify_last_delete()
+
+                                })
+                                $('#chat_preview').append(chat_preview)
+                                modify_last_delete()
+
+                            } else {
+                                var chat_preview = $('<div class="chat_preview_wrapper">\n' +
+                                    '<div class="chat_preview_size">\n' +
+                                    '<div><span class="chat_preview_name">Someone</span></div>\n' +
+                                    '<div class="chat_preview_someone_saying">' + data.content.text + '</div>\n' +
+                                    '<div class="chat_preview_delete_wrapper" align="right"><a href=""><span class="chat_preview_delete clickable" data-u="'+data.content.id+'" >delete</span></a></div>\n' +
+                                    '</div>\n' +
+                                    '</div>')
+                                chat_preview.find('.chat_preview_delete').on('click', function (e) {
+                                    e.preventDefault()
+                                    alert('removed: '+$(this).attr('data-u'))
+                                })
+                                $('#chat_preview').append(chat_preview)
+                                modify_last_delete()
+
+                            }
+                        }
+                    }
+                });
+
+                $(this).val('')
+                return false;
+            }
+        });
+
+
+        $('#btn_test').click(function (e) {
+            e.preventDefault()
+            $('.chat_preview_delete').addClass('hidden')
+            if ($('.chat_preview_delete').last().hasClass('hidden')){
+                console.log($('.chat_preview_delete').last().attr('data-u')+'has hidden')
+                $('.chat_preview_delete').last().removeClass('hidden')
+            }
+        });
+        $('#btn_add ').click(function (e) {
+            e.preventDefault()
+            var text = $('textarea').val()
+
+            $('textarea').val('')
+
+        });
         $('#add_photo').click(function (e) {
             e.preventDefault();
             $('#input_chat_file').click()
@@ -513,80 +662,8 @@
                 }
             });
         });
-        var someone_saying = ''
-        $('textarea').on("keypress", function (e) {
-            /* ENTER PRESSED*/
-            if (e.keyCode == 13 && !e.shiftKey) {
-                var text = $('textarea').val()
 
-                $.ajax({
-                    url: '/re/create/new/text/',
-                    type: 'post',
-                    dataType: 'json',
-                    cache: false,
-                    data: {
-                        you_say: you_say,
-                        text: text,
-                        post_pk: $('#post_pk').attr('data-u')
-                    },
-                    success: function (data) {
-                        console.log(data)
-                        if (data.res === 1) {
-                            if (data.content.you_say === true) {
-                                alert('hey')
-                                var chat_preview = $('<div class="chat_preview_wrapper" align="right">\n' +
-                                    '<div class="chat_preview_size">\n' +
-                                    '<div><span class="chat_preview_name">You</span></div>\n' +
-                                    '<div class="chat_preview_you_saying">\n' + data.content.text +
-                                    '</div>\n' +
-                                    '<div class="chat_preview_delete_wrapper" align="left"><a href=""><span class="chat_preview_delete clickable" data-u="'+data.content.id+'" >delete</span></a></div>\n' +
-                                    '</div>\n' +
-                                    '</div>')
-                                chat_preview.find('.chat_preview_delete').on('click', function (e) {
-                                    e.preventDefault()
-                                    alert('removed: '+$(this).attr('data-u'))
-                                })
-                                $('#chat_preview').append(chat_preview)
 
-                            } else {
-
-                            }
-                        }
-                    }
-                });
-
-                $(this).val('')
-                return false;
-            }
-        });
-        $('#btn_add ').click(function (e) {
-            e.preventDefault()
-            var text = $('textarea').val()
-
-            $('textarea').val('')
-
-        });
-
-        $('#ok').click(function () {
-            $.ajax({
-                url: 're/create/new/',
-                type: 'post',
-                dataType: 'json',
-                cache: false,
-                processData: false,
-                contentType: false,
-                data: {
-                    open: open,
-                    post_pk: $('#post_num').attr('data-u')
-                },
-                success: function (data) {
-                    console.log(data)
-                    if (data.res === 1) {
-                        $('#img_300').attr('src', data.url)
-                    }
-                }
-            });
-        })
     })
 </script>
 </html>

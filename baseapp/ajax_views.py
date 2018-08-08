@@ -166,7 +166,7 @@ def re_create_new_upload_photo(request):
 
 
 
-
+# 이건 포스트의 프로필 이미지를 지우기 위함.
 @ensure_csrf_cookie
 def re_create_new_remove_photo(request):
     if request.method == "POST":
@@ -208,9 +208,13 @@ def re_create_new_text(request):
                     post_chat_last = PostChat.objects.filter(post=post).last()
                 except PostChat.DoesNotExist:
                     return JsonResponse({'res': 0})
-                post_chat = PostChat.objects.create(kind=POSTCHAT_TEXT, before=post_chat_last)
+                you_say = False
+                if request.POST.get('you_say', None) == 'you':
+                    you_say = True
+                print(request.POST.get('text', None))
+                post_chat = PostChat.objects.create(kind=POSTCHAT_TEXT, before=post_chat_last, you_say=you_say, uuid=uuid.uuid4().hex)
                 post_chat_text = PostChatText.objects.create(post_chat=post_chat, text=request.POST.get('text', None))
-                return JsonResponse({'res': 1, 'text': post_chat.get_value()})
+                return JsonResponse({'res': 1, 'content': post_chat.get_value()})
 
         return JsonResponse({'res': 2})
 
@@ -233,7 +237,10 @@ def re_create_new_chat_photo(request):
                     return JsonResponse({'res': 0})
                 form = PostChatPhotoForm(request.POST, request.FILES)
                 if form.is_valid():
-                    post_chat = PostChat.objects.create(kind=POSTCHAT_PHOTO, post=post, before=post_chat_last)
+                    you_say = False
+                    if request.POST.get('you_say', None) == 'you':
+                        you_say = True
+                    post_chat = PostChat.objects.create(kind=POSTCHAT_PHOTO, post=post, before=post_chat_last, you_say=you_say, uuid=uuid.uuid4().hex)
                     post_chat_photo = PostChatPhoto.objects.create(post_chat=post_chat)
 
                     DJANGO_TYPE = request.FILES['file'].content_type
@@ -276,6 +283,54 @@ def re_create_new_chat_photo(request):
                     # image = Image.open(BytesIO(request.FILES['file'].read()))
 
                     # use our PIL Image object to create the thumbnail, which already
-                    return JsonResponse({'res': 1, 'url': post_chat_photo.file.url})
+                    return JsonResponse({'res': 1, 'content': post_chat.get_value()})
+
+        return JsonResponse({'res': 2})
+
+@ensure_csrf_cookie
+def re_post_update(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_pk = request.POST.get('post_pk', None)
+                try:
+                    post = Post.objects.get(pk=post_pk)
+                except:
+                    return JsonResponse({'res': 0})
+                # 여기서 None 이 나오진 않고 기껏해야 빈 문자열이 오는 것이다.
+                open = request.POST.get('open', None)
+                title_command = request.POST.get('title_command', None)
+                desc_command = request.POST.get('desc_command', None)
+                if open == 'open':
+                    post.is_open = True
+                elif open == 'close':
+                    post.is_open = False
+                if title_command == 'removed':
+                    post.title = None
+                elif title_command == 'add':
+                    post.title = request.POST.get('title', None)
+                if desc_command == 'removed':
+                    post.description = None
+                elif desc_command == 'add':
+                    post.description = request.POST.get('description', None)
+
+                post.save()
+                return JsonResponse({'res': 1})
+
+        return JsonResponse({'res': 2})
+
+@ensure_csrf_cookie
+def re_post_chat_remove(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_chat_id = request.POST.get('post_chat_id', None)
+                print(post_chat_id)
+                try:
+                    post_chat = PostChat.objects.get(uuid=post_chat_id)
+                except:
+                    return JsonResponse({'res': 0})
+                post_chat.delete()
+                return JsonResponse({'res': 1})
 
         return JsonResponse({'res': 2})
