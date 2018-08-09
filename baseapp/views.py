@@ -35,6 +35,7 @@ def create_new(request):
                                        is_open=False)
             if has_another_profile:
                 PostProfile.objects.create(post=post, name=form.cleaned_data['name'])
+            post_first_check = PostFirstCheck.objects.create(post=post)
             post_chat = PostChat.objects.create(post=post, before=None, kind=POSTCHAT_START, uuid=uuid.uuid4().hex)
             # 여기서 post unique constraint 처리 해주면 좋긴 하나 지금 하기엔 하고 싶지 않다.
             return redirect(reverse('baseapp:post_update', kwargs={'uuid': uuid_made}))
@@ -55,8 +56,11 @@ def post_update(request, uuid):
             except Post.DoesNotExist:
                 return render(request, '404.html')
             just_created = {}
-            if ((now() - post.created) < timedelta(seconds=60)) and (post.is_open is False):
+            if not post.postfirstcheck.first_checked:
                 just_created['ok'] = 'on'
+                post_first_check = post.postfirstcheck
+                post_first_check.first_checked = True
+                post_first_check.save()
             else:
                 just_created['ok'] = 'off'
                 if post.is_open:

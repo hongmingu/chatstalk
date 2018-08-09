@@ -81,7 +81,7 @@ def re_create_new_upload_photo(request):
 
             if request.is_ajax():
                 try:
-                    post = Post.objects.get(pk=request.POST['post_num'])
+                    post = Post.objects.get(uuid=request.POST['post_id'])
                 except:
                     return JsonResponse({'res': 0})
                 try:
@@ -173,9 +173,9 @@ def re_create_new_remove_photo(request):
         if request.user.is_authenticated:
             if request.is_ajax():
                 if request.POST.get('command', None) == 'remove_photo':
-                    post_num = request.POST.get('post_num', None)
+                    post_id = request.POST.get('post_id', None)
                     try:
-                        post = Post.objects.get(pk=post_num)
+                        post = Post.objects.get(pk=post_id)
                     except:
                         return JsonResponse({'res': 0})
                     try:
@@ -198,16 +198,57 @@ def re_create_new_text(request):
     if request.method == "POST":
         if request.user.is_authenticated:
             if request.is_ajax():
-                post_pk = request.POST.get('post_pk', None)
+                post_id = request.POST.get('post_id', None)
                 try:
-                    post = Post.objects.get(pk=post_pk)
+                    post = Post.objects.get(uuid=post_id)
                 except:
                     return JsonResponse({'res': 0})
-                post_chat_last = None
+                print('got post: ' + str(post))
+
                 try:
                     post_chat_last = PostChat.objects.filter(post=post).last()
+                    print('any made post chat?: ' + str(post_chat_last.pk))
+
                 except PostChat.DoesNotExist:
+                    print('has error on getting post_chat_last')
+                print('has no error on getting post_chat_last')
+                you_say = False
+                if request.POST.get('you_say', None) == 'you':
+                    you_say = True
+                print(request.POST.get('text', None))
+                post_chat = PostChat.objects.create(post=post, kind=POSTCHAT_TEXT, before=post_chat_last, you_say=you_say, uuid=uuid.uuid4().hex)
+                post_chat_text = PostChatText.objects.create(post_chat=post_chat, text=request.POST.get('text', None))
+                return JsonResponse({'res': 1, 'content': post_chat.get_value()})
+
+        return JsonResponse({'res': 2})
+
+'''
+
+@ensure_csrf_cookie
+def re_create_new_text(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_id = request.POST.get('post_id', None)
+                try:
+                    post = Post.objects.last()
+                except:
                     return JsonResponse({'res': 0})
+                print('got post: ' + str(post))
+                try:
+                    post_chat_create = PostChat.objects.create(post=post, kind=POSTCHAT_TEXT, before=None, you_say=True, uuid=uuid.uuid4().hex)
+                    print('post chat has been created')
+                except Exception as e:
+                    print('if it has exception: ' + str(e))
+                print('just created post chat: ' + str(post_chat_create.pk))
+
+                try:
+                    post_chat_last = PostChat.objects.last()
+                    print('any made post chat?: ' + str(post_chat_last.pk))
+
+                except PostChat.DoesNotExist:
+                    print('has error on getting post_chat_last')
+                print('has no error on getting post_chat_last')
                 you_say = False
                 if request.POST.get('you_say', None) == 'you':
                     you_say = True
@@ -216,8 +257,7 @@ def re_create_new_text(request):
                 post_chat_text = PostChatText.objects.create(post_chat=post_chat, text=request.POST.get('text', None))
                 return JsonResponse({'res': 1, 'content': post_chat.get_value()})
 
-        return JsonResponse({'res': 2})
-
+        return JsonResponse({'res': 2})'''
 # 2018-07-28 해야 할 일: postchatphoto 업로드 테스트.
 
 
@@ -226,9 +266,9 @@ def re_create_new_chat_photo(request):
     if request.method == "POST":
         if request.user.is_authenticated:
             if request.is_ajax():
-                post_pk = request.POST['post_pk']
+                post_id = request.POST['post_id']
                 try:
-                    post = Post.objects.get(pk=post_pk)
+                    post = Post.objects.get(uuid=post_id)
                 except:
                     return JsonResponse({'res': 0})
                 try:
@@ -237,9 +277,9 @@ def re_create_new_chat_photo(request):
                     return JsonResponse({'res': 0})
                 form = PostChatPhotoForm(request.POST, request.FILES)
                 if form.is_valid():
-                    you_say = False
-                    if request.POST.get('you_say', None) == 'you':
-                        you_say = True
+                    you_say = True
+                    if request.POST.get('you_say', None) == 'someone':
+                        you_say = False
                     post_chat = PostChat.objects.create(kind=POSTCHAT_PHOTO, post=post, before=post_chat_last, you_say=you_say, uuid=uuid.uuid4().hex)
                     post_chat_photo = PostChatPhoto.objects.create(post_chat=post_chat)
 
@@ -292,9 +332,9 @@ def re_post_update(request):
     if request.method == "POST":
         if request.user.is_authenticated:
             if request.is_ajax():
-                post_pk = request.POST.get('post_pk', None)
+                post_id = request.POST.get('post_id', None)
                 try:
-                    post = Post.objects.get(pk=post_pk)
+                    post = Post.objects.get(uuid=post_id)
                 except:
                     return JsonResponse({'res': 0})
                 # 여기서 None 이 나오진 않고 기껏해야 빈 문자열이 오는 것이다.
@@ -325,12 +365,33 @@ def re_post_chat_remove(request):
         if request.user.is_authenticated:
             if request.is_ajax():
                 post_chat_id = request.POST.get('post_chat_id', None)
-                print(post_chat_id)
                 try:
                     post_chat = PostChat.objects.get(uuid=post_chat_id)
                 except:
                     return JsonResponse({'res': 0})
                 post_chat.delete()
                 return JsonResponse({'res': 1})
+
+        return JsonResponse({'res': 2})
+
+
+
+@ensure_csrf_cookie
+def re_post_chat_modify_populate(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_id = request.POST.get('post_id', None)
+                print(post_id)
+                try:
+                    post = Post.objects.get(uuid=post_id)
+                except:
+                    return JsonResponse({'res': 0})
+                post_chat_set = post.postchat_set.all().order_by('-created')[:10]
+                from django.core import serializers
+                post_chat_set = serializers.serialize('python', post_chat_set)
+                actual_data = [PostChat.objects.get(pk=item['pk']).get_value() for item in post_chat_set]
+                output = json.dumps(actual_data)
+                return JsonResponse({'res': 1, 'set': output})
 
         return JsonResponse({'res': 2})

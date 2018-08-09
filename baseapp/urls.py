@@ -29,6 +29,9 @@ urlpatterns = [
             name='re_post_update'),
     re_path(r'^re/post/chat/remove/$', base_ajax_views.re_post_chat_remove,
             name='re_post_chat_remove'),
+
+    re_path(r'^re/post/chat/modify/populate/$', base_ajax_views.re_post_chat_modify_populate,
+            name='re_post_chat_modify_populate'),
     # re_path(r'^email/key/send/$', views.email_key_send, name='email_key_send'),
     # re_path(r'^email/key/confirm/(?P<uid>([A-Za-z0-9_](?:(?:[A-Za-z0-9_]|(?:\.(?!\.))){0,28}(?:[A-Za-z0-9_]))?))/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         # views.email_key_confirm, name='email_key_confirm'),
