@@ -74,6 +74,7 @@ def task(request):
 
         return JsonResponse({'res': 2})
 
+
 @ensure_csrf_cookie
 def re_create_new_upload_photo(request):
     if request.method == "POST":
@@ -165,7 +166,6 @@ def re_create_new_upload_photo(request):
             return JsonResponse({'res': 0, 'message': texts.UNEXPECTED_ERROR})
 
 
-
 # 이건 포스트의 프로필 이미지를 지우기 위함.
 @ensure_csrf_cookie
 def re_create_new_remove_photo(request):
@@ -188,7 +188,6 @@ def re_create_new_remove_photo(request):
                     return JsonResponse({'res': 1})
                 elif request.POST.get('whose', None) == 'other':
                     pass
-
 
         return JsonResponse({'res': 2})
 
@@ -216,11 +215,13 @@ def re_create_new_text(request):
                 if request.POST.get('you_say', None) == 'you':
                     you_say = True
                 print(request.POST.get('text', None))
-                post_chat = PostChat.objects.create(post=post, kind=POSTCHAT_TEXT, before=post_chat_last, you_say=you_say, uuid=uuid.uuid4().hex)
+                post_chat = PostChat.objects.create(post=post, kind=POSTCHAT_TEXT, before=post_chat_last,
+                                                    you_say=you_say, uuid=uuid.uuid4().hex)
                 post_chat_text = PostChatText.objects.create(post_chat=post_chat, text=request.POST.get('text', None))
                 return JsonResponse({'res': 1, 'content': post_chat.get_value()})
 
         return JsonResponse({'res': 2})
+
 
 '''
 
@@ -258,6 +259,8 @@ def re_create_new_text(request):
                 return JsonResponse({'res': 1, 'content': post_chat.get_value()})
 
         return JsonResponse({'res': 2})'''
+
+
 # 2018-07-28 해야 할 일: postchatphoto 업로드 테스트.
 
 
@@ -280,7 +283,8 @@ def re_create_new_chat_photo(request):
                     you_say = True
                     if request.POST.get('you_say', None) == 'someone':
                         you_say = False
-                    post_chat = PostChat.objects.create(kind=POSTCHAT_PHOTO, post=post, before=post_chat_last, you_say=you_say, uuid=uuid.uuid4().hex)
+                    post_chat = PostChat.objects.create(kind=POSTCHAT_PHOTO, post=post, before=post_chat_last,
+                                                        you_say=you_say, uuid=uuid.uuid4().hex)
                     post_chat_photo = PostChatPhoto.objects.create(post_chat=post_chat)
 
                     DJANGO_TYPE = request.FILES['file'].content_type
@@ -327,6 +331,7 @@ def re_create_new_chat_photo(request):
 
         return JsonResponse({'res': 2})
 
+
 @ensure_csrf_cookie
 def re_post_update(request):
     if request.method == "POST":
@@ -341,6 +346,8 @@ def re_post_update(request):
                 open = request.POST.get('open', None)
                 title_command = request.POST.get('title_command', None)
                 desc_command = request.POST.get('desc_command', None)
+                print(title_command)
+                print(desc_command)
                 if open == 'open':
                     post.is_open = True
                 elif open == 'close':
@@ -359,6 +366,7 @@ def re_post_update(request):
 
         return JsonResponse({'res': 2})
 
+
 @ensure_csrf_cookie
 def re_post_chat_remove(request):
     if request.method == "POST":
@@ -373,7 +381,6 @@ def re_post_chat_remove(request):
                 return JsonResponse({'res': 1})
 
         return JsonResponse({'res': 2})
-
 
 
 @ensure_csrf_cookie
@@ -392,6 +399,69 @@ def re_post_chat_modify_populate(request):
                 post_chat_set = serializers.serialize('python', post_chat_set)
                 actual_data = [PostChat.objects.get(pk=item['pk']).get_value() for item in post_chat_set]
                 output = json.dumps(actual_data)
+                return JsonResponse({'res': 1, 'set': output})
+
+        return JsonResponse({'res': 2})
+
+
+@ensure_csrf_cookie
+def re_post_chat_more_load(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_id = request.POST.get('post_id', None)
+                post_chat_id = request.POST.get('post_chat_id', None)
+                print(post_id)
+                print(post_chat_id)
+                try:
+                    post = Post.objects.get(uuid=post_id)
+                except:
+                    return JsonResponse({'res': 0})
+                from django.db.models import Q
+                standard_post_chat = PostChat.objects.get(uuid=post_chat_id)
+                post_chat_set = PostChat.objects.filter(
+                    Q(post=post) & Q(created__lt=standard_post_chat.created)).order_by('-created')[:10]
+                from django.core import serializers
+                post_chat_set = serializers.serialize('python', post_chat_set)
+                actual_data = [PostChat.objects.get(pk=item['pk']).get_value() for item in post_chat_set]
+                output = json.dumps(actual_data)
+                return JsonResponse({'res': 1, 'set': output})
+
+        return JsonResponse({'res': 2})
+
+
+@ensure_csrf_cookie
+def re_user_home_populate(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_id = request.POST.get('post_id', None)
+                try:
+                    post = Post.objects.last()
+                except:
+                    return JsonResponse({'res': 0})
+                print(post_id)
+                from django.db.models import Q
+                name = post.user.usertextname.name
+                profile_photo = post.user.userphoto.file_50_url()
+
+                if post.has_another_profile:
+                    name = post.postprofile.name
+                    profile_photo = post.postprofile.file_50_url()
+
+                output = {'title': post.title,
+                          'desc': post.description,
+                          'like_count': post.postlikecount.count,
+                          'username': post.user.userusername.username,
+                          'name': name,
+                          'photo': profile_photo,
+                          'comment_count': post.postcommentcount.count,
+                          'created': post.created,
+                          'last_chat': post.get_last_chat(),
+                          'absolute_url': post.get_absolute_url(),
+                          'first_comment': post.postcomment_set.first(),
+                          'id': post.uuid,
+                          }
                 return JsonResponse({'res': 1, 'set': output})
 
         return JsonResponse({'res': 2})

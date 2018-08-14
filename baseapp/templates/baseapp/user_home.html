@@ -20,7 +20,18 @@
         .write_new_post{
             font-weight: bold; color: white; width: 100%
         }
+        .home_feed_title{
+            padding: 10px; font-weight: bold; font-size: 14px; white-space:pre-wrap; word-wrap: break-word; max-width: 100%;
+        }
+        .home_feed_desc{
+            padding-right: 10px; padding-left:10px; padding-top:5px; padding-bottom:10px; font-size: 12px; white-space:pre-wrap; word-wrap: break-word; max-width: 100%;
+        }
+        .home_feed_chat_photo{
+            font-weight: bold;
+        }
+        .home_feed_chat_start{
 
+        }
     </style>
 
 
@@ -50,38 +61,181 @@
 
                 <div class="row div_base" data-u="1">
                     <script defer>
-                        function filler(){
-                            var u = $('script').last().parent().attr('data-u')
-                            var kind = $('#page_kind').attr('data-u')
-
+                        function home_populate(){
                             $(function () {
+                                var id = $('script').last().parent().attr('data-u')
+                                $.ajax({
+                                    url: '/re/user/home/populate/', type: 'post', dataType:'json', cache: false,
+                                    data: {
+                                        post_id: id,
+                                    },
+                                    success: function (data) {
+                                        if (data.res === 1){
+                                            var _last_chat;
+                                            console.log(data.set.created)
+                                            console.log(typeof data.set.created)
+                                            var hello_date = new Date(data.set.created)
+                                            var sample_date = new Date('2018-08-05T08:29:04.761Z')
+                                            console.log(typeof hello_date)
+                                            var current_iso = new Date().toISOString()
+                                            var current_iso_sec = new Date(current_iso)
 
-                                if (kind === 'home'){
-                                    alert(u)
+                                            // iso로 하건 뭘로 하건 상관없다.
 
-                                    $.ajax({url:'/re/task/', type:'post', dataType:'json', cache:false,
-                                        data:{
-                                            command:'_home',
-                                            pk:u
-                                        },
-                                        success:function (data) {
+                                            console.log(date_differ(new Date('2018-08-14T08:29:04.761Z')))
 
-                                                console.log(data)
-                                            if (data.res === 1) {
-                                                console.log(data)
-                                                var append = ''
-                                                $('script').last().parent().append('');
+                                            switch (data.set.last_chat){
+                                                case 'start':
+                                                    _last_chat = '<span class="home_feed_chat_start">'+'Conversation started'+'</span>'
+
+                                                    break;
+                                                case 'text':
+                                                    if (data.set.you_say === 'true'){
+                                                        _last_chat = '<span>'+data.set.name+'</span><span><b>: </b></span>'+'<span class="home_feed_chat_text">'+data.set.last_chat.text+'</span>'
+                                                    } else {
+                                                        _last_chat = '<span class="home_feed_chat_text">'+data.set.last_chat.text+'</span>'
+                                                    }
+                                                    // User left room
+                                                    break;
+
+                                                case 'photo':
+                                                    // User left room
+                                                    if (data.set.you_say === 'true'){
+                                                        _last_chat = '<span>'+data.set.name+'</span><span><b>: </b></span>'+'<span class="home_feed_chat_photo">'+'photo'+'</span>'
+                                                    } else {
+                                                        _last_chat = '<span class="home_feed_chat_photo">'+'photo'+'</span>'
+                                                    }
+                                                    break;
+                                                default:
+                                                    _last_chat = '<span class="home_feed_chat_start">'+'Conversation?'+'</span>'
+                                                    return;
                                             }
+                                            var _title ,_title_class, _desc, _desc_class
+                                            if (data.set.title === null){
+                                                _title_class = ' hidden'
+                                                _title = ''
+                                            } else {
+                                                _title_class = ''
+                                                _title = data.set.title
+                                            }
+                                            if (data.set.desc === null){
+                                                _desc_class = ' hidden'
+                                                _desc = ''
+                                            } else {
+                                                _desc_class = ''
+                                                _desc = data.set.desc
+                                            }
+                                            // 제목에 공백만 있는 건 허용하지 말자. 자바스크립트로. 그렇게 하고 파이썬 뷰에서 그렇게 하자.
+                                            var appender = '<div class="media">\n' +
+                                                '<div class="media-heading margin_bottom_30">\n' +
+                                                '<div class="col-xs-10 padding_left_0" align="left"><span\n' +
+                                                'class="home_feed_name">'+set.username+'</span></div>\n' +
+                                                '<div class="col-xs-2" align="right"><span\n' +
+                                                'class="glyphicon glyphicon-option-horizontal grey"></span></div>\n' +
+                                                '</div>\n' +
+                                                '<a href="'+set.absolute_url+'" onClick="window.open(this.href, "", \'width=400, height=430\'); return false;">\n' +
+                                                '<div class="media-left">\n' +
+                                                '<img src="'+set.photo+'" class="media-object img_small">\n' +
+                                                '</div>\n' +
+                                                '<div class="media-body">\n' +
+                                                '<div class="home_feed_chat">'+_last_chat+'</div>\n' +
+                                                '</div>\n' +
+                                                '</a>\n' +
+                                                '<div class="home_feed_title' + _title_class + '">' + _title + '</div>\n' +
+                                                '<div class="home_feed_desc' + _desc_class + '">' + _desc + '</div>\n' +
+                                                '<div class="media-bottom">\n' +
+                                                '<div class="col-xs-10" align="right"><span class="home_feed_time">a long time ago</span>\n' +
+                                                '</div>\n' +
+                                                '<div class="col-xs-2" align="right"><a href="#"><span\n' +
+                                                'class="glyphicon glyphicon-heart-empty heart"></span></a></div>\n' +
+                                                '<div class="col-xs-12"><span class="comments_title">Comments</span></div>\n' +
+                                                '<div class="col-xs-12"><a href="#"><span\n' +
+                                                'class="comments_name">홍민구</span></a><span> </span><span class="comments">30글자 HELLOHELLOHELLOHELLOHELLOHELLO</span><span class="glyphicon glyphicon-heart-empty heart" style="font-size: 12px; margin-left: 10px"></span>\n' +
+                                                '</div>\n' +
+                                                '<div class="col-xs-12"><a href="#"><span\n' +
+                                                'class="comments_name">홍민구</span></a><span> </span><span class="comments">hi</span>\n' +
+                                                '</div>\n' +
+                                                '<div class="col-xs-12"><a href="#"><span\n' +
+                                                'class="comments_name">홍민구</span></a><span> </span><span class="comments">hi</span>\n' +
+                                                '</div>\n' +
+                                                '</div>\n' +
+                                                '</div>'
                                         }
-                                    });
-                                }
+                                    }
+                                })
                             })
                         }
-                        filler()
+                        home_populate()
                     </script>
                 </div>
+
+                <div class="row div_base">
+                    <div class="media">
+                        <div class="media-heading margin_bottom_30">
+                            <div class="col-xs-10 padding_left_0" align="left"><span
+                                    class="home_feed_name">Yuri0429</span></div>
+                            <div class="col-xs-2" align="right"><span
+                                    class="glyphicon glyphicon-option-horizontal grey"></span></div>
+                        </div>
+                        <a href="/test8/" onClick="window.open(this.href, '', 'width=400, height=430'); return false;">
+
+                        <div class="media-left">
+                            <img src="http://www.abcmartkorea.com/wp-content/uploads/2017/03/abc-youtubu-20170327.jpg"
+                                 class="media-object img_small">
+                        </div>
+                        <div class="media-body">
+                            <div class="home_feed_chat" style="border: solid 1px whitesmoke; white-space:pre-wrap; padding:3px; word-wrap: break-word; max-width: 100%;"><span>Your name</span><span><b>: </b></span>Lorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsum#80글자맥스</div>
+                        </div>
+
+                        </a>
+                        <div class="home_feed_title">30글자 맥스 HELLOHELLOHELLOHELLOHELLOHELLO</div>
+                        <div class="home_feed_desc">100글자 맥스 HELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLO</div>
+
+                        <div class="media-bottom">
+                            <div class="col-xs-10" align="right"><span class="home_feed_time">a long time ago</span>
+                            </div>
+                            <div class="col-xs-2" align="right"><a href="#"><span
+                                    class="glyphicon glyphicon-heart-empty heart"></span></a></div>
+                            <div class="col-xs-12"><span class="comments_title">Comments</span></div>
+                            <div class="col-xs-12"><a href="#"><span
+                                    class="comments_name">홍민구</span></a><span> </span><span class="comments">30글자 HELLOHELLOHELLOHELLOHELLOHELLO</span><span class="glyphicon glyphicon-heart-empty heart" style="font-size: 12px; margin-left: 10px"></span>
+                            </div>
+                            <div class="col-xs-12"><a href="#"><span
+                                    class="comments_name">홍민구</span></a><span> </span><span class="comments">hi</span>
+                            </div>
+                            <div class="col-xs-12"><a href="#"><span
+                                    class="comments_name">홍민구</span></a><span> </span><span class="comments">hi</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+<!--대화창을 지울 생각을 한 건 행운이 따른 것이다.-->
+
             </div>
         </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal_menu">
+    <div class="modal-dialog modal-dialog_menu">
+      <div class="modal-content modal-content_menu">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body modal-body_menu">
+            <div class="row">
+              <p class="h4" align="center"><a href="{% url 'authapp:settings' %}"><span class="clickable padding_5" style="background-color: #00aced">Settings</span></a></p>
+            </div>
+            <div class="row">
+              <p class="h4" align="center"><a href="{% url 'authapp:log_out' %}"><span class="clickable padding_5" style="background-color: #00aced">Log out</span></a></p>
+            </div>
+        </div>
+        <div class="modal-footer modal-footer_menu">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        </div>
+      </div>
     </div>
 </div>
   <!-- MODAL TO CROP THE IMAGE -->
@@ -115,6 +269,40 @@
 
 </body>
 <script>
+
+    var date_differ = function date_differ(datetime){
+        var minute_unit = 1000 * 60; // hour
+        var hour_unit = 1000 * 60 * 60; // hour
+        var day_unit = 1000 * 60 * 60 * 24;// day
+        var month_unit = 1000 * 60 * 60 * 24 * 30;// month
+        var year_unit = 1000 * 60 * 60 * 24 * 30 * 12; // year
+        var current_time = new Date();
+        var target_time = new Date(datetime);
+        var difference = current_time - target_time
+        if (difference < minute_unit){
+            return 'just now'
+        } else if (minute_unit <= difference && difference < 2 * minute_unit){
+            return 'a minute ago'
+        } else if (2 * minute_unit <= difference && difference < hour_unit) {
+            return parseInt(difference/minute_unit) + ' minutes ago'
+        } else if (hour_unit <= difference && difference < 2 * hour_unit) {
+            return 'a hour ago'
+        } else if (2 * hour_unit <= difference && difference < day_unit) {
+            return parseInt(difference/hour_unit) + ' hours ago'
+        } else if (day_unit <= difference && difference < 2 * day_unit) {
+            return 'a day ago'
+        } else if (2 * day_unit <= difference && difference < month_unit) {
+            return parseInt(difference/day_unit) + ' days ago'
+        } else if (month_unit <= difference && difference < 2 * month_unit) {
+            return 'a month ago'
+        } else if (2 * month_unit <= difference && difference < year_unit) {
+            return parseInt(difference/month_unit) + ' months ago'
+        } else if (year_unit <= difference && difference < 2 * year_unit) {
+            return 'a year ago'
+        } else if (2 * year_unit <= difference) {
+            return parseInt(difference/year_unit) + ' years ago'
+        }
+    }
     function base_request() {
         var last_num = $('#last_num').attr('data-u')
         var kind = $('#page_kind').attr('data-u')
@@ -139,39 +327,5 @@
     base_request()
 
 
-</script>
-<script>
-    $(function () {
-                    $("#modal_crop").modal("show");
-          };
-          reader.readAsDataURL(this.files[0]);
-        }
-      });
-
-      /* SCRIPTS TO HANDLE THE CROPPER BOX */
-    var image;
-      var cropper
-      $("#modal_crop").on("shown.bs.modal", function () {
-          image = document.getElementById('img_crop');
-          cropper = new Cropper(image, {
-                viewMode: 2,
-                minCropBoxWidth: 300,
-                minCropBoxHeight: 300,
-                aspectRatio: 1/1,
-          });
-
-      }).on("hidden.bs.modal", function () {
-        cropper.destroy();
-        var agent = navigator.userAgent.toLowerCase();
-
-        if ( (navigator.appName == 'Netscape' && navigator.userAgent.search('Trident') != -1) || (agent.indexOf("msie") != -1) ){
-            // ie 일때 input[type=file] init.
-            $('#input_file').replaceWith( $('#input_file').clone(true) );
-        } else {
-            //other browser 일때 input[type=file] init.
-                $('#input_file').val("");
-        }
-    });
-    })
 </script>
 </html>

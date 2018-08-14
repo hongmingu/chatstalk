@@ -26,7 +26,6 @@ def create_new(request):
             if form.cleaned_data['description'] == 'on':
                 description = form.cleaned_data['description_content']
             uuid_made = uuid.uuid4().hex
-
             post = Post.objects.create(user=request.user,
                                        title=title,
                                        description=description,
@@ -36,6 +35,8 @@ def create_new(request):
             if has_another_profile:
                 PostProfile.objects.create(post=post, name=form.cleaned_data['name'])
             post_first_check = PostFirstCheck.objects.create(post=post)
+            post_like_count = PostLikeCount.objects.create(post=post)
+            post_comment_count = PostCommentCount.objects.create(post=post)
             post_chat = PostChat.objects.create(post=post, before=None, kind=POSTCHAT_START, uuid=uuid.uuid4().hex)
             # 여기서 post unique constraint 처리 해주면 좋긴 하나 지금 하기엔 하고 싶지 않다.
             return redirect(reverse('baseapp:post_update', kwargs={'uuid': uuid_made}))

@@ -109,6 +109,13 @@
         .remove_add_t_d{
             background-color: #2ac31b; color: white;
         }
+        .chat_preview_first_chat{
+            font-size: 14px; background-color: #1b6d85; color: white
+        }
+
+        .chat_preview_more_load{
+            font-size: 14px; background-color: #2ac31b; color: white
+        }
     </style>
 
 
@@ -162,7 +169,7 @@
                 <div class="row div_base">
                     <br>
                     <br>
-                    {% if post.title %}
+                    {% if post.title is not None %}
                         <div class="div_title" id="title_discriminant">
                             <div align="left"><span class="padding_5 created_title">title: </span></div>
                             <div><input class="width_100_i" id="title_input" type="text" value="{{ post.title }}"></div>
@@ -177,7 +184,7 @@
                             </div>
                         </div>
                     {% else %}
-                        <div class="div_title hidden">
+                        <div class="div_title hidden" id="title_discriminant">
                             <div align="left"><span class="padding_5 created_title">title: </span></div>
                             <div><input class="width_100_i" id="title_input" type="text" value=""></div>
                             <br/>
@@ -192,7 +199,7 @@
                         </div>
                     {% endif %}
                 <br/>
-                    {% if post.description %}
+                    {% if post.description is not None %}
                         <div class="div_desc" id="desc_discriminant">
                             <div align="left"><span class="padding_5 created_description">description: </span></div>
                             <div><textarea class="width_100_i create_description_textarea" id="desc_input">{{ post.description }}</textarea></div>
@@ -266,8 +273,16 @@
                     <br/>
                     <div align="center"><span class="open_or_close">Add your chat?</span></div>
 
-                    <div class="chat_preview" id="chat_preview">
+                    <div class="chat_preview" id="chat_preview_wrapper">
+                        <div class="chat_preview_wrapper hidden" id="more_load" align="center">
+                            <a href=""><div class="chat_preview_more_load clickable">More Load</div></a>
+                        </div>
+                        <div id="chat_preview">
+
+                        </div>
+
                         <script>
+                            var recent_post_chat;
                             $(function () {
                                 $.ajax({
                                     url: '/re/post/chat/modify/populate/', type: 'post', dataType:'json', cache: false,
@@ -275,14 +290,334 @@
                                         post_id: $('#post_id').attr('data-u')
                                     },
                                     success: function (data) {
-                                        modify_last_delete()
                                         console.log(data)
                                         var object = data.set
                                         console.log('---------')
-                                        $.each(JSON.parse(object), function (key, value) {
-                                            console.log('key: ' + key + ', model:'+value.model+', pk:'+value.pk+', fields-created:'+value.fields.created)
-                                        })
+                                        if (data.res === 1) {
+                                            var there_were_starting = false;
+                                            $.each(JSON.parse(object), function (key, value) {
+                                                recent_post_chat = value.id
+                                                switch (value.kind) {
+                                                    case 'start':
+
+                                                        $('#chat_preview').prepend('<div class="chat_preview_wrapper" align="center">\n' +
+                                                            '<div class="chat_preview_first_chat">Conversation begin</div>\n' +
+                                                            '</div>\n');
+                                                        there_were_starting = true
+                                                        break;
+                                                    case 'text':
+                                                        if (value.you_say === true) {
+                                                            var chat_preview = $('<div class="chat_preview_wrapper" id="chat_' + value.id + '"align="right">\n' +
+                                                                '<div class="chat_preview_size">\n' +
+                                                                '<div><span class="chat_preview_name">You</span></div>\n' +
+                                                                '<div class="chat_preview_you_saying">' + value.text + '</div>\n' +
+                                                                '<div class="chat_preview_delete_wrapper" align="left"><a href=""><span class="chat_preview_delete clickable hidden" data-u="' + value.id + '" >delete</span></a></div>\n' +
+                                                                '</div>\n' +
+                                                                '</div>')
+                                                            chat_preview.find('.chat_preview_delete').on('click', function (e) {
+                                                                e.preventDefault()
+                                                                var id = $(this).attr('data-u')
+                                                                $.ajax({
+                                                                    url: '/re/post/chat/remove/',
+                                                                    type: 'post',
+                                                                    dataType: 'json',
+                                                                    cache: false,
+                                                                    data: {
+                                                                        post_chat_id: id,
+                                                                    },
+                                                                    success: function (data) {
+                                                                        if (data.res === 1) {
+                                                                            $('#chat_' + id).remove()
+                                                                            $.when($('#chat_' + id).remove()).then(modify_last_delete());
+                                                                        }
+                                                                    }
+                                                                })
+                                                            })
+                                                            $('#chat_preview').prepend(chat_preview)
+                                                            modify_last_delete()
+
+                                                        } else {
+                                                            var chat_preview = $('<div class="chat_preview_wrapper" id="chat_' + value.id + '">\n' +
+                                                                '<div class="chat_preview_size">\n' +
+                                                                '<div><span class="chat_preview_name">Someone</span></div>\n' +
+                                                                '<div class="chat_preview_someone_saying">' + value.text + '</div>\n' +
+                                                                '<div class="chat_preview_delete_wrapper" align="right"><a href=""><span class="chat_preview_delete clickable hidden" data-u="' + value.id + '" >delete</span></a></div>\n' +
+                                                                '</div>\n' +
+                                                                '</div>')
+                                                            chat_preview.find('.chat_preview_delete').on('click', function (e) {
+                                                                e.preventDefault()
+                                                                var id = $(this).attr('data-u')
+                                                                $.ajax({
+                                                                    url: '/re/post/chat/remove/',
+                                                                    type: 'post',
+                                                                    dataType: 'json',
+                                                                    cache: false,
+                                                                    data: {
+                                                                        post_chat_id: id,
+                                                                    },
+                                                                    success: function (data) {
+                                                                        if (data.res === 1) {
+                                                                            $('#chat_' + id).remove()
+                                                                            $.when($('#chat_' + id).remove()).then(modify_last_delete());
+                                                                        }
+                                                                    }
+                                                                })
+                                                            })
+                                                            $('#chat_preview').prepend(chat_preview)
+                                                            modify_last_delete()
+
+                                                        }
+                                                        $('#chat_preview')
+                                                        break;
+                                                    case 'photo':
+                                                        if (value.you_say === true) {
+                                                            var chat_preview = $('<div class="chat_preview_wrapper" id="chat_' + value.id + '"align="right">\n' +
+                                                                '<div class="chat_preview_size">\n' +
+                                                                '<div><span class="chat_preview_name">You</span></div>\n' +
+                                                                '<div align="right"><img class="chat_preview_img" src="' + value.url + '"></div>' +
+                                                                '<div class="chat_preview_delete_wrapper" align="left"><a href=""><span class="chat_preview_delete clickable hidden" data-u="' + value.id + '" >delete</span></a></div>\n' +
+                                                                '</div>\n' +
+                                                                '</div>')
+                                                            chat_preview.find('.chat_preview_delete').on('click', function (e) {
+                                                                e.preventDefault()
+                                                                var id = $(this).attr('data-u')
+                                                                $.ajax({
+                                                                    url: '/re/post/chat/remove/',
+                                                                    type: 'post',
+                                                                    dataType: 'json',
+                                                                    cache: false,
+                                                                    data: {
+                                                                        post_chat_id: id,
+                                                                    },
+                                                                    success: function (data) {
+                                                                        if (data.res === 1) {
+                                                                            $('#chat_' + id).remove()
+                                                                            $.when($('#chat_' + id).remove()).then(modify_last_delete());
+                                                                        }
+                                                                    }
+                                                                })
+                                                            })
+                                                            $('#chat_preview').prepend(chat_preview)
+                                                            modify_last_delete()
+
+                                                        } else {
+                                                            var chat_preview = $('<div class="chat_preview_wrapper" id="chat_' + value.id + '">\n' +
+                                                                '<div class="chat_preview_size">\n' +
+                                                                '<div><span class="chat_preview_name">Someone</span></div>\n' +
+                                                                '<div align="left"><img class="chat_preview_img" src="' + value.url + '"></div>' +
+                                                                '<div class="chat_preview_delete_wrapper" align="right"><a href=""><span class="chat_preview_delete clickable hidden" data-u="' + value.id + '" >delete</span></a></div>\n' +
+                                                                '</div>\n' +
+                                                                '</div>')
+                                                            chat_preview.find('.chat_preview_delete').on('click', function (e) {
+                                                                e.preventDefault()
+                                                                var id = $(this).attr('data-u')
+                                                                $.ajax({
+                                                                    url: '/re/post/chat/remove/',
+                                                                    type: 'post',
+                                                                    dataType: 'json',
+                                                                    cache: false,
+                                                                    data: {
+                                                                        post_id: $('#post_id').attr('data-u'),
+                                                                    },
+                                                                    success: function (data) {
+                                                                        if (data.res === 1) {
+                                                                            $('#chat_' + id).remove()
+                                                                            $.when($('#chat_' + id).remove()).then(modify_last_delete());
+                                                                        }
+                                                                    }
+                                                                })
+                                                            })
+                                                            $('#chat_preview').prepend(chat_preview)
+                                                            modify_last_delete()
+
+                                                        }
+                                                        break;
+                                                    default:
+                                                        return;
+                                                }
+
+                                            })
+                                            if (!(there_were_starting)){
+                                                if($('#more_load').hasClass('hidden')){
+                                                    $('#more_load').removeClass('hidden')
+                                                }
+                                            } else {
+                                                if(!($('#more_load').hasClass('hidden'))){
+                                                    $('#more_load').addClass('hidden')
+                                                }
+                                            }
+                                        }
                                     }
+                                })
+                                $('#more_load').click(function (e) {
+                                    e.preventDefault()
+                                    $.ajax({
+                                        url: '/re/post/chat/more/load/', type: 'post', dataType: 'json', cache: false,
+                                        data: {
+                                            post_id: $('#post_id').attr('data-u'),
+                                            post_chat_id: recent_post_chat,
+                                        },
+                                        success: function (data) {
+                                            console.log(data)
+                                            var object = data.set
+                                            console.log('---------')
+                                            if (data.res === 1) {
+                                                var there_were_starting = false;
+                                                $.each(JSON.parse(object), function (key, value) {
+                                                    recent_post_chat = value.id
+                                                    switch (value.kind) {
+                                                        case 'start':
+
+                                                            $('#chat_preview').prepend('<div class="chat_preview_wrapper" align="center">\n' +
+                                                                '<div class="chat_preview_first_chat">Conversation begin</div>\n' +
+                                                                '</div>\n');
+                                                            there_were_starting = true
+                                                            break;
+                                                        case 'text':
+                                                            if (value.you_say === true) {
+                                                                var chat_preview = $('<div class="chat_preview_wrapper" id="chat_' + value.id + '"align="right">\n' +
+                                                                    '<div class="chat_preview_size">\n' +
+                                                                    '<div><span class="chat_preview_name">You</span></div>\n' +
+                                                                    '<div class="chat_preview_you_saying">' + value.text + '</div>\n' +
+                                                                    '<div class="chat_preview_delete_wrapper" align="left"><a href=""><span class="chat_preview_delete clickable hidden" data-u="' + value.id + '" >delete</span></a></div>\n' +
+                                                                    '</div>\n' +
+                                                                    '</div>')
+                                                                chat_preview.find('.chat_preview_delete').on('click', function (e) {
+                                                                    e.preventDefault()
+                                                                    var id = $(this).attr('data-u')
+                                                                    $.ajax({
+                                                                        url: '/re/post/chat/remove/',
+                                                                        type: 'post',
+                                                                        dataType: 'json',
+                                                                        cache: false,
+                                                                        data: {
+                                                                            post_chat_id: id,
+                                                                        },
+                                                                        success: function (data) {
+                                                                            if (data.res === 1) {
+                                                                                $('#chat_' + id).remove()
+                                                                                $.when($('#chat_' + id).remove()).then(modify_last_delete());
+                                                                            }
+                                                                        }
+                                                                    })
+                                                                })
+                                                                $('#chat_preview').prepend(chat_preview)
+                                                                modify_last_delete()
+
+                                                            } else {
+                                                                var chat_preview = $('<div class="chat_preview_wrapper" id="chat_' + value.id + '">\n' +
+                                                                    '<div class="chat_preview_size">\n' +
+                                                                    '<div><span class="chat_preview_name">Someone</span></div>\n' +
+                                                                    '<div class="chat_preview_someone_saying">' + value.text + '</div>\n' +
+                                                                    '<div class="chat_preview_delete_wrapper" align="right"><a href=""><span class="chat_preview_delete clickable hidden" data-u="' + value.id + '" >delete</span></a></div>\n' +
+                                                                    '</div>\n' +
+                                                                    '</div>')
+                                                                chat_preview.find('.chat_preview_delete').on('click', function (e) {
+                                                                    e.preventDefault()
+                                                                    var id = $(this).attr('data-u')
+                                                                    $.ajax({
+                                                                        url: '/re/post/chat/remove/',
+                                                                        type: 'post',
+                                                                        dataType: 'json',
+                                                                        cache: false,
+                                                                        data: {
+                                                                            post_chat_id: id,
+                                                                        },
+                                                                        success: function (data) {
+                                                                            if (data.res === 1) {
+                                                                                $('#chat_' + id).remove()
+                                                                                $.when($('#chat_' + id).remove()).then(modify_last_delete());
+                                                                            }
+                                                                        }
+                                                                    })
+                                                                })
+                                                                $('#chat_preview').prepend(chat_preview)
+                                                                modify_last_delete()
+
+                                                            }
+                                                            break;
+                                                        case 'photo':
+                                                            if (value.you_say === true) {
+                                                                var chat_preview = $('<div class="chat_preview_wrapper" id="chat_' + value.id + '"align="right">\n' +
+                                                                    '<div class="chat_preview_size">\n' +
+                                                                    '<div><span class="chat_preview_name">You</span></div>\n' +
+                                                                    '<div align="right"><img class="chat_preview_img" src="' + value.url + '"></div>' +
+                                                                    '<div class="chat_preview_delete_wrapper" align="left"><a href=""><span class="chat_preview_delete clickable hidden" data-u="' + value.id + '" >delete</span></a></div>\n' +
+                                                                    '</div>\n' +
+                                                                    '</div>')
+                                                                chat_preview.find('.chat_preview_delete').on('click', function (e) {
+                                                                    e.preventDefault()
+                                                                    var id = $(this).attr('data-u')
+                                                                    $.ajax({
+                                                                        url: '/re/post/chat/remove/',
+                                                                        type: 'post',
+                                                                        dataType: 'json',
+                                                                        cache: false,
+                                                                        data: {
+                                                                            post_chat_id: id,
+                                                                        },
+                                                                        success: function (data) {
+                                                                            if (data.res === 1) {
+                                                                                $('#chat_' + id).remove()
+                                                                                $.when($('#chat_' + id).remove()).then(modify_last_delete());
+                                                                            }
+                                                                        }
+                                                                    })
+                                                                })
+                                                                $('#chat_preview').prepend(chat_preview)
+                                                                modify_last_delete()
+
+
+                                                            } else {
+                                                                var chat_preview = $('<div class="chat_preview_wrapper" id="chat_' + value.id + '">\n' +
+                                                                    '<div class="chat_preview_size">\n' +
+                                                                    '<div><span class="chat_preview_name">Someone</span></div>\n' +
+                                                                    '<div align="left"><img class="chat_preview_img" src="' + value.url + '"></div>' +
+                                                                    '<div class="chat_preview_delete_wrapper" align="right"><a href=""><span class="chat_preview_delete clickable hidden" data-u="' + value.id + '" >delete</span></a></div>\n' +
+                                                                    '</div>\n' +
+                                                                    '</div>')
+                                                                chat_preview.find('.chat_preview_delete').on('click', function (e) {
+                                                                    e.preventDefault()
+                                                                    var id = $(this).attr('data-u')
+                                                                    $.ajax({
+                                                                        url: '/re/post/chat/remove/',
+                                                                        type: 'post',
+                                                                        dataType: 'json',
+                                                                        cache: false,
+                                                                        data: {
+                                                                            post_id: $('#post_id').attr('data-u'),
+                                                                        },
+                                                                        success: function (data) {
+                                                                            if (data.res === 1) {
+                                                                                $('#chat_' + id).remove()
+                                                                                $.when($('#chat_' + id).remove()).then(modify_last_delete());
+                                                                            }
+                                                                        }
+                                                                    })
+                                                                })
+                                                                $('#chat_preview').prepend(chat_preview)
+                                                                modify_last_delete()
+
+                                                            }
+                                                            break;
+                                                        default:
+                                                            return;
+                                                    }
+
+                                                })
+                                                console.log(there_were_starting)
+                                                if (!(there_were_starting)){
+                                                    if($('#more_load').hasClass('hidden')){
+                                                        $('#more_load').removeClass('hidden')
+                                                    }
+                                                } else {
+                                                    if(!($('#more_load').hasClass('hidden'))){
+                                                        $('#more_load').addClass('hidden')
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    })
                                 })
                             });
                         </script>
@@ -322,10 +657,6 @@
 
                     <br>
                     <br>
-                    <button id="btn_test">test</button>
-                    <br>
-                    <br>
-
                     <br/>
                 <br/>
                 <br/>
@@ -460,6 +791,9 @@
             /* ENTER PRESSED*/
             if (e.keyCode == 13 && !e.shiftKey) {
                 var text = $('#post_chat_textarea').val()
+                if(text === ''){
+                    return false;
+                }
 
                 $.ajax({
                     url: '/re/create/new/text/',
@@ -490,9 +824,10 @@
                                             post_chat_id: id,
                                         },
                                         success: function (data) {
-                                            console.log(id)
-                                            $('#chat_'+id).remove()
-                                            $.when($('#chat_'+id).remove()).then(modify_last_delete());
+                                            if (data.res === 1){
+                                                $('#chat_'+id).remove()
+                                                $.when($('#chat_'+id).remove()).then(modify_last_delete());
+                                            }
                                         }
                                     })
                                 })
@@ -513,12 +848,13 @@
                                     $.ajax({
                                         url: '/re/post/chat/remove/', type: 'post', dataType:'json', cache: false,
                                         data: {
-                                            post_chat_id: id,
+                                            post_id: id,
                                         },
                                         success: function (data) {
-                                            console.log(id)
-                                            $('#chat_'+id).remove()
-                                            $.when($('#chat_'+id).remove()).then(modify_last_delete());
+                                            if (data.res === 1){
+                                                $('#chat_'+id).remove()
+                                                $.when($('#chat_'+id).remove()).then(modify_last_delete());
+                                            }
                                         }
                                     })
                                 })
@@ -528,7 +864,7 @@
                             }
                         }
 
-                        var objDiv = document.getElementById("chat_preview");
+                        var objDiv = document.getElementById("chat_preview_wrapper");
                         objDiv.scrollTop = objDiv.scrollHeight;
                     }
                 });
@@ -540,81 +876,86 @@
         $('#btn_add ').click(function (e) {
             e.preventDefault()
             var text = $('#post_chat_textarea').val()
-
-                $.ajax({
-                    url: '/re/create/new/text/',
-                    type: 'post',
-                    dataType: 'json',
-                    cache: false,
-                    data: {
-                        you_say: you_say,
-                        text: text,
-                        post_id: $('#post_id').attr('data-u')
-                    },
-                    success: function (data) {
-                        if (data.res === 1) {
-                            if (data.content.you_say === true) {
-                                var chat_preview = $('<div class="chat_preview_wrapper" id="chat_'+data.content.id+'"align="right">\n' +
-                                    '<div class="chat_preview_size">\n' +
-                                    '<div><span class="chat_preview_name">You</span></div>\n' +
-                                    '<div class="chat_preview_you_saying">' + data.content.text + '</div>\n' +
-                                    '<div class="chat_preview_delete_wrapper" align="left"><a href=""><span class="chat_preview_delete clickable hidden" data-u="'+data.content.id+'" >delete</span></a></div>\n' +
-                                    '</div>\n' +
-                                    '</div>')
-                                chat_preview.find('.chat_preview_delete').on('click', function (e) {
-                                    e.preventDefault()
-                                    var id = $(this).attr('data-u')
-                                    $.ajax({
-                                        url: '/re/post/chat/remove/', type: 'post', dataType:'json', cache: false,
-                                        data: {
-                                            post_chat_id: id,
-                                        },
-                                        success: function (data) {
-                                            console.log(id)
-                                            $('#chat_'+id).remove()
-                                            $.when($('#chat_'+id).remove()).then(modify_last_delete());
-                                        }
-                                    })
-                                })
-                                $('#chat_preview').append(chat_preview)
-                                modify_last_delete()
-
-                            } else {
-                                var chat_preview = $('<div class="chat_preview_wrapper" id="chat_'+data.content.id+'">\n' +
-                                    '<div class="chat_preview_size">\n' +
-                                    '<div><span class="chat_preview_name">Someone</span></div>\n' +
-                                    '<div class="chat_preview_someone_saying">' + data.content.text + '</div>\n' +
-                                    '<div class="chat_preview_delete_wrapper" align="right"><a href=""><span class="chat_preview_delete clickable hidden" data-u="'+data.content.id+'" >delete</span></a></div>\n' +
-                                    '</div>\n' +
-                                    '</div>')
-                                chat_preview.find('.chat_preview_delete').on('click', function (e) {
-                                    e.preventDefault()
-                                    var id = $(this).attr('data-u')
-                                    $.ajax({
-                                        url: '/re/post/chat/remove/', type: 'post', dataType:'json', cache: false,
-                                        data: {
-                                            post_chat_id: id,
-                                        },
-                                        success: function (data) {
-                                            console.log(id)
-                                            $('#chat_'+id).remove()
-                                            $.when($('#chat_'+id).remove()).then(modify_last_delete());
-                                        }
-                                    })
-                                })
-                                $('#chat_preview').append(chat_preview)
-                                modify_last_delete()
-
-                            }
-                        }
-
-                        var objDiv = document.getElementById("chat_preview");
-                        objDiv.scrollTop = objDiv.scrollHeight;
-                    }
-                });
-
-                $('#post_chat_textarea').val('');
+            if(text === ''){
                 return false;
+            }
+
+            $.ajax({
+                url: '/re/create/new/text/',
+                type: 'post',
+                dataType: 'json',
+                cache: false,
+                data: {
+                    you_say: you_say,
+                    text: text,
+                    post_id: $('#post_id').attr('data-u')
+                },
+                success: function (data) {
+                    if (data.res === 1) {
+                        if (data.content.you_say === true) {
+                            var chat_preview = $('<div class="chat_preview_wrapper" id="chat_'+data.content.id+'"align="right">\n' +
+                                '<div class="chat_preview_size">\n' +
+                                '<div><span class="chat_preview_name">You</span></div>\n' +
+                                '<div class="chat_preview_you_saying">' + data.content.text + '</div>\n' +
+                                '<div class="chat_preview_delete_wrapper" align="left"><a href=""><span class="chat_preview_delete clickable hidden" data-u="'+data.content.id+'" >delete</span></a></div>\n' +
+                                '</div>\n' +
+                                '</div>')
+                            chat_preview.find('.chat_preview_delete').on('click', function (e) {
+                                e.preventDefault()
+                                var id = $(this).attr('data-u')
+                                $.ajax({
+                                    url: '/re/post/chat/remove/', type: 'post', dataType:'json', cache: false,
+                                    data: {
+                                        post_chat_id: id,
+                                    },
+                                    success: function (data) {
+                                        if (data.res === 1){
+                                            $('#chat_'+id).remove()
+                                            $.when($('#chat_'+id).remove()).then(modify_last_delete());
+                                        }
+                                    }
+                                })
+                            })
+                            $('#chat_preview').append(chat_preview)
+                            modify_last_delete()
+
+                        } else {
+                            var chat_preview = $('<div class="chat_preview_wrapper" id="chat_'+data.content.id+'">\n' +
+                                '<div class="chat_preview_size">\n' +
+                                '<div><span class="chat_preview_name">Someone</span></div>\n' +
+                                '<div class="chat_preview_someone_saying">' + data.content.text + '</div>\n' +
+                                '<div class="chat_preview_delete_wrapper" align="right"><a href=""><span class="chat_preview_delete clickable hidden" data-u="'+data.content.id+'" >delete</span></a></div>\n' +
+                                '</div>\n' +
+                                '</div>')
+                            chat_preview.find('.chat_preview_delete').on('click', function (e) {
+                                e.preventDefault()
+                                var id = $(this).attr('data-u')
+                                $.ajax({
+                                    url: '/re/post/chat/remove/', type: 'post', dataType:'json', cache: false,
+                                    data: {
+                                        post_chat_id: id,
+                                    },
+                                    success: function (data) {
+                                        if (data.res === 1){
+                                            $('#chat_'+id).remove()
+                                            $.when($('#chat_'+id).remove()).then(modify_last_delete());
+                                        }
+                                    }
+                                })
+                            })
+                            $('#chat_preview').append(chat_preview)
+                            modify_last_delete()
+
+                        }
+                    }
+
+                    var objDiv = document.getElementById("chat_preview_wrapper");
+                    objDiv.scrollTop = objDiv.scrollHeight;
+                }
+            });
+
+            $('#post_chat_textarea').val('');
+            return false;
 
         });
 
@@ -733,9 +1074,10 @@
                                         post_chat_id: id,
                                     },
                                     success: function (data) {
-                                        console.log(id)
-                                        $('#chat_'+id).remove()
-                                        $.when($('#chat_'+id).remove()).then(modify_last_delete());
+                                        if (data.res === 1) {
+                                            $('#chat_' + id).remove()
+                                            $.when($('#chat_' + id).remove()).then(modify_last_delete());
+                                        }
                                     }
                                 })
                             })
@@ -759,9 +1101,10 @@
                                         post_chat_id: id,
                                     },
                                     success: function (data) {
-                                        console.log(id)
-                                        $('#chat_'+id).remove()
-                                        $.when($('#chat_'+id).remove()).then(modify_last_delete());
+                                        if (data.res === 1){
+                                            $('#chat_'+id).remove()
+                                            $.when($('#chat_'+id).remove()).then(modify_last_delete());
+                                        }
                                     }
                                 })
                             })
@@ -771,14 +1114,13 @@
                         }
                     }
 
-                    var objDiv = document.getElementById("chat_preview");
+                    var objDiv = document.getElementById("chat_preview_wrapper");
                     objDiv.scrollTop = objDiv.scrollHeight;
                     $("#modal_chat").modal("hide");
                     return false;
                 }
             });
         });
-
 
     })
 </script>
