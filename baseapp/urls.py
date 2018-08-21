@@ -36,6 +36,11 @@ urlpatterns = [
             name='re_post_chat_more_load'),
     re_path(r'^re/user/home/populate/$', base_ajax_views.re_user_home_populate,
             name='re_user_home_populate'),
+    re_path(r'^re/comment/add/$', base_ajax_views.re_comment_add,
+            name='re_comment_add'),
+
+    re_path(r'^re/comment/more/load/$', base_ajax_views.re_comment_more_load,
+            name='re_comment_more_load'),
     # re_path(r'^email/key/send/$', views.email_key_send, name='email_key_send'),
     # re_path(r'^email/key/confirm/(?P<uid>([A-Za-z0-9_](?:(?:[A-Za-z0-9_]|(?:\.(?!\.))){0,28}(?:[A-Za-z0-9_]))?))/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         # views.email_key_confirm, name='email_key_confirm'),

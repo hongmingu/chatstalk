@@ -429,7 +429,95 @@ def re_post_chat_more_load(request):
 
         return JsonResponse({'res': 2})
 
+@ensure_csrf_cookie
+def re_comment_add(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_id = request.POST.get('post_id', None)
+                text = request.POST.get('comment', None)
+                try:
+                    # post = Post.objects.get(uuid=post_id)
+                    post = Post.objects.last()
 
+                except:
+                    return JsonResponse({'res': 0})
+                try:
+                    with transaction.atomic():
+                        post_comment = PostComment.objects.create(post=post, user=request.user, uuid=uuid.uuid4().hex,
+                                                                  text=text)
+                        from django.db.models import F
+                        post_comment_count = post.postcommentcount
+                        post_comment_count.count = F('count') + 1
+                        post_comment_count.save()
+                        # customers = Customer.objects.filter(scoops_ordered__gt=F('store_visits'))
+                except Exception:
+                    return JsonResponse({'res': 0})
+
+                output = []
+                sub_output = {}
+                if post_comment is not None:
+                    sub_output = {
+                            'comment_user_id': post_comment.user.username,
+                            'comment_username': post_comment.user.userusername.username,
+                            'comment_text': post_comment.text,
+                            'comment_created': post_comment.created,
+                            'comment_uuid': post_comment.uuid,
+                        }
+                output.append(sub_output)
+                return JsonResponse({'res': 1, 'set': output})
+
+        return JsonResponse({'res': 2})
+
+
+@ensure_csrf_cookie
+def re_comment_more_load(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_id = request.POST.get('post_id', None)
+                last_comment_id = request.POST.get('last_comment_id', None)
+
+                try:
+                    post = Post.objects.last()
+                    # post = Post.objects.get(uuid=post_id)
+                except Exception:
+                    return JsonResponse({'res': 0})
+
+                post_comment_last = PostComment.objects.get(uuid=last_comment_id)
+
+                post_comments = PostComment.objects.filter(Q(post=post) & Q(created__gt=post_comment_last.created)).order_by('created')[:20]
+
+                post_comment_uuids = [post_comment.uuid for post_comment in post_comments]
+                output = []
+
+                post_comment_end = PostComment.objects.last()
+
+                end = False
+                if post_comments:
+                    for item in post_comment_uuids:
+                        try:
+                            post_comment = PostComment.objects.get(uuid=item)
+                        except:
+                            pass
+                        if post_comment is not None:
+                            sub_output = {
+                                'comment_user_id': post_comment.user.username,
+                                'comment_username': post_comment.user.userusername.username,
+                                'comment_text': post_comment.text,
+                                'comment_created': post_comment.created,
+                                'comment_uuid': post_comment.uuid,
+                            }
+                            output.append(sub_output)
+                            if post_comment.uuid == post_comment_end.uuid:
+                                end = True
+                else:
+                    output = None
+                    end = True
+
+                return JsonResponse({'res': 1, 'set': output, 'end': end})
+
+        return JsonResponse({'res': 2})
 @ensure_csrf_cookie
 def re_user_home_populate(request):
     if request.method == "POST":
@@ -440,7 +528,7 @@ def re_user_home_populate(request):
                     post = Post.objects.last()
                 except:
                     return JsonResponse({'res': 0})
-                print(post_id)
+                print(post.pk)
                 from django.db.models import Q
                 name = post.user.usertextname.name
                 profile_photo = post.user.userphoto.file_50_url()
@@ -448,19 +536,68 @@ def re_user_home_populate(request):
                 if post.has_another_profile:
                     name = post.postprofile.name
                     profile_photo = post.postprofile.file_50_url()
+                print(post.get_three_comments())
+                you_liked = False
+                if PostLike.objects.filter(user=request.user, post=post).exists():
+                    you_liked = True
+                post_chat_read = PostChatRead.objects.filter(post=post, user=request.user).last()
+                post_chat = None
+                post_chat_last_chat = None
+                if post_chat_read is None:
+                    try:
+                        post_chat = PostChat.objects.filter(post=post).order_by('created')[1]
+                    except IndexError:
+                        post_chat_last_chat = {'kind': 'start'}
+                    if post_chat is not None:
+                        if post_chat.kind == POSTCHAT_TEXT:
+                            post_chat_last_chat = {'kind': 'text', 'you_say': post_chat.you_say,
+                                    'text': escape(post_chat.postchattext.text)}
+                        elif post_chat.kind == POSTCHAT_PHOTO:
+                            post_chat_last_chat = {'kind': 'photo', 'you_say': post_chat.you_say, 'url': post_chat.postchatphoto.file.url}
+                else:
+                    if post_chat_read.post_chat.kind == POSTCHAT_START:
+                        try:
+                            post_chat = PostChat.objects.filter(post=post).order_by('created')[1]
+                        except IndexError:
+                            post_chat_last_chat = {'kind': 'start'}
+                        if post_chat is not None:
+                            if post_chat.kind == POSTCHAT_TEXT:
+                                post_chat_last_chat = {'kind': 'text', 'you_say': post_chat.you_say,
+                                                  'text': escape(post_chat.postchattext.text)}
+                            elif post_chat.kind == POSTCHAT_PHOTO:
+                                post_chat_last_chat = {'kind': 'photo', 'you_say': post_chat.you_say,
+                                                  'url': post_chat.postchatphoto.file.url}
+                    elif post_chat_read.post_chat.kind == POSTCHAT_TEXT:
+                        post_chat = post_chat_read.post_chat
+                        post_chat_last_chat = {'kind': 'text', 'you_say': post_chat.you_say, 'text': escape(post_chat.postchattext.text)}
+                    elif post_chat_read.post_chat.kind == POSTCHAT_PHOTO:
+                        post_chat = post_chat_read.post_chat
+                        post_chat_last_chat = {'kind': 'photo', 'you_say': post_chat.you_say, 'url': post_chat.postchatphoto.file.url}
+
+                new = True
+                post_chat_last = PostChat.objects.filter(post=post).last()
+                post_chat_read_last = PostChatRead.objects.filter(post=post, user=request.user).last()
+
+                if post_chat_read_last is not None:
+                    if post_chat_read_last.post_chat == post_chat_last:
+                        new = False
+                    else:
+                        new = True
 
                 output = {'title': post.title,
                           'desc': post.description,
-                          'like_count': post.postlikecount.count,
                           'username': post.user.userusername.username,
                           'name': name,
                           'photo': profile_photo,
-                          'comment_count': post.postcommentcount.count,
                           'created': post.created,
-                          'last_chat': post.get_last_chat(),
+                          'last_chat': post_chat_last_chat,
                           'absolute_url': post.get_absolute_url(),
-                          'first_comment': post.postcomment_set.first(),
                           'id': post.uuid,
+                          'like_count': post.postlikecount.count,
+                          'you_liked': you_liked,
+                          'comment_count': post.postcommentcount.count,
+                          'three_comments': post.get_three_comments(),
+                          'new': new,
                           }
                 return JsonResponse({'res': 1, 'set': output})
 

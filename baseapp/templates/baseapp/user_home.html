@@ -32,6 +32,32 @@
         .home_feed_chat_start{
 
         }
+        .home_feed_comment_delete {
+            font-size: 12px;
+        }
+        .home_feed_comment_textarea {
+            height: 30px!important;
+            resize: none;
+        }
+
+        .home_feed_comment_textarea_send{
+            height: 30px!important;
+        }
+        .home_feed_comment_wrapper{
+            width: 100%!important;
+        }
+        .heart_black{
+            font-size: 12px;
+        }
+        .home_feed_like_count{
+            font-size: 12px;
+        }
+        .home_feed_comment_more{
+            background-color: lightgray; font-size: 12px;
+        }
+        .home_feed_chat_new{
+            background-color: hotpink; font-size: 12px;
+        }
     </style>
 
 
@@ -48,7 +74,7 @@
 <div class="hidden" id="last_num" data-u=""></div>
 
 {% if user.is_authenticated %}
-    <div class="hidden" id="num" data-u="{{ user.username }}"></div>
+    <div class="hidden" id="user_id" data-u="{{ user.username }}"></div>
 {% endif %}
 <!--page info end -->
 
@@ -59,17 +85,20 @@
                 <div align="center"><a href="{% url 'baseapp:create_new' %}"><div class="clickable padding_5 main_background_color write_new_post">Write New Post</div></a></div>
                 <!--여기서 modal -->
 
-                <div class="row div_base" data-u="1">
+                <div class="row div_base" id="div_" data-u="1">
                     <script defer>
                         function home_populate(){
+                            var id = $('script').last().parent().attr('data-u')
+                            var parent_div = $('script').last().parent()
+                            var user_id = $('#user_id').attr('data-u')
                             $(function () {
-                                var id = $('script').last().parent().attr('data-u')
                                 $.ajax({
                                     url: '/re/user/home/populate/', type: 'post', dataType:'json', cache: false,
                                     data: {
                                         post_id: id,
                                     },
                                     success: function (data) {
+
                                         if (data.res === 1){
                                             var _last_chat;
                                             console.log(data.set.created)
@@ -83,11 +112,11 @@
                                             // iso로 하건 뭘로 하건 상관없다.
 
                                             console.log(date_differ(new Date('2018-08-14T08:29:04.761Z')))
+                                            console.log(data)
 
-                                            switch (data.set.last_chat){
+                                            switch (data.set.last_chat.kind){
                                                 case 'start':
                                                     _last_chat = '<span class="home_feed_chat_start">'+'Conversation started'+'</span>'
-
                                                     break;
                                                 case 'text':
                                                     if (data.set.you_say === 'true'){
@@ -95,11 +124,9 @@
                                                     } else {
                                                         _last_chat = '<span class="home_feed_chat_text">'+data.set.last_chat.text+'</span>'
                                                     }
-                                                    // User left room
                                                     break;
 
                                                 case 'photo':
-                                                    // User left room
                                                     if (data.set.you_say === 'true'){
                                                         _last_chat = '<span>'+data.set.name+'</span><span><b>: </b></span>'+'<span class="home_feed_chat_photo">'+'photo'+'</span>'
                                                     } else {
@@ -108,7 +135,7 @@
                                                     break;
                                                 default:
                                                     _last_chat = '<span class="home_feed_chat_start">'+'Conversation?'+'</span>'
-                                                    return;
+                                                    break;
                                             }
                                             var _title ,_title_class, _desc, _desc_class
                                             if (data.set.title === null){
@@ -125,41 +152,124 @@
                                                 _desc_class = ''
                                                 _desc = data.set.desc
                                             }
+                                            var _comment = '';
+                                            var _last_comment_id = '';
+                                            if (data.set.three_comments !== null){
+                                                $.each(data.set.three_comments, function (key, value) {
+                                                    var _remove;
+                                                    if(value.comment_user_id===user_id){
+                                                        _remove = '<span class="glyphicon glyphicon-remove home_feed_comment_delete"></span>'
+                                                    }
+                                                    _comment = _comment + '<div><div><a href="#"><span class="comments_name">'+value.comment_username+'</span></a></div><div><span class="comments">'+value.comment_text+'</span>   <span class="home_feed_comment_time">'+date_differ(value.comment_created)+'</span> '+_remove+'</div></div>'
+                                                    _last_comment_id = value.comment_uuid
+                                                })
+                                            }
+                                            var _more_comments_class = '';
+                                            if (data.set.comment_count < 4){
+                                                _more_comments_class = 'hidden'
+                                            }
                                             // 제목에 공백만 있는 건 허용하지 말자. 자바스크립트로. 그렇게 하고 파이썬 뷰에서 그렇게 하자.
-                                            var appender = '<div class="media">\n' +
+                                            var append_to = $('<div class="media">\n' +
                                                 '<div class="media-heading margin_bottom_30">\n' +
                                                 '<div class="col-xs-10 padding_left_0" align="left"><span\n' +
-                                                'class="home_feed_name">'+set.username+'</span></div>\n' +
-                                                '<div class="col-xs-2" align="right"><span\n' +
-                                                'class="glyphicon glyphicon-option-horizontal grey"></span></div>\n' +
+                                                'class="home_feed_name">'+data.set.username+'</span></div>\n' +
+                                                '<div class="col-xs-2" align="right">\n' +
+                                                '<a href="#"><span\n' +
+                                                'class="glyphicon glyphicon-option-horizontal grey"></span></a></div>\n' +
                                                 '</div>\n' +
-                                                '<a href="'+set.absolute_url+'" onClick="window.open(this.href, "", \'width=400, height=430\'); return false;">\n' +
                                                 '<div class="media-left">\n' +
-                                                '<img src="'+set.photo+'" class="media-object img_small">\n' +
+                                                '<img src="'+data.set.photo+'"\n' +
+                                                'class="media-object img_small">\n' +
                                                 '</div>\n' +
                                                 '<div class="media-body">\n' +
                                                 '<div class="home_feed_chat">'+_last_chat+'</div>\n' +
                                                 '</div>\n' +
-                                                '</a>\n' +
-                                                '<div class="home_feed_title' + _title_class + '">' + _title + '</div>\n' +
-                                                '<div class="home_feed_desc' + _desc_class + '">' + _desc + '</div>\n' +
-                                                '<div class="media-bottom">\n' +
-                                                '<div class="col-xs-10" align="right"><span class="home_feed_time">a long time ago</span>\n' +
+                                                '<div class="home_feed_title '+ _title_class +'">'+_title+'</div>\n' +
+                                                '<div class="home_feed_desc '+ _desc_class +'">'+ _desc+'</div>\n' +
+                                                '<div class="media-bottom"><br/>\n' +
+                                                '<div class="col-xs-5" align="left"><span\n' +
+                                                'class="glyphicon glyphicon-heart heart_black"></span> <span class="home_feed_like_count">'+data.set.like_count+'</span></div>\n' +
+                                                '<div class="col-xs-5" align="right"><span class="home_feed_time">'+date_differ(data.set.created)+'</span>\n' +
                                                 '</div>\n' +
                                                 '<div class="col-xs-2" align="right"><a href="#"><span\n' +
                                                 'class="glyphicon glyphicon-heart-empty heart"></span></a></div>\n' +
-                                                '<div class="col-xs-12"><span class="comments_title">Comments</span></div>\n' +
-                                                '<div class="col-xs-12"><a href="#"><span\n' +
-                                                'class="comments_name">홍민구</span></a><span> </span><span class="comments">30글자 HELLOHELLOHELLOHELLOHELLOHELLO</span><span class="glyphicon glyphicon-heart-empty heart" style="font-size: 12px; margin-left: 10px"></span>\n' +
-                                                '</div>\n' +
-                                                '<div class="col-xs-12"><a href="#"><span\n' +
-                                                'class="comments_name">홍민구</span></a><span> </span><span class="comments">hi</span>\n' +
-                                                '</div>\n' +
-                                                '<div class="col-xs-12"><a href="#"><span\n' +
-                                                'class="comments_name">홍민구</span></a><span> </span><span class="comments">hi</span>\n' +
+                                                '<div class=""><span class="comments_title">Comments '+data.set.comment_count+'</span></div>\n' +
+                                                '<div class="comments_list" id="comment_list_'+id+'">'+_comment+'</div>\n' +
+                                                '<a href="#"><div class="home_feed_comment_more clickable '+_more_comments_class+'" align="center" id="more_comments_'+data.set.id+'">more comments</div></a>\n' +
                                                 '</div>\n' +
                                                 '</div>\n' +
-                                                '</div>'
+                                                '<div class="hidden" id="last_comment_'+data.set.id+'" data-u="'+_last_comment_id+'">'+_last_comment_id+'</div>'+
+                                                '<div align="center">\n' +
+                                                '<form class="padding_top_5">\n' +
+                                                '<div class="input-group input-group-sm home_feed_comment_wrapper">\n' +
+                                                '<textarea class="form-control home_feed_comment_textarea" id="textarea_'+id+'" placeholder="comment" id="comment_textarea"></textarea>\n' +
+                                                '<div class="input-group-btn">\n' +
+                                                '<button class="btn btn-default home_feed_comment_textarea_send" id="btn_add"><i\n' +
+                                                'class="glyphicon glyphicon-send"></i></button>\n' +
+                                                '</div>\n' +
+                                                '</div>\n' +
+                                                '</form>\n' +
+                                                '</div>')
+                                            append_to.find('.home_feed_comment_textarea').on('keypress', function (e) {
+                                                if (e.keyCode == 13 && !e.shiftKey) {
+                                                    var text = $('#textarea_'+id).val()
+                                                    if (text === '') {
+                                                        return false;
+                                                    } else if (1<=text.length && text.length<=1000) {
+                                                        $.ajax({url:'/re/comment/add/', type:'post', dataType:'json', cache:false,
+                                                            data:{
+                                                                post_id:id,
+                                                                comment:text,
+                                                            },
+                                                            success:function (data) {
+                                                            console.log(data)
+                                                                if (data.res === 1) {
+                                                                    var append = ''
+                                                                    $('#content').append(append);
+                                                                    $('#textarea_'+id).val('')
+                                                                }
+                                                            }
+                                                        })
+                                                    }
+                                                    else if ( 1000< text.length){
+                                                        alert('too long')
+                                                    }
+                                                }
+                                            })
+
+                                            append_to.find('#more_comments_'+data.set.id).on('click', function (e) {
+                                                e.preventDefault()
+                                                $.ajax({url:'/re/comment/more/load/', type:'post', dataType:'json', cache:false,
+                                                    data:{
+                                                        post_id:id,
+                                                        last_comment_id:$('#last_comment_'+data.set.id).html(),
+                                                    },
+                                                    success:function (sub_data) {
+                                                    console.log(sub_data)
+                                                        if (sub_data.res === 1) {
+                                                            var _comment = '';
+                                                            if (sub_data.set !== null){
+                                                                $.each(sub_data.set, function (key, value) {
+
+                                                                    var _remove;
+                                                                    if(value.comment_user_id===user_id){
+                                                                        _remove = '<span class="glyphicon glyphicon-remove home_feed_comment_delete"></span>'
+                                                                    }
+                                                                    _comment = _comment + '<div><div><a href="#"><span class="comments_name">'+value.comment_username+'</span></a></div><div><span class="comments">'+value.comment_text+'</span>   <span class="home_feed_comment_time">'+date_differ(value.comment_created)+'</span> '+_remove+'</div></div>'
+                                                                    $('#last_comment_'+data.set.id).html(value.comment_uuid)
+                                                                    //이제 end 일 경우 hidden 붙이는거랑 삭제 구현하자.
+                                                                })
+
+                                                            }
+                                                            $('#comment_list_'+id).append(_comment)
+
+                                                        }
+                                                    }
+                                                })
+                                            })
+
+                                            $('#div_').append(append_to)
+                                            console.log('saved')
                                         }
                                     }
                                 })
@@ -174,40 +284,60 @@
                         <div class="media-heading margin_bottom_30">
                             <div class="col-xs-10 padding_left_0" align="left"><span
                                     class="home_feed_name">Yuri0429</span></div>
-                            <div class="col-xs-2" align="right"><span
-                                    class="glyphicon glyphicon-option-horizontal grey"></span></div>
+                            <div class="col-xs-2" align="right">
+                                <a href="#"><span
+                                    class="glyphicon glyphicon-option-horizontal grey"></span></a></div>
                         </div>
-                        <a href="/test8/" onClick="window.open(this.href, '', 'width=400, height=430'); return false;">
-
                         <div class="media-left">
                             <img src="http://www.abcmartkorea.com/wp-content/uploads/2017/03/abc-youtubu-20170327.jpg"
                                  class="media-object img_small">
                         </div>
-                        <div class="media-body">
-                            <div class="home_feed_chat" style="border: solid 1px whitesmoke; white-space:pre-wrap; padding:3px; word-wrap: break-word; max-width: 100%;"><span>Your name</span><span><b>: </b></span>Lorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsum#80글자맥스</div>
-                        </div>
 
-                        </a>
+                        <div class="media-body">
+                            <div class="home_feed_chat"><span>Your name</span><span><b>: </b></span>Lorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsum#80글자맥스</div>
+                            <div class="home_feed_chat_new" align="center">new</div>
+                        </div>
                         <div class="home_feed_title">30글자 맥스 HELLOHELLOHELLOHELLOHELLOHELLO</div>
                         <div class="home_feed_desc">100글자 맥스 HELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLO</div>
 
                         <div class="media-bottom">
-                            <div class="col-xs-10" align="right"><span class="home_feed_time">a long time ago</span>
+                            <div class="col-xs-5" align="left"><span
+                                    class="glyphicon glyphicon-heart heart_black"></span> <span class="home_feed_like_count">123,1</span></div>
+                            <div class="col-xs-5" align="right"><span class="home_feed_time">a long time ago</span>
                             </div>
                             <div class="col-xs-2" align="right"><a href="#"><span
                                     class="glyphicon glyphicon-heart-empty heart"></span></a></div>
-                            <div class="col-xs-12"><span class="comments_title">Comments</span></div>
-                            <div class="col-xs-12"><a href="#"><span
-                                    class="comments_name">홍민구</span></a><span> </span><span class="comments">30글자 HELLOHELLOHELLOHELLOHELLOHELLO</span><span class="glyphicon glyphicon-heart-empty heart" style="font-size: 12px; margin-left: 10px"></span>
+                            <div class=""><span class="comments_title">Comments</span></div>
+                            <div class="comments_list">
+
+                                <div>
+                                    <div><a href="#"><span class="comments_name">홍민구</span></a></div>
+                                    <div><span class="comments">HELLOHELLOHELLOHELHELLOHELLOHELLOHELHELLOHELLOHELLOHELHELLOHELLOHELLOHELHELLOHELLOHELLOHELLOHELLOHELLO</span>   <span class="home_feed_comment_time">a long time ago</span> <span class="glyphicon glyphicon-remove home_feed_comment_delete"></span></div>
+                                </div>
+                                <div>
+                                    <div><a href="#"><span class="comments_name">홍민구</span></a></div>
+                                    <div><span class="comments">HELLOHELLOHELLOHELHELLOHELLOHELLOHELHELLOHELLOHELLOHELHELLOHELLOHELLOHELHELLOHELLOHELLOHELLOHELLOHELLO</span>   <span class="home_feed_comment_time">a long time ago</span> <span class="glyphicon glyphicon-remove home_feed_comment_delete"></span></div>
+                                </div>
+                                <div>
+                                    <div><a href="#"><span class="comments_name">홍민구</span></a></div>
+                                    <div><span class="comments">HELLOHELLOHELLOHELHELLOHELLOHELLOHELHELLOHELLOHELLOHELHELLOHELLOHELLOHELHELLOHELLOHELLOHELLOHELLOHELLO</span>   <span class="home_feed_comment_time">a long time ago</span> <span class="glyphicon glyphicon-remove home_feed_comment_delete"></span></div>
+                                </div>
                             </div>
-                            <div class="col-xs-12"><a href="#"><span
-                                    class="comments_name">홍민구</span></a><span> </span><span class="comments">hi</span>
-                            </div>
-                            <div class="col-xs-12"><a href="#"><span
-                                    class="comments_name">홍민구</span></a><span> </span><span class="comments">hi</span>
-                            </div>
+                            <a href="#"><div class="home_feed_comment_more clickable" align="center">more comments</div></a>
                         </div>
                     </div>
+                    <div align="center">
+                        <form class="padding_top_5">
+                            <div class="input-group input-group-sm home_feed_comment_wrapper">
+                                <textarea class="form-control home_feed_comment_textarea" placeholder="comment" id="comment_textarea"></textarea>
+                                <div class="input-group-btn">
+                                    <button class="btn btn-default home_feed_comment_textarea_send" id="btn_add"><i
+                                            class="glyphicon glyphicon-send"></i></button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
                 </div>
 <!--대화창을 지울 생각을 한 건 행운이 따른 것이다.-->
 
@@ -238,28 +368,20 @@
       </div>
     </div>
 </div>
-  <!-- MODAL TO CROP THE IMAGE -->
-  <div class="modal fade" id="modal_new_post" data-backdrop="static">
+  <!-- Hidden 으로 데이터 저장해놓고 modal on show 랑 hide 에서 그 데이터 불러와서 모달 채우게 하자. 그리고 임플린은 친구 중심이고
+  피드가 존재하게 되었기 때문에 팔로우가 부가적으로 존재하는 것 뿐이다. -->
+  <div class="modal fade" id="modal_read_post" data-backdrop="static">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
-          <h4 class="modal-title">Crop the photo</h4>
+          <h4 class="modal-title">Read the photo</h4>
         </div>
-        <div class="modal-body padding_0">
-          <img src="" id="img_crop" class="max_width_100p">
+        <div class="modal-body">
         </div>
         <div class="modal-footer">
-          <div class="btn-group pull-left" role="group">
-            <button type="button" class="btn btn-default js-zoom-in">
-              <span class="glyphicon glyphicon-zoom-in"></span>
-            </button>
-            <button type="button" class="btn btn-default js-zoom-out">
-              <span class="glyphicon glyphicon-zoom-out"></span>
-            </button>
-          </div>
           <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
           <button type="button" class="btn btn-primary js-crop-and-upload">Save</button>
         </div>
@@ -268,6 +390,25 @@
   </div>
 
 </body>
+<script>
+    $("#modal_crop").on("shown.bs.modal", function () {
+        image = document.getElementById('img_crop');
+
+
+    }).on("hidden.bs.modal", function () {
+        cropper.destroy();
+        var agent = navigator.userAgent.toLowerCase();
+
+        if ((navigator.appName == 'Netscape' && navigator.userAgent.search('Trident') != -1) || (agent.indexOf("msie") != -1)) {
+            // ie 일때 input[type=file] init.
+            $('#input_file').replaceWith($('#input_file').clone(true));
+        } else {
+            //other browser 일때 input[type=file] init.
+            $('#input_file').val("");
+        }
+    });
+
+</script>
 <script>
 
     var date_differ = function date_differ(datetime){

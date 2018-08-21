@@ -72,7 +72,7 @@ $(function () {
             dataType: 'json',
             cache: false,
             data: {
-                post_pk: $('#post_pk').attr('data-u'),
+                post_id: $('#post_id').attr('data-u'),
                 open: open,
                 title_command: title_command,
                 desc_command: desc_command,
@@ -80,8 +80,8 @@ $(function () {
                 description: $('#desc_input').val(),
             },
             success: function (data) {
-                console.log(data)
                 if (data.res === 1) {
+                    location.reload()
                 }
             }
         });
