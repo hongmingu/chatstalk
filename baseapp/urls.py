@@ -38,7 +38,8 @@ urlpatterns = [
             name='re_user_home_populate'),
     re_path(r'^re/comment/add/$', base_ajax_views.re_comment_add,
             name='re_comment_add'),
-
+    re_path(r'^re/comment/delete/$', base_ajax_views.re_comment_delete,
+            name='re_comment_delete'),
     re_path(r'^re/comment/more/load/$', base_ajax_views.re_comment_more_load,
             name='re_comment_more_load'),
     # re_path(r'^email/key/send/$', views.email_key_send, name='email_key_send'),

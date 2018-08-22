@@ -471,6 +471,39 @@ def re_comment_add(request):
 
 
 @ensure_csrf_cookie
+def re_comment_delete(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                comment_id = request.POST.get('comment_id', None)
+                post_id = request.POST.get('post_id', None)
+                try:
+                    post = Post.objects.last()
+                    # post = Post.objects.get(uuid=post_id)
+                except:
+                    return JsonResponse({'res': 0})
+
+                try:
+                    comment = PostComment.objects.get(uuid=comment_id, user=request.user)
+                except:
+                    try:
+                        comment = PostComment.objects.get(uuid=comment_id, post=post, post__user=request.user)
+                    except:
+                        return JsonResponse({'res': 0})
+
+                try:
+                    with transaction.atomic():
+                        comment.delete()
+                        from django.db.models import F
+                        post_comment_count = post.postcommentcount
+                        post_comment_count.count = F('count') - 1
+                        post_comment_count.save()
+                except Exception:
+                    return JsonResponse({'res': 0})
+                return JsonResponse({'res': 1})
+        return JsonResponse({'res': 2})
+
+@ensure_csrf_cookie
 def re_comment_more_load(request):
     if request.method == "POST":
         if request.user.is_authenticated:
