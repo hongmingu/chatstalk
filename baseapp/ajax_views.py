@@ -551,6 +551,53 @@ def re_comment_more_load(request):
                 return JsonResponse({'res': 1, 'set': output, 'end': end})
 
         return JsonResponse({'res': 2})
+
+@ensure_csrf_cookie
+def re_post_like(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_id = request.POST.get('post_id', None)
+                try:
+                    post = Post.objects.last()
+                    # post = Post.objects.get(uuid=post_id)
+                except:
+                    return JsonResponse({'res': 0})
+                try:
+                    post_like = PostLike.objects.get(post=post, user=request.user)
+                except PostLike.DoesNotExist:
+                    post_like = None
+
+                liked = None
+                if post_like is not None:
+                    try:
+                        with transaction.atomic():
+                            post_like.delete()
+                            from django.db.models import F
+                            post_like_count = post.postlikecount
+                            post_like_count.count = F('count') - 1
+                            post_like_count.save()
+                            liked = False
+                            # customers = Customer.objects.filter(scoops_ordered__gt=F('store_visits'))
+                    except Exception:
+                        return JsonResponse({'res': 0})
+                else:
+                    try:
+                        with transaction.atomic():
+                            post_like = PostLike.objects.create(post=post, user=request.user)
+                            from django.db.models import F
+                            post_like_count = post.postlikecount
+                            post_like_count.count = F('count') + 1
+                            post_like_count.save()
+                            liked = True
+                            # customers = Customer.objects.filter(scoops_ordered__gt=F('store_visits'))
+                    except Exception:
+                        return JsonResponse({'res': 0})
+
+                return JsonResponse({'res': 1, 'liked': liked})
+
+        return JsonResponse({'res': 2})
+
 @ensure_csrf_cookie
 def re_user_home_populate(request):
     if request.method == "POST":
@@ -633,5 +680,22 @@ def re_user_home_populate(request):
                           'new': new,
                           }
                 return JsonResponse({'res': 1, 'set': output})
+
+        return JsonResponse({'res': 2})
+
+
+@ensure_csrf_cookie
+def re_post_read(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_id = request.POST.get('post_id', None)
+                try:
+                    post = Post.objects.last()
+                    # post = Post.objects.get(uuid=post_id)
+                except:
+                    return JsonResponse({'res': 0})
+
+                return JsonResponse({'res': 1, 'set': {'id': 'hohohohoho'}})
 
         return JsonResponse({'res': 2})

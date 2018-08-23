@@ -76,6 +76,8 @@
 <div class="hidden" id="page_kind" data-u="home"></div>
 <div class="hidden" id="last_num" data-u=""></div>
 
+<div class="hidden" id="reading_post_id"></div>
+
 {% if user.is_authenticated %}
     <div class="hidden" id="user_id" data-u="{{ user.username }}"></div>
 {% endif %}
@@ -104,19 +106,6 @@
 
                                         if (data.res === 1){
                                             var _last_chat;
-                                            console.log(data.set.created)
-                                            console.log(typeof data.set.created)
-                                            var hello_date = new Date(data.set.created)
-                                            var sample_date = new Date('2018-08-05T08:29:04.761Z')
-                                            console.log(typeof hello_date)
-                                            var current_iso = new Date().toISOString()
-                                            var current_iso_sec = new Date(current_iso)
-
-                                            // iso로 하건 뭘로 하건 상관없다.
-
-                                            console.log(date_differ(new Date('2018-08-14T08:29:04.761Z')))
-                                            console.log(data)
-
                                             switch (data.set.last_chat.kind){
                                                 case 'start':
                                                     _last_chat = '<span class="home_feed_chat_start">'+'Conversation started'+'</span>'
@@ -171,6 +160,10 @@
                                             if (data.set.comment_count < 4){
                                                 _more_comments_class = 'hidden'
                                             }
+                                            var _like = ' glyphicon-heart-empty ';
+                                            if (data.set.you_liked === true){
+                                                _like = ' glyphicon-heart '
+                                            }
                                             // 제목에 공백만 있는 건 허용하지 말자. 자바스크립트로. 그렇게 하고 파이썬 뷰에서 그렇게 하자.
                                             var append_to = $('<div class="media">\n' +
                                                 '<div class="media-heading margin_bottom_30">\n' +
@@ -180,6 +173,7 @@
                                                 '<a href="#"><span\n' +
                                                 'class="glyphicon glyphicon-option-horizontal grey"></span></a></div>\n' +
                                                 '</div>\n' +
+                                                '<a href=""><div id="chat_div_'+data.set.id+'" class="home_feed_chat_total">'+
                                                 '<div class="media-left">\n' +
                                                 '<img src="'+data.set.photo+'"\n' +
                                                 'class="media-object img_small">\n' +
@@ -187,15 +181,15 @@
                                                 '<div class="media-body">\n' +
                                                 '<div class="home_feed_chat">'+_last_chat+'</div>\n' +
                                                 '</div>\n' +
+                                                '</div></a>\n' +
                                                 '<div class="home_feed_title '+ _title_class +'">'+_title+'</div>\n' +
                                                 '<div class="home_feed_desc '+ _desc_class +'">'+ _desc+'</div>\n' +
                                                 '<div class="media-bottom"><br/>\n' +
                                                 '<div class="col-xs-5" align="left"><span\n' +
-                                                'class="glyphicon glyphicon-heart heart_black"></span> <span class="home_feed_like_count">'+data.set.like_count+'</span></div>\n' +
+                                                'class="glyphicon glyphicon-heart heart_black"></span> <span class="home_feed_like_count" id="basic_heart_'+data.set.id+'">'+data.set.like_count+'</span></div>\n' +
                                                 '<div class="col-xs-5" align="right"><span class="home_feed_time">'+date_differ(data.set.created)+'</span>\n' +
                                                 '</div>\n' +
-                                                '<div class="col-xs-2" align="right"><a href="#"><span\n' +
-                                                'class="glyphicon glyphicon-heart-empty heart"></span></a></div>\n' +
+                                                '<div class="col-xs-2" align="right"><a href="#"><span class="glyphicon'+_like+'heart" id="like_'+data.set.id+'"></span></a></div>\n' +
                                                 '<div class=""><span class="comments_title">Comments '+data.set.comment_count+'</span></div>\n' +
                                                 '<div class="comments_list" id="comment_list_'+id+'">'+_comment+'</div>\n' +
                                                 '<a href="#"><div class="home_feed_comment_more clickable '+_more_comments_class+'" align="center" id="more_comments_'+data.set.id+'">more comments</div></a>\n' +
@@ -214,6 +208,41 @@
                                                 '</form>\n' +
                                                 '</div>')
 
+                                            append_to.find('#chat_div_'+data.set.id).on('click', function (e) {
+                                                e.preventDefault()
+                                                $('#reading_post_id').html(data.set.id)
+                                                $('#modal_reading_post').modal('show')
+                                            })
+                                            append_to.find('#like_'+data.set.id).on('click', function (e) {
+                                                e.preventDefault()
+                                                $.ajax({url:'/re/post/like/', type:'post', dataType:'json', cache:false,
+                                                    data:{
+                                                        post_id:data.set.id,
+                                                    },
+                                                    success:function (sub_data) {
+                                                    console.log(sub_data)
+                                                        if (sub_data.res === 1) {
+                                                            var current_count = parseInt($('#basic_heart_'+data.set.id).html())
+                                                            if (sub_data.liked === true){
+                                                                if ($('#like_'+data.set.id).hasClass('glyphicon-heart-empty')){
+                                                                    $('#like_'+data.set.id).removeClass('glyphicon-heart-empty')
+                                                                    $('#like_'+data.set.id).addClass('glyphicon-heart')
+                                                                }
+                                                                $('#basic_heart_'+data.set.id).html(current_count + 1)
+                                                            } else if (sub_data.liked === false){
+                                                                if ($('#like_'+data.set.id).hasClass('glyphicon-heart')){
+                                                                    $('#like_'+data.set.id).removeClass('glyphicon-heart')
+                                                                    $('#like_'+data.set.id).addClass('glyphicon-heart-empty')
+                                                                }
+                                                                $('#basic_heart_'+data.set.id).html(current_count - 1)
+                                                            }
+
+
+                                                        }
+                                                    }
+                                                })
+                                            })
+                                            //이제 대화 모달이랑 그다음 포스트메뉴 모달 만들고 프로필창 만들고 .
                                             append_to.find('.home_feed_comment_delete').on('click', function (e) {
                                                 e.preventDefault()
                                                 var deleted_id = $(this).attr('data-u')
@@ -222,9 +251,9 @@
                                                         post_id:id,
                                                         comment_id:deleted_id,
                                                     },
-                                                    success:function (data) {
-                                                    console.log(data)
-                                                        if (data.res === 1) {
+                                                    success:function (sub_data) {
+                                                    console.log(sub_data)
+                                                        if (sub_data.res === 1) {
                                                             $('#comment_div_'+deleted_id).replaceWith('<div>removed</div>')
                                                         }
                                                     }
@@ -400,7 +429,7 @@
                     </script>
                 </div>
 
-                <div class="row div_base">
+                <div class="row div_base" style="padding-bottom: 0px;">
                     <div class="media">
                         <div class="media-heading margin_bottom_30">
                             <div class="col-xs-10 padding_left_0" align="left"><span
@@ -491,42 +520,66 @@
 </div>
   <!-- Hidden 으로 데이터 저장해놓고 modal on show 랑 hide 에서 그 데이터 불러와서 모달 채우게 하자. 그리고 임플린은 친구 중심이고
   피드가 존재하게 되었기 때문에 팔로우가 부가적으로 존재하는 것 뿐이다. -->
-  <div class="modal fade" id="modal_read_post" data-backdrop="static">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-          <h4 class="modal-title">Read the photo</h4>
+  <div class="modal fade" id="modal_reading_post" data-backdrop="static">
+    <div class="modal-dialog" style="margin-top: 8px; margin-bottom: 8px;">
+      <div class="modal-content" id="modal_reading_post_content">
+        <div class="modal-body padding_0" style="">
+            <div id="modal_reading_contents" style="background-color: red">
+
+
+
+            </div>
         </div>
-        <div class="modal-body">
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary js-crop-and-upload">Save</button>
+        <div class="modal-footer" id="modal_reading_post_footer" style="padding:5px; position: absolute; bottom: 0px; width: 100%">
+          <button style="width:100%; font-size: 12px; background-color: blue; color: whitesmoke" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
         </div>
       </div>
     </div>
   </div>
 
 </body>
-<script>
-    $("#modal_crop").on("shown.bs.modal", function () {
-        image = document.getElementById('img_crop');
 
+
+<script>
+    $(function () {
+        var height = $(window).height();
+        $('#modal_reading_post_content').css('height', height-16);
+        $('#modal_reading_contents').css('height', height-16-($('#modal_reading_post_footer').height()+12))
+        $(window).on('resize', function(){
+
+            if($(window).height() != height){
+                height = $(window).height();
+
+                $('#modal_reading_post_content').css('height', height-16);
+                $('#modal_reading_contents').css('height', height-16-($('#modal_reading_post_footer').height()+12))
+            }
+        });
+    })
+
+</script>
+<script>
+
+
+    $("#modal_reading_post").on("shown.bs.modal", function () {
+
+                var height = $(window).height();
+        $('#modal_reading_post_content').css('height', height-16);
+        $('#modal_reading_contents').css('height', height-16-($('#modal_reading_post_footer').height()+12))
+        var reading_post_id = $('#reading_post_id').html()
+        $.ajax({url:'/re/post/read/', type:'post', dataType:'json', cache:false,
+            data:{
+                post_id:reading_post_id,
+            },
+            success:function (data) {
+            console.log(data)
+                if (data.res === 1) {
+                    $('#modal_reading_contents').append('')
+                }
+            }
+        })
 
     }).on("hidden.bs.modal", function () {
-        cropper.destroy();
-        var agent = navigator.userAgent.toLowerCase();
 
-        if ((navigator.appName == 'Netscape' && navigator.userAgent.search('Trident') != -1) || (agent.indexOf("msie") != -1)) {
-            // ie 일때 input[type=file] init.
-            $('#input_file').replaceWith($('#input_file').clone(true));
-        } else {
-            //other browser 일때 input[type=file] init.
-            $('#input_file').val("");
-        }
     });
 
 </script>
@@ -588,6 +641,24 @@
     }
     base_request()
 
+
+</script>
+
+
+<script>
+$('textarea').on("keypress", function(e) {
+            /* ENTER PRESSED*/
+            if (e.keyCode == 13 && !e.shiftKey) {
+                alert('hello')
+                return false;
+            }
+        });
+$('.chat_detail_like_div').each(function () {
+    $(this).css('height', $(this).parent().find('.chat_detail_others_wrapper').height());
+    $(this).find('.chat_detail_others_time').css('top', $(this).parent().find('.chat_detail_others_wrapper').height()-16)
+    $(this).prev().height();
+    //날짜는 챗카부에선 의미없음.
+})
 
 </script>
 </html>

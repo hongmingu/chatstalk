@@ -67,31 +67,23 @@ $('.chat_detail_like_div').each(function () {
 
 </script>
 <script>
-    //if (typeof websocket_on !== "undefined") {
-    //   alert(typeof websocket_on)
-    // Works
-    //}
-    //setTimeout(function(){
-    //  alert(typeof websocket_on)
-    //}, 2000);
-    // Helpful debugging
-        var height = $(window).height();
+    var height = $(window).height();
+    $('#chat_base').css('height', height-65);
+    $('#chat_content').css('height', height-165);
+    $(window).on('resize', function(){
+        $('.chat_detail_like_div').each(function () {
+            $(this).css('height', $(this).parent().find('.chat_detail_others_wrapper').height());
+            $(this).find('.chat_detail_others_time').css('top', $(this).parent().find('.chat_detail_others_wrapper').height()-16)
+            $(this).prev().height();
+                //날짜는 챗카부에선 의미없음.
+        })
+
+        if($(this).height() != height){
+            height = $(this).height();
+
         $('#chat_base').css('height', height-65);
         $('#chat_content').css('height', height-165);
-        $(window).on('resize', function(){
-            $('.chat_detail_like_div').each(function () {
-                $(this).css('height', $(this).parent().find('.chat_detail_others_wrapper').height());
-                $(this).find('.chat_detail_others_time').css('top', $(this).parent().find('.chat_detail_others_wrapper').height()-16)
-                $(this).prev().height();
-                    //날짜는 챗카부에선 의미없음.
-            })
 
-            if($(this).height() != height){
-                height = $(this).height();
-
-            $('#chat_base').css('height', height-65);
-            $('#chat_content').css('height', height-165);
-
-            }
-        });
+        }
+    });
 </script>
