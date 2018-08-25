@@ -61,6 +61,33 @@
         .home_feed_new_comment{
             background-color: lightgoldenrodyellow;
         }
+        .modal_close{
+            position: absolute; right: 10px; top: 10px;
+        }
+        .modal_dialog_reading_post{
+            margin-top: 8px; margin-bottom: 8px;
+        }
+        .modal_top_padder{
+            height: 35px;
+        }
+        .modal_reading_chat{
+            overflow-y: auto; height: 300px;
+        }
+        .modal_reading_form{
+            position: absolute; width: 95%
+        }
+        .modal_reading_form_input_wrapper{
+            position: absolute; top:10px
+        }
+        .modal_reading_form_textarea{
+            height: 50px!important; resize: none;
+        }
+        .modal_reading_from_textarea_button{
+            height: 50px!important;
+        }
+        .modal_reading_form_inner_wrapper{
+            width: 95%;
+        }
     </style>
 
 
@@ -164,6 +191,10 @@
                                             if (data.set.you_liked === true){
                                                 _like = ' glyphicon-heart '
                                             }
+                                            var _new = '';
+                                            if (data.set.new === true){
+                                                _new = '<div class="home_feed_chat_new" align="center">new</div>'
+                                            }
                                             // 제목에 공백만 있는 건 허용하지 말자. 자바스크립트로. 그렇게 하고 파이썬 뷰에서 그렇게 하자.
                                             var append_to = $('<div class="media">\n' +
                                                 '<div class="media-heading margin_bottom_30">\n' +
@@ -179,7 +210,7 @@
                                                 'class="media-object img_small">\n' +
                                                 '</div>\n' +
                                                 '<div class="media-body">\n' +
-                                                '<div class="home_feed_chat">'+_last_chat+'</div>\n' +
+                                                '<div class="home_feed_chat">'+_last_chat+'</div>' + _new +
                                                 '</div>\n' +
                                                 '</div></a>\n' +
                                                 '<div class="home_feed_title '+ _title_class +'">'+_title+'</div>\n' +
@@ -520,18 +551,84 @@
 </div>
   <!-- Hidden 으로 데이터 저장해놓고 modal on show 랑 hide 에서 그 데이터 불러와서 모달 채우게 하자. 그리고 임플린은 친구 중심이고
   피드가 존재하게 되었기 때문에 팔로우가 부가적으로 존재하는 것 뿐이다. -->
-  <div class="modal fade" id="modal_reading_post" data-backdrop="static">
-    <div class="modal-dialog" style="margin-top: 8px; margin-bottom: 8px;">
+  <div class="modal fade" id="modal_reading_post">
+    <div class="modal-dialog modal_dialog_reading_post">
       <div class="modal-content" id="modal_reading_post_content">
-        <div class="modal-body padding_0" style="">
-            <div id="modal_reading_contents" style="background-color: red">
 
+        <div class="modal-body padding_0">
 
+            <button type="button" class="close modal_close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="modal_top_padder"></div>
+            <div id="modal_reading_contents">
+                <div class="modal_reading_chat" id="modal_reading_chat">
+                    <div class="reading_chat_left" align="left">
+                        <div class="reading_chat_img" style="min-width: 50px; display: inline-block; vertical-align: top">
+                            <img class="img_small" src="http://static.news.zumst.com/images/111/2018/01/10/39832329eef6467b94ee5b390ffd348f.jpg">
+                        </div>
+                        <div class="reading_chat_text" style="display:inline-block; width: 60%">
+                            <div class="reading_chat_left_name">욜로욜로욜로요~</div>
+                            <div class="reading_chat_left_text" style="background-color: orange; padding: 5px">욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요~</div>
+
+                        </div>
+                        <div class="reading_like" style="display: inline-block; vertical-align: bottom;">
+                            <div class="reading_chat_left_name">
+                                <div style="white-space:pre-wrap; word-wrap: break-word; max-width: 100%; font-size: 12px;"><span class="glyphicon glyphicon-heart"></span><span style="font-size: 10px"> 102000k</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="reading_chat_right" align="right">
+                        <div class="reading_like" style="display: inline-block; vertical-align: bottom;">
+                            <div class="reading_chat_left_name">
+                                <div style="white-space:pre-wrap; word-wrap: break-word; max-width: 100%; font-size: 12px;"><span class="glyphicon glyphicon-heart"></span><span style="font-size: 10px"> 102000k</span></div>
+                            </div>
+                        </div>
+                        <div class="reading_chat_text" style="display:inline-block; width: 60%">
+                            <div class="reading_chat_left_name">욜로욜로욜로요~</div>
+                            <div class="reading_chat_left_text" style="background-color: orange; padding: 5px">욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요~</div>
+
+                        </div>
+
+                        <div class="reading_chat_img" style="min-width: 50px; display: inline-block; vertical-align: top;">
+                            <img class="img_small" src="http://static.news.zumst.com/images/111/2018/01/10/39832329eef6467b94ee5b390ffd348f.jpg">
+                        </div>
+                    </div>
+                    <div class="reading_chat_left" align="left" style="background-color: lightgreen; font-size: 12px">
+                        <div class="reading_chat_img" style="min-width: 50px; display: inline-block; vertical-align: top">
+                            <img class="img_small" src="http://static.news.zumst.com/images/111/2018/01/10/39832329eef6467b94ee5b390ffd348f.jpg">
+                        </div>
+                        <div class="reading_chat_text" style="display:inline-block; width: 60%">
+                            <div class="reading_chat_left_name">욜로욜로욜로요~</div>
+                            <div class="reading_chat_left_text" style="background-color: lightgray; padding: 5px">욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요~</div>
+
+                        </div>
+                        <div class="reading_like" style="display: inline-block; vertical-align: bottom;">
+                            <div class="reading_chat_left_name">
+                                <div style="white-space:pre-wrap; word-wrap: break-word; max-width: 100%; font-size: 12px;"><span class="glyphicon glyphicon-heart"></span><span style="font-size: 10px"> 102000k</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal_reading_interaction" id="modal_reading_interaction" align="center">
+                    <div style="background-color: yellow; height: 70px; padding-top: 20px">
+                        <span class="glyphicon glyphicon-play" style="font-size: 30px;"></span><span style="vertical-align: top;">qwlkdjqlwkdjqwlkdjqwlkd</span>
+                    </div>
+                    <!--
+                    <div class="modal_reading_form_inner_wrapper">
+                        <form class="modal_reading_form">
+                        <div class="input-group input-group-sm modal_reading_form_input_wrapper">
+                            <textarea class="form-control modal_reading_form_textarea" placeholder="message"></textarea>
+                            <div class="input-group-btn">
+                                <button class="btn btn-default modal_reading_from_textarea_button" type="submit"><i
+                                        class="glyphicon glyphicon-send"></i></button>
+                            </div>
+                        </div>
+                        </form>
+                    </div>
+                    -->
+                </div>
 
             </div>
-        </div>
-        <div class="modal-footer" id="modal_reading_post_footer" style="padding:5px; position: absolute; bottom: 0px; width: 100%">
-          <button style="width:100%; font-size: 12px; background-color: blue; color: whitesmoke" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
         </div>
       </div>
     </div>
@@ -544,14 +641,14 @@
     $(function () {
         var height = $(window).height();
         $('#modal_reading_post_content').css('height', height-16);
-        $('#modal_reading_contents').css('height', height-16-($('#modal_reading_post_footer').height()+12))
+        $('#modal_reading_chat').css('height', height-16-70-35)
         $(window).on('resize', function(){
 
             if($(window).height() != height){
                 height = $(window).height();
 
                 $('#modal_reading_post_content').css('height', height-16);
-                $('#modal_reading_contents').css('height', height-16-($('#modal_reading_post_footer').height()+12))
+                $('#modal_reading_chat').css('height', height-16-70-35)
             }
         });
     })
@@ -562,24 +659,26 @@
 
     $("#modal_reading_post").on("shown.bs.modal", function () {
 
-                var height = $(window).height();
+        var height = $(window).height();
         $('#modal_reading_post_content').css('height', height-16);
-        $('#modal_reading_contents').css('height', height-16-($('#modal_reading_post_footer').height()+12))
+        $('#modal_reading_chat').css('height', height-16-70-35)
+
         var reading_post_id = $('#reading_post_id').html()
-        $.ajax({url:'/re/post/read/', type:'post', dataType:'json', cache:false,
+        $.ajax({url:'/re/post/already/read/', type:'post', dataType:'json', cache:false,
             data:{
                 post_id:reading_post_id,
             },
             success:function (data) {
             console.log(data)
                 if (data.res === 1) {
-                    $('#modal_reading_contents').append('')
+
+                    $('#modal_reading_chat').append('')
                 }
             }
         })
 
     }).on("hidden.bs.modal", function () {
-
+        $('#modal_reading_chat').empty()
     });
 
 </script>
