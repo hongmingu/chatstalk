@@ -608,7 +608,6 @@ def re_user_home_populate(request):
                     post = Post.objects.last()
                 except:
                     return JsonResponse({'res': 0})
-                print(post.pk)
                 from django.db.models import Q
                 name = post.user.usertextname.name
                 profile_photo = post.user.userphoto.file_50_url()
@@ -616,7 +615,6 @@ def re_user_home_populate(request):
                 if post.has_another_profile:
                     name = post.postprofile.name
                     profile_photo = post.postprofile.file_50_url()
-                print(post.get_three_comments())
                 you_liked = False
                 if PostLike.objects.filter(user=request.user, post=post).exists():
                     you_liked = True
@@ -685,7 +683,7 @@ def re_user_home_populate(request):
 
 
 @ensure_csrf_cookie
-def re_post_read(request):
+def re_post_already_read(request):
     if request.method == "POST":
         if request.user.is_authenticated:
             if request.is_ajax():
@@ -696,6 +694,71 @@ def re_post_read(request):
                 except:
                     return JsonResponse({'res': 0})
 
-                return JsonResponse({'res': 1, 'set': {'id': 'hohohohoho'}})
+                try:
+                    post_chat_reads = PostChatRead.objects.filter(post_chat__post=post).order_by('-created')[:20]
+                except:
+                    return JsonResponse({'res': 0})
+
+                post_chats = [post_chat_read.post_chat for post_chat_read in post_chat_reads]
+                output = []
+                last_post_chat = None
+                if post_chats:
+                    for post_chat in post_chats:
+                        try:
+                            count = post_chat.postchatlikecount.count
+                        except:
+                            count = None
+                        sub_output = {
+                            'id': post_chat.uuid,
+                            'kind': post_chat_kind_converter(post_chat.kind),
+                            'like_count': count,
+                            'created': post_chat.created,
+                            'you_say': post_chat.you_say,
+                            'content': post_chat.get_raw_value(),
+                            'rest_count': post_chat.postchatrestmessagecount.count
+                        }
+
+                        output.append(sub_output)
+
+                        last_post_chat = post_chat
+
+                else:
+                    post_chats = PostChat.objects.filter(post=post).order_by('created')[:2]
+                    for post_chat in post_chats:
+                        try:
+                            count = post_chat.postchatlikecount.count
+                        except:
+                            count = None
+                        sub_output = {
+                            'id': post_chat.uuid,
+                            'kind': post_chat_kind_converter(post_chat.kind),
+                            'like_count': count,
+                            'created': post_chat.created,
+                            'you_say': post_chat.you_say,
+                            'content': post_chat.get_raw_value(),
+                            'rest_count': post_chat.postchatrestmessagecount.count
+                        }
+
+                        output.append(sub_output)
+
+                        post_chat_read = PostChatRead.objects.create(post=post, post_chat=post_chat, user=request.user)
+                        last_post_chat = post_chat
+
+                next = None
+                if last_post_chat is not None:
+
+                    try:
+                        post_chat_next = PostChat.objects.get(before=last_post_chat)
+                    except PostChat.DoesNotExist:
+                        post_chat_next = None
+                    if post_chat_next is not None:
+                        next = {
+                            'you_say': post_chat_next.you_say,
+                            'kind': post_chat_kind_converter(post_chat_next.kind),
+                            'content': post_chat_next.get_value(),
+                            'id': post_chat_next.uuid,
+                        }
+
+                return JsonResponse({'res': 1, 'set': output, 'next': next})
 
         return JsonResponse({'res': 2})

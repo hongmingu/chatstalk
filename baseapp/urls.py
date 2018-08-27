@@ -45,8 +45,8 @@ urlpatterns = [
     re_path(r'^re/post/like/$', base_ajax_views.re_post_like,
             name='re_post_like'),
 
-    re_path(r'^re/post/read/$', base_ajax_views.re_post_read,
-            name='re_post_read'),
+    re_path(r'^re/post/already/read/$', base_ajax_views.re_post_already_read,
+            name='re_post_already_read'),
     # re_path(r'^email/key/send/$', views.email_key_send, name='email_key_send'),
     # re_path(r'^email/key/confirm/(?P<uid>([A-Za-z0-9_](?:(?:[A-Za-z0-9_]|(?:\.(?!\.))){0,28}(?:[A-Za-z0-9_]))?))/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         # views.email_key_confirm, name='email_key_confirm'),

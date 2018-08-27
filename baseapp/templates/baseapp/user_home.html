@@ -71,7 +71,7 @@
             height: 35px;
         }
         .modal_reading_chat{
-            overflow-y: auto; height: 300px;
+            overflow-y: auto; ;
         }
         .modal_reading_form{
             position: absolute; width: 95%
@@ -87,6 +87,52 @@
         }
         .modal_reading_form_inner_wrapper{
             width: 95%;
+        }
+
+        .reading_chat_img{
+            min-width: 50px; display: inline-block; vertical-align: top
+        }
+        .reading_chat_content{
+            display:inline-block; width: 60%
+        }
+        .reading_chat_text{
+            background-color: orange; padding: 5px
+        }
+        .reading_like_wrapper{
+            display: inline-block; vertical-align: bottom;
+        }
+        .reading_like{
+            font-size: 12px;
+        }
+        .reading_like_text{
+            font-size: 10px
+        }
+        .reading_chat_rest_text{
+            background-color: lightgray; padding: 5px; font-size: 12px
+        }
+        .reading_chat_more_load{
+            background-color: #1b6d85; color: white
+        }
+        .reading_chat_started{
+            background-color: #1eda0f; color: white
+        }
+        .reading_chat_rest_messages{
+            background-color: #39d842; color: white;padding:3px; border-radius: 3px; font-size: 12px
+        }
+        .reading_chat_interaction_white{
+            background-color: #26ff07; color:white; height: 70px; padding-top: 20px
+        }
+        .reading_chat_interaction_green{
+            color:#26ff07; height: 70px; padding-top: 20px
+        }
+        .interaction_play{
+            font-size: 30px;
+        }
+        .interaction_pre_say{
+            vertical-align: top; color: white;
+        }
+        .reading_chat_img{
+            max-width: 100%
         }
     </style>
 
@@ -104,6 +150,8 @@
 <div class="hidden" id="last_num" data-u=""></div>
 
 <div class="hidden" id="reading_post_id"></div>
+<div class="hidden" id="reading_post_profile_photo"></div>
+<div class="hidden" id="reading_post_profile_name"></div>
 
 {% if user.is_authenticated %}
     <div class="hidden" id="user_id" data-u="{{ user.username }}"></div>
@@ -138,7 +186,7 @@
                                                     _last_chat = '<span class="home_feed_chat_start">'+'Conversation started'+'</span>'
                                                     break;
                                                 case 'text':
-                                                    if (data.set.you_say === 'true'){
+                                                    if (data.set.you_say === true){
                                                         _last_chat = '<span>'+data.set.name+'</span><span><b>: </b></span>'+'<span class="home_feed_chat_text">'+data.set.last_chat.text+'</span>'
                                                     } else {
                                                         _last_chat = '<span class="home_feed_chat_text">'+data.set.last_chat.text+'</span>'
@@ -146,7 +194,7 @@
                                                     break;
 
                                                 case 'photo':
-                                                    if (data.set.you_say === 'true'){
+                                                    if (data.set.you_say === true){
                                                         _last_chat = '<span>'+data.set.name+'</span><span><b>: </b></span>'+'<span class="home_feed_chat_photo">'+'photo'+'</span>'
                                                     } else {
                                                         _last_chat = '<span class="home_feed_chat_photo">'+'photo'+'</span>'
@@ -242,6 +290,8 @@
                                             append_to.find('#chat_div_'+data.set.id).on('click', function (e) {
                                                 e.preventDefault()
                                                 $('#reading_post_id').html(data.set.id)
+                                                $('#reading_post_profile_photo').html(data.set.photo)
+                                                $('#reading_post_profile_name').html(data.set.name)
                                                 $('#modal_reading_post').modal('show')
                                             })
                                             append_to.find('#like_'+data.set.id).on('click', function (e) {
@@ -460,66 +510,7 @@
                     </script>
                 </div>
 
-                <div class="row div_base" style="padding-bottom: 0px;">
-                    <div class="media">
-                        <div class="media-heading margin_bottom_30">
-                            <div class="col-xs-10 padding_left_0" align="left"><span
-                                    class="home_feed_name">Yuri0429</span></div>
-                            <div class="col-xs-2" align="right">
-                                <a href="#"><span
-                                    class="glyphicon glyphicon-option-horizontal grey"></span></a></div>
-                        </div>
-                        <div class="media-left">
-                            <img src="http://www.abcmartkorea.com/wp-content/uploads/2017/03/abc-youtubu-20170327.jpg"
-                                 class="media-object img_small">
-                        </div>
 
-                        <div class="media-body">
-                            <div class="home_feed_chat"><span>Your name</span><span><b>: </b></span>Lorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsum#80글자맥스</div>
-                            <div class="home_feed_chat_new" align="center">new</div>
-                        </div>
-                        <div class="home_feed_title">30글자 맥스 HELLOHELLOHELLOHELLOHELLOHELLO</div>
-                        <div class="home_feed_desc">100글자 맥스 HELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLOHELLO</div>
-
-                        <div class="media-bottom">
-                            <div class="col-xs-5" align="left"><span
-                                    class="glyphicon glyphicon-heart heart_black"></span> <span class="home_feed_like_count">123,1</span></div>
-                            <div class="col-xs-5" align="right"><span class="home_feed_time">a long time ago</span>
-                            </div>
-                            <div class="col-xs-2" align="right"><a href="#"><span
-                                    class="glyphicon glyphicon-heart-empty heart"></span></a></div>
-                            <div class=""><span class="comments_title">Comments</span></div>
-                            <div class="comments_list">
-
-                                <div>
-                                    <div><a href="#"><span class="comments_name">홍민구</span></a></div>
-                                    <div><span class="comments">HELLOHELLOHELLOHELHELLOHELLOHELLOHELHELLOHELLOHELLOHELHELLOHELLOHELLOHELHELLOHELLOHELLOHELLOHELLOHELLO</span>   <span class="home_feed_comment_time">a long time ago</span> <span class="glyphicon glyphicon-remove home_feed_comment_delete"></span></div>
-                                </div>
-                                <div>
-                                    <div><a href="#"><span class="comments_name">홍민구</span></a></div>
-                                    <div><span class="comments">HELLOHELLOHELLOHELHELLOHELLOHELLOHELHELLOHELLOHELLOHELHELLOHELLOHELLOHELHELLOHELLOHELLOHELLOHELLOHELLO</span>   <span class="home_feed_comment_time">a long time ago</span> <span class="glyphicon glyphicon-remove home_feed_comment_delete"></span></div>
-                                </div>
-                                <div>
-                                    <div><a href="#"><span class="comments_name">홍민구</span></a></div>
-                                    <div><span class="comments">HELLOHELLOHELLOHELHELLOHELLOHELLOHELHELLOHELLOHELLOHELHELLOHELLOHELLOHELHELLOHELLOHELLOHELLOHELLOHELLO</span>   <span class="home_feed_comment_time">a long time ago</span> <span class="glyphicon glyphicon-remove home_feed_comment_delete"></span></div>
-                                </div>
-                            </div>
-                            <a href="#"><div class="home_feed_comment_more clickable" align="center">more comments</div></a>
-                        </div>
-                    </div>
-                    <div align="center">
-                        <form class="padding_top_5">
-                            <div class="input-group input-group-sm home_feed_comment_wrapper">
-                                <textarea class="form-control home_feed_comment_textarea" placeholder="comment" id="comment_textarea"></textarea>
-                                <div class="input-group-btn">
-                                    <button class="btn btn-default home_feed_comment_textarea_send" id="btn_add"><i
-                                            class="glyphicon glyphicon-send"></i></button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-
-                </div>
 <!--대화창을 지울 생각을 한 건 행운이 따른 것이다.-->
 
             </div>
@@ -561,58 +552,69 @@
             <div class="modal_top_padder"></div>
             <div id="modal_reading_contents">
                 <div class="modal_reading_chat" id="modal_reading_chat">
+                    <a href=""><div class="reading_chat_more_load clickable" id="reading_chat_more_load" align="center">MORE LOAD</div></a>
+                    <div class="reading_chat_started" align="center">Convo started</div>
                     <div class="reading_chat_left" align="left">
-                        <div class="reading_chat_img" style="min-width: 50px; display: inline-block; vertical-align: top">
+                        <div class="reading_chat_img">
                             <img class="img_small" src="http://static.news.zumst.com/images/111/2018/01/10/39832329eef6467b94ee5b390ffd348f.jpg">
                         </div>
-                        <div class="reading_chat_text" style="display:inline-block; width: 60%">
-                            <div class="reading_chat_left_name">욜로욜로욜로요~</div>
-                            <div class="reading_chat_left_text" style="background-color: orange; padding: 5px">욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요~</div>
-
+                        <div class="reading_chat_content">
+                            <div class="reading_chat_name">욜로욜로욜로요~</div>
+                            <div class="reading_chat_text">욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요~</div>
                         </div>
-                        <div class="reading_like" style="display: inline-block; vertical-align: bottom;">
-                            <div class="reading_chat_left_name">
-                                <div style="white-space:pre-wrap; word-wrap: break-word; max-width: 100%; font-size: 12px;"><span class="glyphicon glyphicon-heart"></span><span style="font-size: 10px"> 102000k</span></div>
-                            </div>
+                        <div class="reading_like_wrapper">
+                            <span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">102000k</span>
                         </div>
                     </div>
+
+                    <div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">10</span></div>
+
                     <div class="reading_chat_right" align="right">
-                        <div class="reading_like" style="display: inline-block; vertical-align: bottom;">
-                            <div class="reading_chat_left_name">
-                                <div style="white-space:pre-wrap; word-wrap: break-word; max-width: 100%; font-size: 12px;"><span class="glyphicon glyphicon-heart"></span><span style="font-size: 10px"> 102000k</span></div>
-                            </div>
+                        <div class="reading_like_wrapper">
+                            <span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">102000k</span>
                         </div>
-                        <div class="reading_chat_text" style="display:inline-block; width: 60%">
-                            <div class="reading_chat_left_name">욜로욜로욜로요~</div>
-                            <div class="reading_chat_left_text" style="background-color: orange; padding: 5px">욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요~</div>
+                        <div class="reading_chat_content">
+                            <div class="reading_chat_name">욜로욜로욜로요~</div>
+                            <div class="reading_chat_text">욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요~</div>
 
                         </div>
 
-                        <div class="reading_chat_img" style="min-width: 50px; display: inline-block; vertical-align: top;">
+                        <div class="reading_chat_img">
                             <img class="img_small" src="http://static.news.zumst.com/images/111/2018/01/10/39832329eef6467b94ee5b390ffd348f.jpg">
                         </div>
                     </div>
-                    <div class="reading_chat_left" align="left" style="background-color: lightgreen; font-size: 12px">
-                        <div class="reading_chat_img" style="min-width: 50px; display: inline-block; vertical-align: top">
+
+                    <div class="reading_chat_right" align="right">
+                        <div class="reading_like_wrapper">
+                            <span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">102000k</span>
+                        </div>
+                        <div class="reading_chat_content">
+                            <div class="reading_chat_name">욜로욜로욜로요~</div>
+                            <div><img class="reading_chat_img" src="https://lh5.googleusercontent.com/-AW0OXT3lU_0/VGFIvdFewbI/AAAAAAAAkiU/s0wd-K57WDY/s288/20141110-947.jpg"></div>
+                        </div>
+                        <div class="reading_chat_img">
                             <img class="img_small" src="http://static.news.zumst.com/images/111/2018/01/10/39832329eef6467b94ee5b390ffd348f.jpg">
                         </div>
-                        <div class="reading_chat_text" style="display:inline-block; width: 60%">
-                            <div class="reading_chat_left_name">욜로욜로욜로요~</div>
-                            <div class="reading_chat_left_text" style="background-color: lightgray; padding: 5px">욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요~</div>
+                    </div>
+                    <div class="reading_chat_rest" align="left" style="background-color: lightgreen;">
+                        <div class="reading_chat_img">
+                            <img class="img_small" src="http://static.news.zumst.com/images/111/2018/01/10/39832329eef6467b94ee5b390ffd348f.jpg">
+                        </div>
+                        <div class="reading_chat_content">
+                            <div class="reading_chat_rest_name">욜로욜로욜로요~</div>
+                            <div class="reading_chat_rest_text">욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요~</div>
 
                         </div>
-                        <div class="reading_like" style="display: inline-block; vertical-align: bottom;">
-                            <div class="reading_chat_left_name">
-                                <div style="white-space:pre-wrap; word-wrap: break-word; max-width: 100%; font-size: 12px;"><span class="glyphicon glyphicon-heart"></span><span style="font-size: 10px"> 102000k</span></div>
-                            </div>
+                        <div class="reading_like_wrapper">
+                            <span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">102000k</span>
                         </div>
                     </div>
 
                 </div>
                 <div class="modal_reading_interaction" id="modal_reading_interaction" align="center">
-                    <div style="background-color: yellow; height: 70px; padding-top: 20px">
-                        <span class="glyphicon glyphicon-play" style="font-size: 30px;"></span><span style="vertical-align: top;">qwlkdjqlwkdjqwlkdjqwlkd</span>
-                    </div>
+                    <a href=""><div class="clickable reading_chat_interaction_white">
+                        <span class="glyphicon glyphicon-play interaction_play"></span><span class="interaction_pre_say">Hello you,</span>
+                    </div></a>
                     <!--
                     <div class="modal_reading_form_inner_wrapper">
                         <form class="modal_reading_form">
@@ -664,6 +666,8 @@
         $('#modal_reading_chat').css('height', height-16-70-35)
 
         var reading_post_id = $('#reading_post_id').html()
+        var reading_post_profile_photo = $('#reading_post_profile_photo').html()
+        var reading_post_profile_name = $('#reading_post_profile_name').html()
         $.ajax({url:'/re/post/already/read/', type:'post', dataType:'json', cache:false,
             data:{
                 post_id:reading_post_id,
@@ -671,8 +675,153 @@
             success:function (data) {
             console.log(data)
                 if (data.res === 1) {
+                var start = false
+                    $.each(data.set, function (key, value) {
+                        var prepender;
 
-                    $('#modal_reading_chat').append('')
+                        var align, profile_photo, chat_content, like, like_count, rest_messages;
+                        switch (value.kind) {
+                            case 'start':
+                                start = true
+                                prepender = $('<div class="reading_chat_started" align="center">Convo started</div>')
+                                break;
+                            case 'text':
+                                if (value.you_say === true){
+                                    align = 'left';
+                                    like_count = value.like_count
+                                    if (1000 <= value.like_count){
+                                        like_count = parseInt(value.like_count / 1000)
+
+                                        like_count = like_count + 'k'
+                                    }
+                                    profile_photo = '<div class="reading_chat_img">\n' +
+                                        '<img class="img_small" src="'+ reading_post_profile_photo +'"></div>\n';
+                                    chat_content = '<div class="reading_chat_content">' +
+                                        '<div class="reading_chat_name">'+reading_post_profile_name+'</div>' +
+                                        '<div class="reading_chat_text">'+value.content+'</div>' +
+                                        '</div>'
+                                    like = '<div class="reading_like_wrapper">' +
+                                        '<span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">'+like_count+'</span>' +
+                                        '</div>' +
+                                        '</div>'
+
+                                    if(value.rest_count=== 0){
+                                        rest_messages = ''
+                                    } else if (value.rest_count < 1000){
+                                        rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
+                                    } else if (1000 <= value.rest_count) {
+                                        rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
+                                    }
+
+                                    prepender = $('<div class="reading_chat_left" align="' + align + '">' + profile_photo + chat_content + like + rest_messages +
+                                                '</div>\n')
+
+                                } else if(value.you_say === false){
+                                    align = 'right';
+                                    like_count = value.like_count
+
+                                    if (1000 <= value.like_count){
+                                        like_count = parseInt(value.like_count / 1000)
+                                        like_count = like_count + 'k'
+                                    }
+                                    chat_content = '<div class="reading_chat_content">' +
+                                        '<div class="reading_chat_text">'+value.content+'</div>' +
+                                        '</div>'
+                                    like = '<div class="reading_like_wrapper">' +
+                                        '<span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">'+like_count+'</span>' +
+                                        '</div>' +
+                                        '</div>'
+
+                                    if(value.rest_count=== 0){
+                                        rest_messages = ''
+                                    } else if (value.rest_count < 1000){
+                                        rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
+                                    } else if (1000 <= value.rest_count) {
+                                        rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
+                                    }
+
+                                    prepender = $('<div class="reading_chat_left" align="' + align + '">' + like + chat_content + rest_messages +
+                                                '</div>\n')
+
+                                }
+
+                                break;
+
+                            case 'photo':
+
+                                if (value.you_say === true){
+
+                                    align = 'left';
+                                    like_count = value.like_count
+
+                                    if (1000 <= value.like_count){
+                                        like_count = parseInt(value.like_count / 1000)
+                                        like_count = like_count + 'k'
+                                    }
+                                    profile_photo = '<div class="reading_chat_img">\n' +
+                                        '<img class="img_small" src="'+ reading_post_profile_photo +'"></div>\n';
+                                    chat_content = '<div class="reading_chat_content">' +
+                                        '<div class="reading_chat_name">'+reading_post_profile_name+'</div>' +
+                                        '<div><img class="reading_chat_img" src="'+value.content+'"></div>'+
+                                        '</div>'
+                                    like = '<div class="reading_like_wrapper">' +
+                                        '<span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">'+like_count+'</span>' +
+                                        '</div>' +
+                                        '</div>'
+
+                                    if(value.rest_count=== 0){
+                                        rest_messages = ''
+                                    } else if (value.rest_count < 1000){
+                                        rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
+                                    } else if (1000 <= value.rest_count) {
+                                        rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
+                                    }
+
+                                    prepender = $('<div class="reading_chat_left" align="' + align + '">' + profile_photo + chat_content + like + rest_messages +
+                                                '</div>\n')
+                                } else if(value.you_say === false) {
+
+                                    align = 'right';
+                                    like_count = value.like_count
+
+                                    if (1000 <= value.like_count){
+                                        like_count = parseInt(value.like_count / 1000)
+                                        like_count = like_count + 'k'
+                                    }
+                                    chat_content = '<div class="reading_chat_content">' +
+                                        '<div><img class="reading_chat_img" src="'+value.content+'"></div>' +
+                                        '</div>'
+                                    like = '<div class="reading_like_wrapper">' +
+                                        '<span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">'+like_count+'</span>' +
+                                        '</div>' +
+                                        '</div>'
+
+                                    if(value.rest_count=== 0){
+                                        rest_messages = ''
+                                    } else if (value.rest_count < 1000){
+                                        rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
+                                    } else if (1000 <= value.rest_count) {
+                                        rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
+                                    }
+
+                                    prepender = $('<div class="reading_chat_left" align="' + align + '">' + like + chat_content + rest_messages +
+                                                '</div>\n')
+
+                                }
+
+                                break;
+                            default:
+                                break;
+                        }
+                        $('#modal_reading_chat').prepend(prepender)
+
+                    })
+                    if (start === false){
+                        if ($('.reading_chat_more_load').hasClass('hidden')){
+                            $('.reading_chat_more_load').addClass('hidden')
+                        }
+                    }
+
                 }
             }
         })
@@ -744,20 +893,4 @@
 </script>
 
 
-<script>
-$('textarea').on("keypress", function(e) {
-            /* ENTER PRESSED*/
-            if (e.keyCode == 13 && !e.shiftKey) {
-                alert('hello')
-                return false;
-            }
-        });
-$('.chat_detail_like_div').each(function () {
-    $(this).css('height', $(this).parent().find('.chat_detail_others_wrapper').height());
-    $(this).find('.chat_detail_others_time').css('top', $(this).parent().find('.chat_detail_others_wrapper').height()-16)
-    $(this).prev().height();
-    //날짜는 챗카부에선 의미없음.
-})
-
-</script>
 </html>
