@@ -68,7 +68,6 @@
         .modal-open {
             position: relative;
         }
-
         /* Maybe It is needed later
         .nav-bar li.dropdown a.dropdown-toggle {
             text-align: right;
@@ -295,6 +294,11 @@
 .margin_top_50 {
     margin-top: 50px;
 }
+
+
+        .margin_top_15{
+            margin-top: 15px;
+        }
 .padding_0 {
     padding: 0px;
 }
@@ -404,6 +408,7 @@ transform: translateX(10px) translateY(-10px)
         .chat_detail_like {
             color: red; font-size: 10px
         }
+
         .chat_detail_form{
             position: absolute; bottom: 30px; padding-top: 20px;
         }
@@ -420,6 +425,7 @@ transform: translateX(10px) translateY(-10px)
         .chat_detail_send{
             height: 50px!important;
         }
+
         .chat_detail_like_wrapper{
             position: absolute; top:14px
         }
@@ -432,9 +438,7 @@ transform: translateX(10px) translateY(-10px)
         .chat_detail_like_count{
             font-size: 10px; background-color: red; color: white; border-radius: 5px
         }
-        .margin_top_15{
-            margin-top: 15px;
-        }
+
         .chat_detail_mine {
             background-color: #2ac31b;
             border-radius: 5px;

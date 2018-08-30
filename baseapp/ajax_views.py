@@ -665,6 +665,7 @@ def re_user_home_populate(request):
                 output = {'title': post.title,
                           'desc': post.description,
                           'username': post.user.userusername.username,
+                          'user_id': post.user.username,
                           'name': name,
                           'photo': profile_photo,
                           'created': post.created,
@@ -703,6 +704,7 @@ def re_post_already_read(request):
                 output = []
                 last_post_chat = None
                 if post_chats:
+                    first_check = True
                     for post_chat in post_chats:
                         try:
                             count = post_chat.postchatlikecount.count
@@ -720,11 +722,14 @@ def re_post_already_read(request):
 
                         output.append(sub_output)
 
-                        last_post_chat = post_chat
+                        if first_check is True:
+                            last_post_chat = post_chat
+                        first_check = False
 
                 else:
                     post_chats = PostChat.objects.filter(post=post).order_by('created')[:2]
                     for post_chat in post_chats:
+
                         try:
                             count = post_chat.postchatlikecount.count
                         except:
@@ -739,13 +744,14 @@ def re_post_already_read(request):
                             'rest_count': post_chat.postchatrestmessagecount.count
                         }
 
-                        output.append(sub_output)
+                        output.insert(0, sub_output)
 
                         post_chat_read = PostChatRead.objects.create(post=post, post_chat=post_chat, user=request.user)
                         last_post_chat = post_chat
 
                 next = None
                 if last_post_chat is not None:
+                    print(last_post_chat.get_value())
 
                     try:
                         post_chat_next = PostChat.objects.get(before=last_post_chat)
@@ -753,12 +759,87 @@ def re_post_already_read(request):
                         post_chat_next = None
                     if post_chat_next is not None:
                         next = {
-                            'you_say': post_chat_next.you_say,
                             'kind': post_chat_kind_converter(post_chat_next.kind),
                             'content': post_chat_next.get_value(),
-                            'id': post_chat_next.uuid,
                         }
 
                 return JsonResponse({'res': 1, 'set': output, 'next': next})
 
+        return JsonResponse({'res': 2})
+
+
+@ensure_csrf_cookie
+def re_post_reading_more_load(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                comment_id = request.POST.get('comment_id', None)
+                post_id = request.POST.get('post_id', None)
+                try:
+                    post = Post.objects.last()
+                    # post = Post.objects.get(uuid=post_id)
+                except:
+                    return JsonResponse({'res': 0})
+
+                try:
+                    comment = PostComment.objects.get(uuid=comment_id, user=request.user)
+                except:
+                    try:
+                        comment = PostComment.objects.get(uuid=comment_id, post=post, post__user=request.user)
+                    except:
+                        return JsonResponse({'res': 0})
+
+                try:
+                    with transaction.atomic():
+                        comment.delete()
+                        from django.db.models import F
+                        post_comment_count = post.postcommentcount
+                        post_comment_count.count = F('count') - 1
+                        post_comment_count.save()
+                except Exception:
+                    return JsonResponse({'res': 0})
+                return JsonResponse({'res': 1})
+        return JsonResponse({'res': 2})
+
+
+@ensure_csrf_cookie
+def re_post_chat_next_load(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_chat_id = request.POST.get('post_chat_next_id', None)
+                print(post_chat_id)
+                try:
+                    # post_chat = PostChat.objects.last()
+                    post_chat = PostChat.objects.get(uuid=post_chat_id)
+                except:
+                    return JsonResponse({'res': 0})
+                output = []
+                next = None
+                if post_chat is not None:
+                    try:
+                        count = post_chat.postchatlikecount.count
+                    except:
+                        count = None
+                    sub_output = {
+                        'id': post_chat.uuid,
+                        'kind': post_chat_kind_converter(post_chat.kind),
+                        'like_count': count,
+                        'created': post_chat.created,
+                        'you_say': post_chat.you_say,
+                        'content': post_chat.get_raw_value(),
+                        'rest_count': post_chat.postchatrestmessagecount.count
+                    }
+                    output.append(sub_output)
+                    try:
+                        post_chat_next = PostChat.objects.get(before=post_chat)
+                    except PostChat.DoesNotExist:
+                        post_chat_next = None
+                    if post_chat_next is not None:
+                        next = {
+                            'kind': post_chat_kind_converter(post_chat_next.kind),
+                            'content': post_chat_next.get_value(),
+                        }
+
+                return JsonResponse({'res': 1, 'set': output, 'next': next})
         return JsonResponse({'res': 2})

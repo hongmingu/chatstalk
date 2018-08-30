@@ -134,6 +134,15 @@
         .reading_chat_img{
             max-width: 100%
         }
+
+        .interaction_choice_update{
+            height: 70px; float:left; display: inline-block; width: 50%; background-color: #39d842; font-size: 20px; padding:15px; color: white
+        }
+
+
+        .interaction_choice_interact{
+            height: 70px; float:left; display: inline-block; width: 50%; font-size: 20px; padding:15px; color: #39d842
+        }
     </style>
 
 
@@ -151,10 +160,13 @@
 
 <div class="hidden" id="reading_post_id"></div>
 <div class="hidden" id="reading_post_profile_photo"></div>
+<div class="hidden" id="reading_post_user_id"></div>
 <div class="hidden" id="reading_post_profile_name"></div>
+<div class="hidden" id="reading_post_chat_last_id"></div>
+<div class="hidden" id="reading_post_chat_next_id"></div>
 
 {% if user.is_authenticated %}
-    <div class="hidden" id="user_id" data-u="{{ user.username }}"></div>
+    <div class="hidden" id="user_id" data-u="{{ user.username }}">{{ user.username }}</div>
 {% endif %}
 <!--page info end -->
 
@@ -292,6 +304,7 @@
                                                 $('#reading_post_id').html(data.set.id)
                                                 $('#reading_post_profile_photo').html(data.set.photo)
                                                 $('#reading_post_profile_name').html(data.set.name)
+                                                $('#reading_post_user_id').html(data.set.user_id)
                                                 $('#modal_reading_post').modal('show')
                                             })
                                             append_to.find('#like_'+data.set.id).on('click', function (e) {
@@ -612,11 +625,25 @@
 
                 </div>
                 <div class="modal_reading_interaction" id="modal_reading_interaction" align="center">
-                    <a href=""><div class="clickable reading_chat_interaction_white">
-                        <span class="glyphicon glyphicon-play interaction_play"></span><span class="interaction_pre_say">Hello you,</span>
-                    </div></a>
-                    <!--
-                    <div class="modal_reading_form_inner_wrapper">
+                    <a href="">
+                        <div class="clickable reading_chat_interaction_white hidden reading_chat_next reading_chat_play" id="interaction_play_white">
+                            <span class="glyphicon glyphicon-play interaction_play"></span>
+                        </div>
+                    </a>
+
+                    <a href="">
+                        <div class="clickable reading_chat_interaction_green reading_chat_next reading_chat_play" id="interaction_play_green">
+                            <span class="glyphicon glyphicon-play interaction_play"></span>
+                        </div>
+                    </a>
+
+                    <a href="">
+                        <div class="reading_chat_interaction_update reading_chat_next hidden" id="interaction_update">
+                            <a href=""><div class="clickable interaction_choice_update" style="">update</div></a>
+                            <a href=""><div class="clickable interaction_choice_interact" style="height: 70px; float:left; display: inline-block; width: 50%; font-size: 20px; padding:15px; color: #39d842">interact</div></a>
+                        </div>
+                    </a>
+                    <div class="modal_reading_form_inner_wrapper reading_chat_next hidden" id="interaction_form">
                         <form class="modal_reading_form">
                         <div class="input-group input-group-sm modal_reading_form_input_wrapper">
                             <textarea class="form-control modal_reading_form_textarea" placeholder="message"></textarea>
@@ -627,7 +654,6 @@
                         </div>
                         </form>
                     </div>
-                    -->
                 </div>
 
             </div>
@@ -680,6 +706,8 @@
                         var prepender;
 
                         var align, profile_photo, chat_content, like, like_count, rest_messages;
+
+                        $('#reading_post_chat_last_id').html(value.id)
                         switch (value.kind) {
                             case 'start':
                                 start = true
@@ -816,9 +844,30 @@
                         $('#modal_reading_chat').prepend(prepender)
 
                     })
+                    console.log(data)
+
+
+                    if (data.next === null){
+                        if ($('#reading_post_user_id').html()===$('#user_id').html()){
+                            //same author
+                        } else if ($('#reading_post_user_id').html()==!$('#user_id').html()){
+
+                        }
+                    } else {
+
+                        $('#reading_post_chat_next_id').html(data.next.content.id)
+                        if (data.next.content.you_say === true){
+                            $('.reading_chat_next').addClass('hidden')
+                            $('#interaction_play_white').removeClass('hidden')
+                        } else if (data.next.content.you_say === false){
+                            $('.reading_chat_next').addClass('hidden')
+                            $('#interaction_play_green').removeClass('hidden')
+                        }
+
+                    }
                     if (start === false){
-                        if ($('.reading_chat_more_load').hasClass('hidden')){
-                            $('.reading_chat_more_load').addClass('hidden')
+                        if ($('#reading_chat_more_load').hasClass('hidden')){
+                            $('#reading_chat_more_load').addClass('hidden')
                         }
                     }
 
@@ -829,7 +878,200 @@
     }).on("hidden.bs.modal", function () {
         $('#modal_reading_chat').empty()
     });
+    $('#reading_chat_more_load').click(function (e) {
+        e.preventDefault()
+        $.ajax({url:'/re/post/reading/more/load/', type:'post', dataType:'json', cache:false,
+            data:{
+                post_id:$('#reading_post_chat_last_id').html(),
+            },
+            success:function (data) {
 
+
+            }
+        })
+    })
+
+    $('.reading_chat_play').click(function (e) {
+        e.preventDefault()
+
+
+        var reading_post_id = $('#reading_post_id').html()
+        var reading_post_profile_photo = $('#reading_post_profile_photo').html()
+        var reading_post_profile_name = $('#reading_post_profile_name').html()
+        $.ajax({url:'/re/post/chat/next/load/', type:'post', dataType:'json', cache:false,
+            data:{
+                post_chat_next_id:$('#reading_post_chat_next_id').html(),
+            },
+            success:function (data) {
+            var prepender, align, profile_photo, chat_content, like, like_count, rest_messages;
+            var start = false
+            var last_id;
+            console.log(data)
+            $.each(data.set, function (key, value) {
+                switch (value.kind) {
+                    case 'start':
+                        start = true
+                        prepender = $('<div class="reading_chat_started" align="center">Convo started</div>')
+                        break;
+                    case 'text':
+                        if (value.you_say === true){
+                            align = 'left';
+                            like_count = value.like_count
+                            if (1000 <= value.like_count){
+                                like_count = parseInt(value.like_count / 1000)
+
+                                like_count = like_count + 'k'
+                            }
+                            profile_photo = '<div class="reading_chat_img">\n' +
+                                '<img class="img_small" src="'+ reading_post_profile_photo +'"></div>\n';
+                            chat_content = '<div class="reading_chat_content">' +
+                                '<div class="reading_chat_name">'+reading_post_profile_name+'</div>' +
+                                '<div class="reading_chat_text">'+value.content+'</div>' +
+                                '</div>'
+                            like = '<div class="reading_like_wrapper">' +
+                                '<span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">'+like_count+'</span>' +
+                                '</div>' +
+                                '</div>'
+
+                            if(value.rest_count=== 0){
+                                rest_messages = ''
+                            } else if (value.rest_count < 1000){
+                                rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
+                            } else if (1000 <= value.rest_count) {
+                                rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
+                            }
+
+                            prepender = $('<div class="reading_chat_left" align="' + align + '">' + profile_photo + chat_content + like + rest_messages +
+                                        '</div>\n')
+
+                        } else if(value.you_say === false){
+                            align = 'right';
+                            like_count = value.like_count
+
+                            if (1000 <= value.like_count){
+                                like_count = parseInt(value.like_count / 1000)
+                                like_count = like_count + 'k'
+                            }
+                            chat_content = '<div class="reading_chat_content">' +
+                                '<div class="reading_chat_text">'+value.content+'</div>' +
+                                '</div>'
+                            like = '<div class="reading_like_wrapper">' +
+                                '<span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">'+like_count+'</span>' +
+                                '</div>' +
+                                '</div>'
+
+                            if(value.rest_count=== 0){
+                                rest_messages = ''
+                            } else if (value.rest_count < 1000){
+                                rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
+                            } else if (1000 <= value.rest_count) {
+                                rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
+                            }
+
+                            prepender = $('<div class="reading_chat_left" align="' + align + '">' + like + chat_content + rest_messages +
+                                        '</div>\n')
+
+                        }
+
+                        break;
+
+                    case 'photo':
+
+                        if (value.you_say === true){
+
+                            align = 'left';
+                            like_count = value.like_count
+
+                            if (1000 <= value.like_count){
+                                like_count = parseInt(value.like_count / 1000)
+                                like_count = like_count + 'k'
+                            }
+                            profile_photo = '<div class="reading_chat_img">\n' +
+                                '<img class="img_small" src="'+ reading_post_profile_photo +'"></div>\n';
+                            chat_content = '<div class="reading_chat_content">' +
+                                '<div class="reading_chat_name">'+reading_post_profile_name+'</div>' +
+                                '<div><img class="reading_chat_img" src="'+value.content+'"></div>'+
+                                '</div>'
+                            like = '<div class="reading_like_wrapper">' +
+                                '<span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">'+like_count+'</span>' +
+                                '</div>' +
+                                '</div>'
+
+                            if(value.rest_count=== 0){
+                                rest_messages = ''
+                            } else if (value.rest_count < 1000){
+                                rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
+                            } else if (1000 <= value.rest_count) {
+                                rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
+                            }
+
+                            prepender = $('<div class="reading_chat_left" align="' + align + '">' + profile_photo + chat_content + like + rest_messages +
+                                        '</div>\n')
+                        } else if(value.you_say === false) {
+
+                            align = 'right';
+                            like_count = value.like_count
+
+                            if (1000 <= value.like_count){
+                                like_count = parseInt(value.like_count / 1000)
+                                like_count = like_count + 'k'
+                            }
+                            chat_content = '<div class="reading_chat_content">' +
+                                '<div><img class="reading_chat_img" src="'+value.content+'"></div>' +
+                                '</div>'
+                            like = '<div class="reading_like_wrapper">' +
+                                '<span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">'+like_count+'</span>' +
+                                '</div>' +
+                                '</div>'
+
+                            if(value.rest_count=== 0){
+                                rest_messages = ''
+                            } else if (value.rest_count < 1000){
+                                rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
+                            } else if (1000 <= value.rest_count) {
+                                rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
+                            }
+
+                            prepender = $('<div class="reading_chat_left" align="' + align + '">' + like + chat_content + rest_messages +
+                                        '</div>\n')
+
+                        }
+
+                        break;
+                    default:
+                        break;
+                }
+
+                $('#modal_reading_chat').append(prepender)
+
+            })
+
+            if (data.next === null){
+                    if ($('#reading_post_user_id').html()===$('#user_id').html()){
+                        $('.reading_chat_next').addClass('hidden')
+                        $('#interaction_update').removeClass('hidden')
+                    } else if ($('#reading_post_user_id').html()==!$('#user_id').html()){
+                        $('.reading_chat_next').addClass('hidden')
+                        $('#interaction_form').removeClass('hidden')
+                    }
+                } else {
+
+                    $('#reading_post_chat_next_id').html(data.next.content.id)
+                    if (data.next.content.you_say === true){
+                        $('.reading_chat_next').addClass('hidden')
+                        $('#interaction_play_white').removeClass('hidden')
+                    } else if (data.next.content.you_say === false){
+                        $('.reading_chat_next').addClass('hidden')
+                        $('#interaction_play_green').removeClass('hidden')
+                    }
+
+                }
+
+
+
+            }
+        })
+    })
 </script>
 <script>
 
