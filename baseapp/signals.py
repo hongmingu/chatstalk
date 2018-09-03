@@ -21,6 +21,6 @@ def created_post_chat(sender, instance, created, **kwargs):
 @receiver(post_save, sender=PostChatRestMessage)
 def created_post_rest_message(sender, instance, created, **kwargs):
     if created:
-        PostChatRestMessageLikeCount.objects.create(post_chat=instance)
+        PostChatRestMessageLikeCount.objects.create(post_chat_rest_message=instance)
 
 

@@ -843,3 +843,78 @@ def re_post_chat_next_load(request):
 
                 return JsonResponse({'res': 1, 'set': output, 'next': next})
         return JsonResponse({'res': 2})
+
+@ensure_csrf_cookie
+def re_post_chat_add_rest(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_chat_id = request.POST.get('post_chat_id', None)
+                text = request.POST.get('text', None)
+                post_chat = None
+                print(post_chat_id)
+                try:
+                    post_chat = PostChat.objects.get(uuid=post_chat_id)
+                except:
+                    return JsonResponse({'res': 0})
+                post_chat_rest_message = None
+                sub_output = None
+                if post_chat is not None:
+                    post_chat_rest_message = PostChatRestMessage.objects.create(text=text, user=request.user, uuid=uuid.uuid4().hex, post_chat=post_chat)
+
+                    from django.db.models import F
+                    post_chat_rest_message_count = post_chat.postchatrestmessagecount
+                    post_chat_rest_message_count.count = F('count') + 1
+                    post_chat_rest_message_count.save()
+
+                if post_chat_rest_message is not None:
+                    sub_output = {
+                        'id': post_chat_rest_message.uuid,
+                        'created': post_chat_rest_message.created,
+                        'text': post_chat_rest_message.text,
+                    }
+                return JsonResponse({'res': 1, 'set': sub_output})
+        return JsonResponse({'res': 2})
+
+@ensure_csrf_cookie
+def re_post_chat_rest_more_load(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_chat_id = request.POST.get('post_chat_id', None)
+                last_id = request.POST.get('last_id', None)
+                post_chat = None
+                try:
+                    post_chat = PostChat.objects.get(uuid=post_chat_id)
+                except:
+                    return JsonResponse({'res': 0})
+                if last_id == '' and post_chat is not None:
+                    post_chat_rest_messages = PostChatRestMessage.objects.filter(post_chat=post_chat).order_by('created')[:11]
+                elif last_id != '' and post_chat is not None:
+                    try:
+                        last_post_chat_rest_message = PostChatRestMessage.objects.get(uuid=last_id)
+                    except:
+                        return JsonResponse({'res': 0})
+
+                    post_chat_rest_messages = PostChatRestMessage.objects.filter(Q(post_chat=post_chat) & Q(pk__gt=last_post_chat_rest_message.pk)).order_by('created')[:11]
+                count = 0
+                output = []
+                for post_chat_rest_message in post_chat_rest_messages:
+                    count = count + 1
+                    if count == 10:
+                        break
+                    you_like = False
+                    if PostChatRestMessageLike.objects.filter(user=request.user, post_chat_rest_message=post_chat_rest_message).exists():
+                        you_like = True
+                    sub_output = {
+                        'id': post_chat_rest_message.uuid,
+                        'name': post_chat_rest_message.user.usertextname.name,
+                        'text': post_chat_rest_message.text,
+                        'created': post_chat_rest_message.created,
+                        'like_count': post_chat_rest_message.postchatrestmessagelikecount.count,
+                        'you_like': you_like
+                    }
+                    output.append(sub_output)
+
+                return JsonResponse({'res': 1, 'set': output})
+        return JsonResponse({'res': 2})
