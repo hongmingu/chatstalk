@@ -710,6 +710,10 @@ def re_post_already_read(request):
                             count = post_chat.postchatlikecount.count
                         except:
                             count = None
+                        # 여기서 you_like 부터 시작해야한다.
+                        you_like = False
+                        if PostChatLike.objects.filter(user=request.user, post_chat=post_chat).exists():
+                            you_like = True
                         sub_output = {
                             'id': post_chat.uuid,
                             'kind': post_chat_kind_converter(post_chat.kind),
@@ -717,7 +721,8 @@ def re_post_already_read(request):
                             'created': post_chat.created,
                             'you_say': post_chat.you_say,
                             'content': post_chat.get_raw_value(),
-                            'rest_count': post_chat.postchatrestmessagecount.count
+                            'rest_count': post_chat.postchatrestmessagecount.count,
+                            'you_like': you_like
                         }
 
                         output.append(sub_output)
@@ -734,6 +739,9 @@ def re_post_already_read(request):
                             count = post_chat.postchatlikecount.count
                         except:
                             count = None
+                        you_like = False
+                        if PostChatLike.objects.filter(user=request.user, post_chat=post_chat).exists():
+                            you_like = True
                         sub_output = {
                             'id': post_chat.uuid,
                             'kind': post_chat_kind_converter(post_chat.kind),
@@ -741,7 +749,8 @@ def re_post_already_read(request):
                             'created': post_chat.created,
                             'you_say': post_chat.you_say,
                             'content': post_chat.get_raw_value(),
-                            'rest_count': post_chat.postchatrestmessagecount.count
+                            'rest_count': post_chat.postchatrestmessagecount.count,
+                            'you_like': you_like
                         }
 
                         output.insert(0, sub_output)
@@ -821,6 +830,9 @@ def re_post_chat_next_load(request):
                         count = post_chat.postchatlikecount.count
                     except:
                         count = None
+                    you_like = False
+                    if PostChatLike.objects.filter(user=request.user, post_chat=post_chat).exists():
+                        you_like = True
                     sub_output = {
                         'id': post_chat.uuid,
                         'kind': post_chat_kind_converter(post_chat.kind),
@@ -828,7 +840,8 @@ def re_post_chat_next_load(request):
                         'created': post_chat.created,
                         'you_say': post_chat.you_say,
                         'content': post_chat.get_raw_value(),
-                        'rest_count': post_chat.postchatrestmessagecount.count
+                        'rest_count': post_chat.postchatrestmessagecount.count,
+                        'you_like': you_like
                     }
                     output.append(sub_output)
                     try:
@@ -883,11 +896,14 @@ def re_post_chat_rest_more_load(request):
             if request.is_ajax():
                 post_chat_id = request.POST.get('post_chat_id', None)
                 last_id = request.POST.get('last_id', None)
+                print(post_chat_id)
+                print(last_id)
                 post_chat = None
                 try:
                     post_chat = PostChat.objects.get(uuid=post_chat_id)
                 except:
                     return JsonResponse({'res': 0})
+                post_chat_rest_messages = None
                 if last_id == '' and post_chat is not None:
                     post_chat_rest_messages = PostChatRestMessage.objects.filter(post_chat=post_chat).order_by('created')[:11]
                 elif last_id != '' and post_chat is not None:
@@ -898,23 +914,73 @@ def re_post_chat_rest_more_load(request):
 
                     post_chat_rest_messages = PostChatRestMessage.objects.filter(Q(post_chat=post_chat) & Q(pk__gt=last_post_chat_rest_message.pk)).order_by('created')[:11]
                 count = 0
+                next = False
                 output = []
-                for post_chat_rest_message in post_chat_rest_messages:
-                    count = count + 1
-                    if count == 10:
-                        break
-                    you_like = False
-                    if PostChatRestMessageLike.objects.filter(user=request.user, post_chat_rest_message=post_chat_rest_message).exists():
-                        you_like = True
-                    sub_output = {
-                        'id': post_chat_rest_message.uuid,
-                        'name': post_chat_rest_message.user.usertextname.name,
-                        'text': post_chat_rest_message.text,
-                        'created': post_chat_rest_message.created,
-                        'like_count': post_chat_rest_message.postchatrestmessagelikecount.count,
-                        'you_like': you_like
-                    }
-                    output.append(sub_output)
+                if post_chat_rest_messages is not None:
+                    for post_chat_rest_message in post_chat_rest_messages:
+                        count = count + 1
+                        if count == 11:
+                            next = True
+                            break
+                        you_like = False
+                        if PostChatRestMessageLike.objects.filter(user=request.user, post_chat_rest_message=post_chat_rest_message).exists():
+                            you_like = True
+                        sub_output = {
+                            'id': post_chat_rest_message.uuid,
+                            'user_id': post_chat_rest_message.user.username,
+                            'name': post_chat_rest_message.user.usertextname.name,
+                            'text': post_chat_rest_message.text,
+                            'created': post_chat_rest_message.created,
+                            'like_count': post_chat_rest_message.postchatrestmessagelikecount.count,
+                            'photo': post_chat_rest_message.user.userphoto.file_50_url(),
+                            'you_like': you_like,
+                        }
+                        output.append(sub_output)
 
-                return JsonResponse({'res': 1, 'set': output})
+                return JsonResponse({'res': 1, 'set': output, 'rest_next': next})
+        return JsonResponse({'res': 2})
+
+@ensure_csrf_cookie
+def re_post_chat_rest_like(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                rest_id = request.POST.get('rest_id', None)
+                try:
+                    post_chat_rest_message = PostChatRestMessage.objects.get(uuid=rest_id)
+                except:
+                    return JsonResponse({'res': 0})
+                try:
+                    post_chat_rest_message_like = PostChatRestMessageLike.objects.get(post_chat_rest_message=post_chat_rest_message, user=request.user)
+                except PostChatRestMessageLike.DoesNotExist:
+                    post_chat_rest_message_like = None
+
+                liked = None
+                if post_chat_rest_message_like is not None:
+                    try:
+                        with transaction.atomic():
+                            post_chat_rest_message_like.delete()
+                            from django.db.models import F
+                            post_chat_rest_message_like_count = post_chat_rest_message.postchatrestmessagelikecount
+                            post_chat_rest_message_like_count.count = F('count') - 1
+                            post_chat_rest_message_like_count.save()
+                            liked = False
+                            # customers = Customer.objects.filter(scoops_ordered__gt=F('store_visits'))
+                    except Exception:
+                        return JsonResponse({'res': 0})
+                else:
+                    try:
+                        with transaction.atomic():
+                            post_chat_rest_message_like = PostChatRestMessageLike.objects.create(post_chat_rest_message=post_chat_rest_message, user=request.user)
+                            from django.db.models import F
+                            post_chat_rest_message_like_count = post_chat_rest_message.postchatrestmessagelikecount
+                            post_chat_rest_message_like_count.count = F('count') + 1
+                            post_chat_rest_message_like_count.save()
+                            liked = True
+                            # customers = Customer.objects.filter(scoops_ordered__gt=F('store_visits'))
+                    except Exception:
+                        return JsonResponse({'res': 0})
+
+                return JsonResponse({'res': 1, 'liked': liked})
+
         return JsonResponse({'res': 2})
