@@ -54,6 +54,9 @@ urlpatterns = [
     re_path(r'^re/post/chat/next/load/$', base_ajax_views.re_post_chat_next_load,
             name='re_post_chat_next_load'),
 
+    re_path(r'^re/post/chat/like/$', base_ajax_views.re_post_chat_like,
+            name='re_post_chat_like'),
+
     re_path(r'^re/post/chat/add/rest/$', base_ajax_views.re_post_chat_add_rest,
             name='re_post_chat_add_rest'),
 
@@ -62,6 +65,9 @@ urlpatterns = [
 
     re_path(r'^re/post/chat/rest/like/$', base_ajax_views.re_post_chat_rest_like,
             name='re_post_chat_rest_like'),
+
+    re_path(r'^re/post/chat/rest/delete/$', base_ajax_views.re_post_chat_rest_delete,
+            name='re_post_chat_rest_delete'),
     # re_path(r'^email/key/send/$', views.email_key_send, name='email_key_send'),
     # re_path(r'^email/key/confirm/(?P<uid>([A-Za-z0-9_](?:(?:[A-Za-z0-9_]|(?:\.(?!\.))){0,28}(?:[A-Za-z0-9_]))?))/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         # views.email_key_confirm, name='email_key_confirm'),

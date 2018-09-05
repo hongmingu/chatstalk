@@ -857,6 +857,54 @@ def re_post_chat_next_load(request):
                 return JsonResponse({'res': 1, 'set': output, 'next': next})
         return JsonResponse({'res': 2})
 
+
+@ensure_csrf_cookie
+def re_post_chat_like(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_chat_id = request.POST.get('post_chat_id', None)
+                print(post_chat_id)
+                try:
+                    post_chat = PostChat.objects.get(uuid=post_chat_id)
+                except PostChat.DoesNotExist:
+                    return JsonResponse({'res': 0})
+                try:
+                    post_chat_like = PostChatLike.objects.get(post_chat=post_chat, user=request.user)
+                except PostChatLike.DoesNotExist:
+                    post_chat_like = None
+
+                liked = None
+                if post_chat_like is not None:
+                    try:
+                        with transaction.atomic():
+                            post_chat_like.delete()
+                            from django.db.models import F
+                            post_chat_like_count = post_chat.postchatlikecount
+                            post_chat_like_count.count = F('count') - 1
+                            post_chat_like_count.save()
+                            liked = False
+                            # customers = Customer.objects.filter(scoops_ordered__gt=F('store_visits'))
+                    except Exception:
+                        return JsonResponse({'res': 0})
+                else:
+                    try:
+                        with transaction.atomic():
+                            post_chat_like = PostChatLike.objects.create(post_chat=post_chat, user=request.user)
+                            from django.db.models import F
+                            post_chat_like_count = post_chat.postchatlikecount
+                            post_chat_like_count.count = F('count') + 1
+                            post_chat_like_count.save()
+                            liked = True
+                            # customers = Customer.objects.filter(scoops_ordered__gt=F('store_visits'))
+                    except Exception:
+                        return JsonResponse({'res': 0})
+
+                return JsonResponse({'res': 1, 'liked': liked})
+
+        return JsonResponse({'res': 2})
+
+
 @ensure_csrf_cookie
 def re_post_chat_add_rest(request):
     if request.method == "POST":
@@ -883,8 +931,11 @@ def re_post_chat_add_rest(request):
                 if post_chat_rest_message is not None:
                     sub_output = {
                         'id': post_chat_rest_message.uuid,
+                        'name': post_chat_rest_message.user.usertextname.name,
+                        'user_id': post_chat_rest_message.user.username,
                         'created': post_chat_rest_message.created,
                         'text': post_chat_rest_message.text,
+                        'photo': post_chat_rest_message.user.userphoto.file_50_url()
                     }
                 return JsonResponse({'res': 1, 'set': sub_output})
         return JsonResponse({'res': 2})
@@ -982,5 +1033,37 @@ def re_post_chat_rest_like(request):
                         return JsonResponse({'res': 0})
 
                 return JsonResponse({'res': 1, 'liked': liked})
+
+        return JsonResponse({'res': 2})
+
+
+
+@ensure_csrf_cookie
+def re_post_chat_rest_delete(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                rest_id = request.POST.get('rest_id', None)
+                print(rest_id)
+                try:
+                    rest_message = PostChatRestMessage.objects.get(uuid=rest_id)
+                except PostChatRestMessage.DoesNotExist:
+                    return JsonResponse({'res': 0})
+                if rest_message is not None:
+                    if rest_message.user == request.user or rest_message.post_chat.post.user == request.user:
+
+                        try:
+                            with transaction.atomic():
+                                rest_message.delete()
+                                from django.db.models import F
+                                rest_count = rest_message.post_chat.postchatrestmessagecount
+                                rest_count.count = F('count') - 1
+                                rest_count.save()
+                                # customers = Customer.objects.filter(scoops_ordered__gt=F('store_visits'))
+                        except Exception:
+                            return JsonResponse({'res': 0})
+                        return JsonResponse({'res': 1, 'deleted': True})
+
+                return JsonResponse({'res': 2})
 
         return JsonResponse({'res': 2})

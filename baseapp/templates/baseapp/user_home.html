@@ -143,6 +143,9 @@
         .interaction_choice_interact{
             height: 70px; float:left; display: inline-block; width: 50%; font-size: 20px; padding:15px; color: #39d842
         }
+        .reading_chat_rest_messages_delete{
+            background-color: lightskyblue; padding: 2px; border-radius: 3px; font-size: 12px; color: white; margin-right: 55px;
+        }
     </style>
 
 
@@ -283,7 +286,7 @@
                         <div class="reading_chat_img">
                             <img class="img_small" src="http://static.news.zumst.com/images/111/2018/01/10/39832329eef6467b94ee5b390ffd348f.jpg">
                         </div>
-                        <div align="right"><span style="background-color: lightskyblue; padding: 2px; border-radius: 3px; font-size: 12px; color: white; margin-right: 55px;">delete</span></div>
+                        <div align="right"><span class="reading_chat_rest_messages_delete">delete</span></div>
 
                     </div>
 
@@ -302,6 +305,22 @@
                             <img class="img_small" src="http://static.news.zumst.com/images/111/2018/01/10/39832329eef6467b94ee5b390ffd348f.jpg">
                         </div>
                     </div>
+                    <div class="reading_chat_rest_just_added" align="right">
+
+                        <div class="reading_like_wrapper">
+                            <span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">102000k</span>
+                        </div>
+
+                        <div class="reading_chat_content">
+                            <div class="reading_chat_rest_name">욜로욜로욜로요~</div>
+                            <div class="reading_chat_rest_text">욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~</div>
+
+                        </div>
+                        <div class="reading_chat_img">
+                            <img class="img_small" src="http://static.news.zumst.com/images/111/2018/01/10/39832329eef6467b94ee5b390ffd348f.jpg">
+                        </div>
+                    </div>
+
                 </div>
                 <div class="modal_reading_interaction" id="modal_reading_interaction" align="center">
                     <a href="">
@@ -793,7 +812,11 @@
                                 } else {
                                     like = 'glyphicon-heart-empty'
                                 }
-                                var pre_rest_appender = '<div class="reading_chat_rest" align="right">' +
+                                var delete_div = ''
+                                if(value.user_id === $('#user_id').html() || value.user_id===$('#reading_post_user_id').html()){
+                                    delete_div = '<div align="right"><a href=""><span class="reading_chat_rest_messages_delete">delete</span></a></div>'
+                                }
+                                var pre_rest_appender = '<div class="reading_chat_rest" align="right" id="reading_chat_rest_wrapper_'+value.id+'">' +
                                     '<div class="reading_like_wrapper">' +
                                     '<a href=""><span id="rest_like_span_'+value.id+'"class="glyphicon '+like+' reading_like"></span></a><span class="reading_like_text"> </span><span class="reading_like_text" id="rest_like_'+value.id+'" data-u="'+value.like_count+'">'+like_count+'</span>' +
                                     '</div>' +
@@ -803,7 +826,7 @@
                                     '</div>' +
                                     '<div class="reading_chat_img">' +
                                     '<img class="img_small" src="'+ value.photo +'">' +
-                                    '</div>' +
+                                    '</div>' + delete_div +
                                     '</div>'
                                 var rest_appender = $(pre_rest_appender)
                                 rest_appender.find('.reading_like').on('click', function (e) {
@@ -834,6 +857,23 @@
                                         }
                                     })
                                 })
+                              rest_appender.find('.reading_chat_rest_messages_delete').on('click', function (e) {
+                                  e.preventDefault()
+                                  $.ajax({
+                                      url: '/re/post/chat/rest/delete/', type: 'post', dataType: 'json', cache: false,
+                                        data: {
+                                            rest_id: value.id,
+                                        },
+                                        success: function (data) {
+                                          if (data.res === 1){
+                                              if (data.deleted === true){
+                                                  $('#reading_chat_rest_wrapper_'+value.id).replaceWith('<div align="right">removed</div>')
+                                              }
+                                          }
+                                        }
+                                    })
+                              })
+
                                 $('#rest_wrapper_' + post_chat_id).append(rest_appender)
                               $('#rest_last_'+post_chat_id).html(value.id)
                           })
@@ -884,7 +924,67 @@ $('.modal_reading_form_textarea').on("keypress", function (e) {
                 text: text,
             },
             success: function (data) {
-                console.log(data)
+
+                var delete_div;
+                    if(data.set.user_id === $('#user_id').html() || data.set.user_id===$('#reading_post_user_id').html()){
+                        delete_div = '<div align="right"><a href=""><span class="reading_chat_rest_messages_delete">delete</span></a></div>'
+                    }
+                    var pre_rest_appender = '<div class="reading_chat_rest" align="right" id="reading_chat_rest_wrapper_'+data.set.id+'">' +
+                        '<div class="reading_like_wrapper">' +
+                        '<a href=""><span id="rest_like_span_'+data.set.id+'"class="glyphicon glyphicon-heart-empty reading_like"></span></a>' +
+                        '</div>' +
+                        '<div class="reading_chat_content">' +
+                        '<div class="reading_chat_rest_name">'+data.set.name+'</div>\n' +
+                        '<div class="reading_chat_rest_text">'+data.set.text+'</div>\n' +
+                        '</div>' +
+                        '<div class="reading_chat_img">' +
+                        '<img class="img_small" src="'+ data.set.photo +'">' +
+                        '</div>' + delete_div +
+                        '</div>'
+                    var rest_appender = $(pre_rest_appender)
+                    rest_appender.find('.reading_like').on('click', function (e) {
+                        e.preventDefault()
+                        $.ajax({
+                          url: '/re/post/chat/rest/like/', type: 'post', dataType: 'json', cache: false,
+                            data: {
+                                rest_id: data.set.id,
+                            },
+                            success: function (sub_data) {
+                              if (sub_data.res === 1){
+
+
+                                if (sub_data.liked === true){
+
+                                  $('#rest_like_span_'+data.set.id).removeClass('glyphicon-heart-empty')
+                                  $('#rest_like_span_'+data.set.id).addClass('glyphicon-heart')
+                                }   else {
+
+                                  $('#rest_like_span_'+data.set.id).removeClass('glyphicon-heart')
+                                  $('#rest_like_span_'+data.set.id).addClass('glyphicon-heart-empty')
+                                }
+                              }
+                            }
+                        })
+                    })
+                  rest_appender.find('.reading_chat_rest_messages_delete').on('click', function (e) {
+                      e.preventDefault()
+                      $.ajax({
+                          url: '/re/post/chat/rest/delete/', type: 'post', dataType: 'json', cache: false,
+                            data: {
+                                rest_id: data.set.id,
+                            },
+                            success: function (sub_data) {
+                              if (sub_data.res === 1){
+                                  if (sub_data.deleted === true){
+                                      $('#reading_chat_rest_wrapper_'+data.set.id).replaceWith('<div align="right">removed</div>')
+                                  }
+                              }
+                            }
+                        })
+                  })
+
+                $('#modal_reading_chat').append(rest_appender)
+
                 $('.modal_reading_form_textarea').val('')
             }
         })
