@@ -12,6 +12,7 @@
     <script src="{% static 'js/nav_badge.js' %}"></script>
     <script src="{% static 'js/date_differ.js' %}"></script>
     <script src="{% static 'js/home_populate.js' %}"></script>
+    <script src="{% static 'js/modal_resize.js' %}"></script>
 
     <link href="https://fonts.googleapis.com/css?family=Tauri" rel="stylesheet">
     {% if user.is_authenticated %}
@@ -268,20 +269,39 @@
                             <img class="img_small" src="http://static.news.zumst.com/images/111/2018/01/10/39832329eef6467b94ee5b390ffd348f.jpg">
                         </div>
                     </div>
-                    <div class="reading_chat_rest" align="left" style="background-color: lightgreen;">
-                        <div class="reading_chat_img">
-                            <img class="img_small" src="http://static.news.zumst.com/images/111/2018/01/10/39832329eef6467b94ee5b390ffd348f.jpg">
-                        </div>
-                        <div class="reading_chat_content">
-                            <div class="reading_chat_rest_name">욜로욜로욜로요~</div>
-                            <div class="reading_chat_rest_text">욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요~</div>
+                    <div class="reading_chat_rest" align="right">
 
-                        </div>
                         <div class="reading_like_wrapper">
                             <span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">102000k</span>
                         </div>
+
+                        <div class="reading_chat_content">
+                            <div class="reading_chat_rest_name">욜로욜로욜로요~</div>
+                            <div class="reading_chat_rest_text">욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~</div>
+
+                        </div>
+                        <div class="reading_chat_img">
+                            <img class="img_small" src="http://static.news.zumst.com/images/111/2018/01/10/39832329eef6467b94ee5b390ffd348f.jpg">
+                        </div>
+                        <div align="right"><span style="background-color: lightskyblue; padding: 2px; border-radius: 3px; font-size: 12px; color: white; margin-right: 55px;">delete</span></div>
+
                     </div>
 
+                    <div class="reading_chat_rest" align="right">
+
+                        <div class="reading_like_wrapper">
+                            <span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">102000k</span>
+                        </div>
+
+                        <div class="reading_chat_content">
+                            <div class="reading_chat_rest_name">욜로욜로욜로요~</div>
+                            <div class="reading_chat_rest_text">욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~</div>
+
+                        </div>
+                        <div class="reading_chat_img">
+                            <img class="img_small" src="http://static.news.zumst.com/images/111/2018/01/10/39832329eef6467b94ee5b390ffd348f.jpg">
+                        </div>
+                    </div>
                 </div>
                 <div class="modal_reading_interaction" id="modal_reading_interaction" align="center">
                     <a href="">
@@ -323,26 +343,7 @@
 
 </body>
 
-
 <script>
-    $(function () {
-        var height = $(window).height();
-        $('#modal_reading_post_content').css('height', height-16);
-        $('#modal_reading_chat').css('height', height-16-70-35)
-        $(window).on('resize', function(){
-
-            if($(window).height() != height){
-                height = $(window).height();
-
-                $('#modal_reading_post_content').css('height', height-16);
-                $('#modal_reading_chat').css('height', height-16-70-35)
-            }
-        });
-    })
-
-</script>
-<script>
-
 
     $("#modal_reading_post").on("shown.bs.modal", function () {
 
@@ -387,17 +388,25 @@
                                         '<div class="reading_chat_name">'+reading_post_profile_name+'</div>' +
                                         '<div class="reading_chat_text">'+value.content+'</div>' +
                                         '</div>'
+
+                                    // 작업중인부분 ------------------------------------
+                                    var heart;
+                                    if (value.you_like === true){
+                                        heart = 'glyphicon-heart'
+                                    } else {
+                                        heart = 'glyphicon-heart-empty'
+                                    }
                                     like = '<div class="reading_like_wrapper">' +
-                                        '<span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">'+like_count+'</span>' +
+                                        '<a href=""><span class="glyphicon '+ heart +' reading_like" id="reading_like_span_'+value.id+'" data-u="'+value.id+'"></span></a><span class="reading_like_text"> </span><span class="reading_like_text" id="reading_like_count_'+value.id+'">'+like_count+'</span>' +
                                         '</div>' +
                                         '</div>'
 
                                     if(value.rest_count=== 0){
                                         rest_messages = ''
                                     } else if (value.rest_count < 1000){
-                                        rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
+                                        rest_messages = '<div align="right"><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
                                     } else if (1000 <= value.rest_count) {
-                                        rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
+                                        rest_messages = '<div align="right"><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
                                     }
 
                                     prepender = $('<div class="reading_chat_left" align="' + align + '">' + profile_photo + chat_content + like + rest_messages +
@@ -422,9 +431,9 @@
                                     if(value.rest_count=== 0){
                                         rest_messages = ''
                                     } else if (value.rest_count < 1000){
-                                        rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
+                                        rest_messages = '<div align="right"><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
                                     } else if (1000 <= value.rest_count) {
-                                        rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
+                                        rest_messages = '<div align="right"><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
                                     }
 
                                     prepender = $('<div class="reading_chat_left" align="' + align + '">' + like + chat_content + rest_messages +
@@ -459,9 +468,9 @@
                                     if(value.rest_count=== 0){
                                         rest_messages = ''
                                     } else if (value.rest_count < 1000){
-                                        rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
+                                        rest_messages = '<div align="right"><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
                                     } else if (1000 <= value.rest_count) {
-                                        rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
+                                        rest_messages = '<div align="right"><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
                                     }
 
                                     prepender = $('<div class="reading_chat_left" align="' + align + '">' + profile_photo + chat_content + like + rest_messages +
@@ -486,9 +495,9 @@
                                     if(value.rest_count=== 0){
                                         rest_messages = ''
                                     } else if (value.rest_count < 1000){
-                                        rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
+                                        rest_messages = '<div align="right"><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
                                     } else if (1000 <= value.rest_count) {
-                                        rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
+                                        rest_messages = '<div align="right"><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
                                     }
 
                                     prepender = $('<div class="reading_chat_left" align="' + align + '">' + like + chat_content + rest_messages +
@@ -500,6 +509,38 @@
                             default:
                                 break;
                         }
+                        prepender.find('.reading_like').on('click', function (e) {
+
+                            e.preventDefault()
+                            var post_chat_id = $(this).attr('data-u')
+
+                            $.ajax({
+                                url: '/re/post/chat/like/', type: 'post', dataType: 'json', cache: false,
+                                data: {
+                                    post_chat_id: post_chat_id,
+                                },
+                                success: function (data) {
+                                    if (data.res === 1){
+                                        var has_k = $('#reading_like_count_'+post_chat_id).html()
+
+                                        if (data.liked === true){
+                                          if (!(has_k.includes('k'))){
+                                            $('#reading_like_count_'+post_chat_id).html(parseInt(has_k)+1)
+                                          }
+                                          $('#reading_like_span_'+post_chat_id).removeClass('glyphicon-heart-empty')
+                                          $('#reading_like_span_'+post_chat_id).addClass('glyphicon-heart')
+                                        }   else {
+                                          if (!(has_k.includes('k'))){
+                                            $('#reading_like_count_'+post_chat_id).html(parseInt(has_k)-1)
+                                          }
+                                          $('#reading_like_span_'+post_chat_id).removeClass('glyphicon-heart')
+                                          $('#reading_like_span_'+post_chat_id).addClass('glyphicon-heart-empty')
+                                        }
+                                    }
+                                }
+                            })
+
+                        });
                         $('#modal_reading_chat').prepend(prepender)
 
                     })
@@ -581,6 +622,7 @@
             var last_id;
             console.log(data)
             $.each(data.set, function (key, value) {
+                $('#reading_post_chat_last_id').html(value.id)
                 switch (value.kind) {
                     case 'start':
                         start = true
@@ -606,13 +648,15 @@
                                 '</div>' +
                                 '</div>'
 
+                            // 작업중인 부분------------------------------------------------------------
                             if(value.rest_count=== 0){
                                 rest_messages = ''
                             } else if (value.rest_count < 1000){
-                                rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
+                                rest_messages = '<div id="rest_wrapper_'+value.id+'" align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+value.rest_count+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
                             } else if (1000 <= value.rest_count) {
-                                rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
+                                rest_messages = '<div id="rest_wrapper_'+value.id+'"align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+parseInt(value.like_count / 1000)+'k'+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
                             }
+
 
                             prepender = $('<div class="reading_chat_left" align="' + align + '">' + profile_photo + chat_content + like + rest_messages +
                                         '</div>\n')
@@ -636,9 +680,9 @@
                             if(value.rest_count=== 0){
                                 rest_messages = ''
                             } else if (value.rest_count < 1000){
-                                rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
+                                rest_messages = '<div align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+value.rest_count+'</span></a></div><a href=""><div id="rest_load_'+value.id+'" class="rest_more_load hidden">more load</div></a>'
                             } else if (1000 <= value.rest_count) {
-                                rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
+                                rest_messages = '<div align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+parseInt(value.like_count / 1000)+'k'+'</span></a></div><a href=""><div id="rest_load_'+value.id+'" class="rest_more_load hidden">more load</div></a>'
                             }
 
                             prepender = $('<div class="reading_chat_left" align="' + align + '">' + like + chat_content + rest_messages +
@@ -713,8 +757,91 @@
                         break;
                     default:
                         break;
-                }
 
+                }
+                prepender.find('.reading_chat_rest_messages').on('click', function (e) {
+                    e.preventDefault()
+                    var post_chat_id = $(this).attr('data-u')
+                    $.ajax({
+                      url: '/re/post/chat/rest/more/load/', type: 'post', dataType: 'json', cache: false,
+                        data: {
+                            last_id: $('#rest_last_'+post_chat_id).html(),
+                            post_chat_id: post_chat_id,
+                        },
+                        success: function (data) {
+                          console.log(data)
+                          if (!($('#rest_start_'+post_chat_id).hasClass('hidden'))){
+                              $('#rest_start_'+post_chat_id).addClass('hidden')
+                          }
+
+                          if (data.rest_next === true){
+                              $('#rest_more_'+post_chat_id).removeClass('hidden')
+                          } else {
+                              $('#rest_more_'+post_chat_id).addClass('hidden')
+                          }
+                          
+                          $.each(data.set, function (key, value) {
+                                var like_count = value.like_count
+
+                                if (1000 <= value.like_count){
+                                    like_count = parseInt(value.like_count / 1000)
+                                    like_count = like_count + 'k'
+                                }
+                                var like = ''
+                                if (value.you_like === true){
+                                    like = 'glyphicon-heart'
+                                } else {
+                                    like = 'glyphicon-heart-empty'
+                                }
+                                var pre_rest_appender = '<div class="reading_chat_rest" align="right">' +
+                                    '<div class="reading_like_wrapper">' +
+                                    '<a href=""><span id="rest_like_span_'+value.id+'"class="glyphicon '+like+' reading_like"></span></a><span class="reading_like_text"> </span><span class="reading_like_text" id="rest_like_'+value.id+'" data-u="'+value.like_count+'">'+like_count+'</span>' +
+                                    '</div>' +
+                                    '<div class="reading_chat_content">' +
+                                    '<div class="reading_chat_rest_name">'+value.name+'</div>\n' +
+                                    '<div class="reading_chat_rest_text">'+value.text+'</div>\n' +
+                                    '</div>' +
+                                    '<div class="reading_chat_img">' +
+                                    '<img class="img_small" src="'+ value.photo +'">' +
+                                    '</div>' +
+                                    '</div>'
+                                var rest_appender = $(pre_rest_appender)
+                                rest_appender.find('.reading_like').on('click', function (e) {
+                                    e.preventDefault()
+                                    $.ajax({
+                                      url: '/re/post/chat/rest/like/', type: 'post', dataType: 'json', cache: false,
+                                        data: {
+                                            rest_id: value.id,
+                                        },
+                                        success: function (data) {
+                                          if (data.res === 1){
+                                              var has_k = $('#rest_like_'+value.id).html()
+
+                                            if (data.liked === true){
+                                              if (!(has_k.includes('k'))){
+                                                $('#rest_like_'+value.id).html(parseInt(has_k)+1)
+                                              }
+                                              $('#rest_like_span_'+value.id).removeClass('glyphicon-heart-empty')
+                                              $('#rest_like_span_'+value.id).addClass('glyphicon-heart')
+                                            }   else {
+                                              if (!(has_k.includes('k'))){
+                                                $('#rest_like_'+value.id).html(parseInt(has_k)-1)
+                                              }
+                                              $('#rest_like_span_'+value.id).removeClass('glyphicon-heart')
+                                              $('#rest_like_span_'+value.id).addClass('glyphicon-heart-empty')
+                                            }
+                                          }
+                                        }
+                                    })
+                                })
+                                $('#rest_wrapper_' + post_chat_id).append(rest_appender)
+                              $('#rest_last_'+post_chat_id).html(value.id)
+                          })
+                        }
+                    })
+
+
+                })
                 $('#modal_reading_chat').append(prepender)
 
             })
@@ -742,33 +869,29 @@
             }
         })
     })
-</script>
-<script>
 
-    function base_request() {
-        var last_num = $('#last_num').attr('data-u')
-        var kind = $('#page_kind').attr('data-u')
-
-        $(function () {
-            if (kind === 'home'){
-                $.ajax({url:'/re/task/', type:'post', dataType:'json', cache:false,
-                    data:{
-                        command:'home',
-                        last_num:last_num
-                    },
-                    success:function (data) {
-                        if (data.res === 1) {
-                            var append = ''
-                            $('#content').append(append);
-                        }
-                    }
-                });
+$('.modal_reading_form_textarea').on("keypress", function (e) {
+    /* ENTER PRESSED*/
+    if (e.keyCode == 13 && !e.shiftKey) {
+        var text = $('.modal_reading_form_textarea').val()
+        if (text === '') {
+            return false;
+        }
+        $.ajax({
+            url: '/re/post/chat/add/rest/', type: 'post', dataType: 'json', cache: false,
+            data: {
+                post_chat_id: $('#reading_post_chat_last_id').html(),
+                text: text,
+            },
+            success: function (data) {
+                console.log(data)
+                $('.modal_reading_form_textarea').val('')
             }
         })
+        return false;
+
     }
-    base_request()
-
-
+})
 </script>
 
 
