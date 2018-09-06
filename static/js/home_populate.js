@@ -52,10 +52,12 @@ function home_populate(){
                                             }
                                             var _comment = '';
                                             var _last_comment_id = '';
+                                            var post_user_id = data.set.id
+
                                             if (data.set.three_comments !== null){
                                                 $.each(data.set.three_comments, function (key, value) {
-                                                    var _remove;
-                                                    if(value.comment_user_id===user_id){
+                                                    var _remove = '';
+                                                    if(value.comment_user_id === user_id || user_id === post_user_id){
                                                         _remove = '<a href=""><span class="glyphicon glyphicon-remove home_feed_comment_delete clickable" data-u="'+value.comment_uuid+'"></span></a>'
                                                     }
                                                     _comment = _comment + '<div id="comment_div_'+value.comment_uuid+'"><div><a href="#"><span class="comments_name">'+value.comment_username+'</span></a></div><div><span class="comments">'+value.comment_text+'</span>   <span class="home_feed_comment_time">'+date_differ(value.comment_created)+'</span> '+_remove+'</div></div>'
@@ -133,7 +135,6 @@ function home_populate(){
                                                         post_id:data.set.id,
                                                     },
                                                     success:function (sub_data) {
-                                                    console.log(sub_data)
                                                         if (sub_data.res === 1) {
                                                             var current_count = parseInt($('#basic_heart_'+data.set.id).html())
                                                             if (sub_data.liked === true){
@@ -189,9 +190,11 @@ function home_populate(){
                                                                     var _comment = '';
                                                                     if (data.set !== null){
                                                                         $.each(data.set, function (key, value) {
-                                                                            var _remove;
-                                                                            if(value.comment_user_id===user_id){
+                                                                            var _remove = '';
+                                                                            if(value.comment_user_id === user_id || user_id === post_user_id){
                                                                                 _remove = '<a href=""><span class="glyphicon glyphicon-remove home_feed_comment_delete clickable" data-u="'+value.comment_uuid+'"></span></a>'
+                                                                            } else {
+                                                                                _remove = '';
                                                                             }
                                                                             _comment = '<div class="home_feed_new_comment" id="comment_div_'+value.comment_uuid+'"><div><a href="#"><span class="comments_name">'+value.comment_username+'</span></a></div><div><span class="comments">'+value.comment_text+'</span>   <span class="home_feed_comment_time">'+date_differ(value.comment_created)+'</span> '+_remove+'</div></div>'
                                                                         })
@@ -206,7 +209,6 @@ function home_populate(){
                                                                                 comment_id:deleted_id,
                                                                             },
                                                                             success:function (data) {
-                                                                            console.log(data)
                                                                                 if (data.res === 1) {
                                                                                     $('#comment_div_'+deleted_id).replaceWith('<div>removed</div>')
                                                                                 }
@@ -238,13 +240,12 @@ function home_populate(){
                                                             comment:text,
                                                         },
                                                         success:function (data) {
-                                                        console.log(data)
                                                             if (data.res === 1) {
                                                                 var _comment = '';
                                                                 if (data.set !== null){
                                                                     $.each(data.set, function (key, value) {
-                                                                        var _remove;
-                                                                        if(value.comment_user_id===user_id){
+                                                                        var _remove = '';
+                                                                        if(value.comment_user_id===user_id || user_id === post_user_id){
                                                                             _remove = '<a href=""><span class="glyphicon glyphicon-remove home_feed_comment_delete clickable" data-u="'+value.comment_uuid+'"></span></a>'
                                                                         }
                                                                         _comment = '<div class="home_feed_new_comment" id="comment_div_'+value.comment_uuid+'"><div><a href="#"><span class="comments_name">'+value.comment_username+'</span></a></div><div><span class="comments">'+value.comment_text+'</span>   <span class="home_feed_comment_time">'+date_differ(value.comment_created)+'</span> '+_remove+'</div></div>'
@@ -260,7 +261,6 @@ function home_populate(){
                                                                             comment_id:deleted_id,
                                                                         },
                                                                         success:function (data) {
-                                                                        console.log(data)
                                                                             if (data.res === 1) {
                                                                                 $('#comment_div_'+deleted_id).replaceWith('<div>removed</div>')
                                                                             }
@@ -293,8 +293,8 @@ function home_populate(){
                                                             if (sub_data.set !== null){
                                                                 $.each(sub_data.set, function (key, value) {
 
-                                                                    var _remove;
-                                                                    if(value.comment_user_id===user_id){
+                                                                    var _remove='';
+                                                                    if(value.comment_user_id === user_id || user_id === post_user_id){
                                                                         _remove = '<a href=""><span class="glyphicon glyphicon-remove home_feed_comment_delete clickable" data-u="'+value.comment_uuid+'"></span></a>'
                                                                     }
                                                                     _comment = _comment + '<div id="comment_div_'+value.comment_uuid+'"><div><a href="#"><span class="comments_name">'+value.comment_username+'</span></a></div><div><span class="comments">'+value.comment_text+'</span>   <span class="home_feed_comment_time">'+date_differ(value.comment_created)+'</span> '+_remove+'</div></div>'
@@ -312,7 +312,6 @@ function home_populate(){
                                                                         comment_id:deleted_id,
                                                                     },
                                                                     success:function (data) {
-                                                                    console.log(data)
                                                                         if (data.res === 1) {
                                                                             $('#comment_div_'+deleted_id).replaceWith('<div>removed</div>')
                                                                         }

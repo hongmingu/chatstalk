@@ -146,6 +146,9 @@
         .reading_chat_rest_messages_delete{
             background-color: lightskyblue; padding: 2px; border-radius: 3px; font-size: 12px; color: white; margin-right: 55px;
         }
+        .reading_chat_rest_time{
+            font-size: 10px; background-color: #2e6da4; color: white; border-radius: 3px;
+        }
     </style>
 
 
@@ -227,9 +230,11 @@
             <button type="button" class="close modal_close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal_top_padder"></div>
             <div id="modal_reading_contents">
-                <div class="modal_reading_chat" id="modal_reading_chat">
+                <div class="modal_reading_chat">
                     <a href=""><div class="reading_chat_more_load clickable" id="reading_chat_more_load" align="center">MORE LOAD</div></a>
-                    <div class="reading_chat_started" align="center">Convo started</div>
+                    <div class="reading_chat_started" id="reading_chat_started" align="center">Convo started</div>
+                    <div id="modal_reading_chat">
+                        <div class="reading_chat_started" align="center">Convo started</div>
                     <div class="reading_chat_left" align="left">
                         <div class="reading_chat_img">
                             <img class="img_small" src="http://static.news.zumst.com/images/111/2018/01/10/39832329eef6467b94ee5b390ffd348f.jpg">
@@ -320,6 +325,8 @@
                             <img class="img_small" src="http://static.news.zumst.com/images/111/2018/01/10/39832329eef6467b94ee5b390ffd348f.jpg">
                         </div>
                     </div>
+                    </div>
+
 
                 </div>
                 <div class="modal_reading_interaction" id="modal_reading_interaction" align="center">
@@ -368,7 +375,7 @@
 
         var height = $(window).height();
         $('#modal_reading_post_content').css('height', height-16);
-        $('#modal_reading_chat').css('height', height-16-70-35)
+        $('#modal_reading_chat').css('height', height-16-70-35-20)
 
         var reading_post_id = $('#reading_post_id').html()
         var reading_post_profile_photo = $('#reading_post_profile_photo').html()
@@ -378,7 +385,6 @@
                 post_id:reading_post_id,
             },
             success:function (data) {
-            console.log(data)
                 if (data.res === 1) {
                 var start = false
                     $.each(data.set, function (key, value) {
@@ -390,7 +396,15 @@
                         switch (value.kind) {
                             case 'start':
                                 start = true
-                                prepender = $('<div class="reading_chat_started" align="center">Convo started</div>')
+                            if(value.rest_count=== 0){
+                                rest_messages = ''
+                            } else if (value.rest_count < 1000){
+                                rest_messages = '<div id="rest_wrapper_'+value.id+'" align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+value.rest_count+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
+                            } else if (1000 <= value.rest_count) {
+                                rest_messages = '<div id="rest_wrapper_'+value.id+'"align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+parseInt(value.like_count / 1000)+'k'+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
+                            }
+
+                            prepender = $(rest_messages)
                                 break;
                             case 'text':
                                 if (value.you_say === true){
@@ -417,15 +431,15 @@
                                     }
                                     like = '<div class="reading_like_wrapper">' +
                                         '<a href=""><span class="glyphicon '+ heart +' reading_like" id="reading_like_span_'+value.id+'" data-u="'+value.id+'"></span></a><span class="reading_like_text"> </span><span class="reading_like_text" id="reading_like_count_'+value.id+'">'+like_count+'</span>' +
-                                        '</div>' +
                                         '</div>'
 
+                                    // 작업중인 부분------------------------------------------------------------
                                     if(value.rest_count=== 0){
                                         rest_messages = ''
                                     } else if (value.rest_count < 1000){
-                                        rest_messages = '<div align="right"><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
+                                        rest_messages = '<div id="rest_wrapper_'+value.id+'" align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+value.rest_count+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
                                     } else if (1000 <= value.rest_count) {
-                                        rest_messages = '<div align="right"><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
+                                        rest_messages = '<div id="rest_wrapper_'+value.id+'"align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+parseInt(value.like_count / 1000)+'k'+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
                                     }
 
                                     prepender = $('<div class="reading_chat_left" align="' + align + '">' + profile_photo + chat_content + like + rest_messages +
@@ -442,17 +456,25 @@
                                     chat_content = '<div class="reading_chat_content">' +
                                         '<div class="reading_chat_text">'+value.content+'</div>' +
                                         '</div>'
+                                    // 작업중인부분 ------------------------------------
+                                    var heart;
+                                    if (value.you_like === true){
+                                        heart = 'glyphicon-heart'
+                                    } else {
+                                        heart = 'glyphicon-heart-empty'
+                                    }
                                     like = '<div class="reading_like_wrapper">' +
-                                        '<span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">'+like_count+'</span>' +
-                                        '</div>' +
+                                        '<a href=""><span class="glyphicon '+ heart +' reading_like" id="reading_like_span_'+value.id+'" data-u="'+value.id+'"></span></a><span class="reading_like_text"> </span><span class="reading_like_text" id="reading_like_count_'+value.id+'">'+like_count+'</span>' +
                                         '</div>'
 
+
+                                    // 작업중인 부분------------------------------------------------------------
                                     if(value.rest_count=== 0){
                                         rest_messages = ''
                                     } else if (value.rest_count < 1000){
-                                        rest_messages = '<div align="right"><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
+                                        rest_messages = '<div id="rest_wrapper_'+value.id+'" align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+value.rest_count+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
                                     } else if (1000 <= value.rest_count) {
-                                        rest_messages = '<div align="right"><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
+                                        rest_messages = '<div id="rest_wrapper_'+value.id+'"align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+parseInt(value.like_count / 1000)+'k'+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
                                     }
 
                                     prepender = $('<div class="reading_chat_left" align="' + align + '">' + like + chat_content + rest_messages +
@@ -479,17 +501,24 @@
                                         '<div class="reading_chat_name">'+reading_post_profile_name+'</div>' +
                                         '<div><img class="reading_chat_img" src="'+value.content+'"></div>'+
                                         '</div>'
+                                    // 작업중인부분 ------------------------------------
+                                    var heart;
+                                    if (value.you_like === true){
+                                        heart = 'glyphicon-heart'
+                                    } else {
+                                        heart = 'glyphicon-heart-empty'
+                                    }
                                     like = '<div class="reading_like_wrapper">' +
-                                        '<span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">'+like_count+'</span>' +
-                                        '</div>' +
+                                        '<a href=""><span class="glyphicon '+ heart +' reading_like" id="reading_like_span_'+value.id+'" data-u="'+value.id+'"></span></a><span class="reading_like_text"> </span><span class="reading_like_text" id="reading_like_count_'+value.id+'">'+like_count+'</span>' +
                                         '</div>'
 
+                                    // 작업중인 부분------------------------------------------------------------
                                     if(value.rest_count=== 0){
                                         rest_messages = ''
                                     } else if (value.rest_count < 1000){
-                                        rest_messages = '<div align="right"><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
+                                        rest_messages = '<div id="rest_wrapper_'+value.id+'" align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+value.rest_count+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
                                     } else if (1000 <= value.rest_count) {
-                                        rest_messages = '<div align="right"><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
+                                        rest_messages = '<div id="rest_wrapper_'+value.id+'"align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+parseInt(value.like_count / 1000)+'k'+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
                                     }
 
                                     prepender = $('<div class="reading_chat_left" align="' + align + '">' + profile_photo + chat_content + like + rest_messages +
@@ -506,17 +535,24 @@
                                     chat_content = '<div class="reading_chat_content">' +
                                         '<div><img class="reading_chat_img" src="'+value.content+'"></div>' +
                                         '</div>'
+                                    // 작업중인부분 ------------------------------------
+                                    var heart;
+                                    if (value.you_like === true){
+                                        heart = 'glyphicon-heart'
+                                    } else {
+                                        heart = 'glyphicon-heart-empty'
+                                    }
                                     like = '<div class="reading_like_wrapper">' +
-                                        '<span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">'+like_count+'</span>' +
-                                        '</div>' +
+                                        '<a href=""><span class="glyphicon '+ heart +' reading_like" id="reading_like_span_'+value.id+'" data-u="'+value.id+'"></span></a><span class="reading_like_text"> </span><span class="reading_like_text" id="reading_like_count_'+value.id+'">'+like_count+'</span>' +
                                         '</div>'
 
+                                    // 작업중인 부분------------------------------------------------------------
                                     if(value.rest_count=== 0){
                                         rest_messages = ''
                                     } else if (value.rest_count < 1000){
-                                        rest_messages = '<div align="right"><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
+                                        rest_messages = '<div id="rest_wrapper_'+value.id+'" align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+value.rest_count+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
                                     } else if (1000 <= value.rest_count) {
-                                        rest_messages = '<div align="right"><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
+                                        rest_messages = '<div id="rest_wrapper_'+value.id+'"align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+parseInt(value.like_count / 1000)+'k'+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
                                     }
 
                                     prepender = $('<div class="reading_chat_left" align="' + align + '">' + like + chat_content + rest_messages +
@@ -560,10 +596,113 @@
                             })
 
                         });
+                        prepender.find('.reading_chat_rest_messages').on('click', function (e) {
+                            e.preventDefault()
+                            var post_chat_id = $(this).attr('data-u')
+                            $.ajax({
+                              url: '/re/post/chat/rest/more/load/', type: 'post', dataType: 'json', cache: false,
+                                data: {
+                                    last_id: $('#rest_last_'+post_chat_id).html(),
+                                    post_chat_id: post_chat_id,
+                                },
+                                success: function (data) {
+                                  if (!($('#rest_start_'+post_chat_id).hasClass('hidden'))){
+                                      $('#rest_start_'+post_chat_id).addClass('hidden')
+                                  }
+
+                                  if (data.rest_next === true){
+                                      $('#rest_more_'+post_chat_id).removeClass('hidden')
+                                  } else {
+                                      $('#rest_more_'+post_chat_id).addClass('hidden')
+                                  }
+
+                                  $.each(data.set, function (key, value) {
+                                        var like_count = value.like_count
+
+                                        if (1000 <= value.like_count){
+                                            like_count = parseInt(value.like_count / 1000)
+                                            like_count = like_count + 'k'
+                                        }
+                                        var like = ''
+                                        if (value.you_like === true){
+                                            like = 'glyphicon-heart'
+                                        } else {
+                                            like = 'glyphicon-heart-empty'
+                                        }
+                                        var delete_div = ''
+                                        if(value.user_id === $('#user_id').html() || value.user_id===$('#reading_post_user_id').html()){
+                                            delete_div = '<div align="right"><a href=""><span class="reading_chat_rest_messages_delete">delete</span></a></div>'
+                                        }
+                                        var pre_rest_appender = '<div class="reading_chat_rest" align="right" id="reading_chat_rest_wrapper_'+value.id+'">' +
+                                            '<div class="reading_like_wrapper">' +
+                                            '<a href=""><span id="rest_like_span_'+value.id+'"class="glyphicon '+like+' reading_like"></span></a><span class="reading_like_text"> </span><span class="reading_like_text" id="rest_like_'+value.id+'" data-u="'+value.like_count+'">'+like_count+'</span>' +
+                                            '</div>' +
+                                            '<div class="reading_chat_content">' +
+                                            '<div class="reading_chat_rest_name">'+value.name+'</div>\n' +
+                                            '<div class="reading_chat_rest_text">'+value.text+'<span>   </span><span class="reading_chat_rest_time">'+date_differ(value.created)+'</span></div>\n' +
+                                            '</div>' +
+                                            '<div class="reading_chat_img">' +
+                                            '<img class="img_small" src="'+ value.photo +'">' +
+                                            '</div>' + delete_div +
+                                            '</div>'
+                                        var rest_appender = $(pre_rest_appender)
+                                        rest_appender.find('.reading_like').on('click', function (e) {
+                                            e.preventDefault()
+                                            $.ajax({
+                                              url: '/re/post/chat/rest/like/', type: 'post', dataType: 'json', cache: false,
+                                                data: {
+                                                    rest_id: value.id,
+                                                },
+                                                success: function (data) {
+                                                  if (data.res === 1){
+                                                      var has_k = $('#rest_like_'+value.id).html()
+
+                                                    if (data.liked === true){
+                                                      if (!(has_k.includes('k'))){
+                                                        $('#rest_like_'+value.id).html(parseInt(has_k)+1)
+                                                      }
+                                                      $('#rest_like_span_'+value.id).removeClass('glyphicon-heart-empty')
+                                                      $('#rest_like_span_'+value.id).addClass('glyphicon-heart')
+                                                    }   else {
+                                                      if (!(has_k.includes('k'))){
+                                                        $('#rest_like_'+value.id).html(parseInt(has_k)-1)
+                                                      }
+                                                      $('#rest_like_span_'+value.id).removeClass('glyphicon-heart')
+                                                      $('#rest_like_span_'+value.id).addClass('glyphicon-heart-empty')
+                                                    }
+                                                  }
+                                                }
+                                            })
+                                        })
+                                      rest_appender.find('.reading_chat_rest_messages_delete').on('click', function (e) {
+                                          e.preventDefault()
+                                          $.ajax({
+                                              url: '/re/post/chat/rest/delete/', type: 'post', dataType: 'json', cache: false,
+                                                data: {
+                                                    rest_id: value.id,
+                                                },
+                                                success: function (data) {
+                                                  if (data.res === 1){
+                                                      if (data.deleted === true){
+                                                          $('#reading_chat_rest_wrapper_'+value.id).replaceWith('<div align="right">removed</div>')
+                                                      }
+                                                  }
+                                                }
+                                            })
+                                      })
+
+                                        $('#rest_wrapper_' + post_chat_id).append(rest_appender)
+                                      $('#rest_last_'+post_chat_id).html(value.id)
+                                  })
+                                }
+                            })
+
+
+                        })
+
                         $('#modal_reading_chat').prepend(prepender)
 
                     })
-                    console.log(data)
 
 
 
@@ -571,7 +710,7 @@
                         if ($('#reading_post_user_id').html()===$('#user_id').html()){
                             $('.reading_chat_next').addClass('hidden')
                             $('#interaction_update').removeClass('hidden')
-                        } else if ($('#reading_post_user_id').html()==!$('#user_id').html()){
+                        } else {
                             $('.reading_chat_next').addClass('hidden')
                             $('#interaction_form').removeClass('hidden')
                         }
@@ -588,10 +727,12 @@
 
                     }
 
-                    if (start === false){
-                        if ($('#reading_chat_more_load').hasClass('hidden')){
-                            $('#reading_chat_more_load').addClass('hidden')
-                        }
+if (start === false){
+                        $('#reading_chat_more_load').removeClass('hidden')
+                        $('#reading_chat_started').addClass('hidden')
+                    } else {
+                        $('#reading_chat_more_load').addClass('hidden')
+                        $('#reading_chat_started').removeClass('hidden')
                     }
 
                 }
@@ -603,12 +744,347 @@
     });
     $('#reading_chat_more_load').click(function (e) {
         e.preventDefault()
+        var reading_post_id = $('#reading_post_id').html()
+        var reading_post_profile_photo = $('#reading_post_profile_photo').html()
+        var reading_post_profile_name = $('#reading_post_profile_name').html()
         $.ajax({url:'/re/post/reading/more/load/', type:'post', dataType:'json', cache:false,
             data:{
-                post_id:$('#reading_post_chat_last_id').html(),
+                post_chat_last_id:$('#reading_post_chat_last_id').html(),
+                post_id:$('#reading_post_id').html()
             },
             success:function (data) {
+//------------------------------------------------------------------------------
+                //-------------------------------------------------------------------------
 
+                if (data.res === 1) {
+                var start = false
+                    $.each(data.set, function (key, value) {
+                        var prepender;
+
+                        var align, profile_photo, chat_content, like, like_count, rest_messages;
+
+                        $('#reading_post_chat_last_id').html(value.id)
+                        switch (value.kind) {
+                            case 'start':
+                                start = true
+                            if(value.rest_count=== 0){
+                                rest_messages = ''
+                            } else if (value.rest_count < 1000){
+                                rest_messages = '<div id="rest_wrapper_'+value.id+'" align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+value.rest_count+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
+                            } else if (1000 <= value.rest_count) {
+                                rest_messages = '<div id="rest_wrapper_'+value.id+'"align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+parseInt(value.like_count / 1000)+'k'+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
+                            }
+
+                            prepender = $(rest_messages)
+                                break;
+                            case 'text':
+                                if (value.you_say === true){
+                                    align = 'left';
+                                    like_count = value.like_count
+                                    if (1000 <= value.like_count){
+                                        like_count = parseInt(value.like_count / 1000)
+
+                                        like_count = like_count + 'k'
+                                    }
+                                    profile_photo = '<div class="reading_chat_img">\n' +
+                                        '<img class="img_small" src="'+ reading_post_profile_photo +'"></div>\n';
+                                    chat_content = '<div class="reading_chat_content">' +
+                                        '<div class="reading_chat_name">'+reading_post_profile_name+'</div>' +
+                                        '<div class="reading_chat_text">'+value.content+'</div>' +
+                                        '</div>'
+
+                                    // 작업중인부분 ------------------------------------
+                                    var heart;
+                                    if (value.you_like === true){
+                                        heart = 'glyphicon-heart'
+                                    } else {
+                                        heart = 'glyphicon-heart-empty'
+                                    }
+                                    like = '<div class="reading_like_wrapper">' +
+                                        '<a href=""><span class="glyphicon '+ heart +' reading_like" id="reading_like_span_'+value.id+'" data-u="'+value.id+'"></span></a><span class="reading_like_text"> </span><span class="reading_like_text" id="reading_like_count_'+value.id+'">'+like_count+'</span>' +
+                                        '</div>'
+
+                                    // 작업중인 부분------------------------------------------------------------
+                                    if(value.rest_count=== 0){
+                                        rest_messages = ''
+                                    } else if (value.rest_count < 1000){
+                                        rest_messages = '<div id="rest_wrapper_'+value.id+'" align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+value.rest_count+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
+                                    } else if (1000 <= value.rest_count) {
+                                        rest_messages = '<div id="rest_wrapper_'+value.id+'"align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+parseInt(value.like_count / 1000)+'k'+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
+                                    }
+
+                                    prepender = $('<div class="reading_chat_left" align="' + align + '">' + profile_photo + chat_content + like + rest_messages +
+                                                '</div>\n')
+
+                                } else if(value.you_say === false){
+                                    align = 'right';
+                                    like_count = value.like_count
+
+                                    if (1000 <= value.like_count){
+                                        like_count = parseInt(value.like_count / 1000)
+                                        like_count = like_count + 'k'
+                                    }
+                                    chat_content = '<div class="reading_chat_content">' +
+                                        '<div class="reading_chat_text">'+value.content+'</div>' +
+                                        '</div>'
+                                    // 작업중인부분 ------------------------------------
+                                    var heart;
+                                    if (value.you_like === true){
+                                        heart = 'glyphicon-heart'
+                                    } else {
+                                        heart = 'glyphicon-heart-empty'
+                                    }
+                                    like = '<div class="reading_like_wrapper">' +
+                                        '<a href=""><span class="glyphicon '+ heart +' reading_like" id="reading_like_span_'+value.id+'" data-u="'+value.id+'"></span></a><span class="reading_like_text"> </span><span class="reading_like_text" id="reading_like_count_'+value.id+'">'+like_count+'</span>' +
+                                        '</div>'
+
+
+                                    // 작업중인 부분------------------------------------------------------------
+                                    if(value.rest_count=== 0){
+                                        rest_messages = ''
+                                    } else if (value.rest_count < 1000){
+                                        rest_messages = '<div id="rest_wrapper_'+value.id+'" align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+value.rest_count+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
+                                    } else if (1000 <= value.rest_count) {
+                                        rest_messages = '<div id="rest_wrapper_'+value.id+'"align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+parseInt(value.like_count / 1000)+'k'+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
+                                    }
+
+                                    prepender = $('<div class="reading_chat_left" align="' + align + '">' + like + chat_content + rest_messages +
+                                                '</div>\n')
+
+                                }
+
+                                break;
+
+                            case 'photo':
+
+                                if (value.you_say === true){
+
+                                    align = 'left';
+                                    like_count = value.like_count
+
+                                    if (1000 <= value.like_count){
+                                        like_count = parseInt(value.like_count / 1000)
+                                        like_count = like_count + 'k'
+                                    }
+                                    profile_photo = '<div class="reading_chat_img">\n' +
+                                        '<img class="img_small" src="'+ reading_post_profile_photo +'"></div>\n';
+                                    chat_content = '<div class="reading_chat_content">' +
+                                        '<div class="reading_chat_name">'+reading_post_profile_name+'</div>' +
+                                        '<div><img class="reading_chat_img" src="'+value.content+'"></div>'+
+                                        '</div>'
+                                    // 작업중인부분 ------------------------------------
+                                    var heart;
+                                    if (value.you_like === true){
+                                        heart = 'glyphicon-heart'
+                                    } else {
+                                        heart = 'glyphicon-heart-empty'
+                                    }
+                                    like = '<div class="reading_like_wrapper">' +
+                                        '<a href=""><span class="glyphicon '+ heart +' reading_like" id="reading_like_span_'+value.id+'" data-u="'+value.id+'"></span></a><span class="reading_like_text"> </span><span class="reading_like_text" id="reading_like_count_'+value.id+'">'+like_count+'</span>' +
+                                        '</div>'
+
+                                    // 작업중인 부분------------------------------------------------------------
+                                    if(value.rest_count=== 0){
+                                        rest_messages = ''
+                                    } else if (value.rest_count < 1000){
+                                        rest_messages = '<div id="rest_wrapper_'+value.id+'" align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+value.rest_count+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
+                                    } else if (1000 <= value.rest_count) {
+                                        rest_messages = '<div id="rest_wrapper_'+value.id+'"align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+parseInt(value.like_count / 1000)+'k'+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
+                                    }
+
+                                    prepender = $('<div class="reading_chat_left" align="' + align + '">' + profile_photo + chat_content + like + rest_messages +
+                                                '</div>\n')
+                                } else if(value.you_say === false) {
+
+                                    align = 'right';
+                                    like_count = value.like_count
+
+                                    if (1000 <= value.like_count){
+                                        like_count = parseInt(value.like_count / 1000)
+                                        like_count = like_count + 'k'
+                                    }
+                                    chat_content = '<div class="reading_chat_content">' +
+                                        '<div><img class="reading_chat_img" src="'+value.content+'"></div>' +
+                                        '</div>'
+                                    // 작업중인부분 ------------------------------------
+                                    var heart;
+                                    if (value.you_like === true){
+                                        heart = 'glyphicon-heart'
+                                    } else {
+                                        heart = 'glyphicon-heart-empty'
+                                    }
+                                    like = '<div class="reading_like_wrapper">' +
+                                        '<a href=""><span class="glyphicon '+ heart +' reading_like" id="reading_like_span_'+value.id+'" data-u="'+value.id+'"></span></a><span class="reading_like_text"> </span><span class="reading_like_text" id="reading_like_count_'+value.id+'">'+like_count+'</span>' +
+                                        '</div>'
+
+                                    // 작업중인 부분------------------------------------------------------------
+                                    if(value.rest_count=== 0){
+                                        rest_messages = ''
+                                    } else if (value.rest_count < 1000){
+                                        rest_messages = '<div id="rest_wrapper_'+value.id+'" align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+value.rest_count+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
+                                    } else if (1000 <= value.rest_count) {
+                                        rest_messages = '<div id="rest_wrapper_'+value.id+'"align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+parseInt(value.like_count / 1000)+'k'+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
+                                    }
+
+                                    prepender = $('<div class="reading_chat_left" align="' + align + '">' + like + chat_content + rest_messages +
+                                                '</div>\n')
+
+                                }
+
+                                break;
+                            default:
+                                break;
+                        }
+                        prepender.find('.reading_like').on('click', function (e) {
+
+                            e.preventDefault()
+                            var post_chat_id = $(this).attr('data-u')
+
+                            $.ajax({
+                                url: '/re/post/chat/like/', type: 'post', dataType: 'json', cache: false,
+                                data: {
+                                    post_chat_id: post_chat_id,
+                                },
+                                success: function (data) {
+                                    if (data.res === 1){
+                                        var has_k = $('#reading_like_count_'+post_chat_id).html()
+
+                                        if (data.liked === true){
+                                          if (!(has_k.includes('k'))){
+                                            $('#reading_like_count_'+post_chat_id).html(parseInt(has_k)+1)
+                                          }
+                                          $('#reading_like_span_'+post_chat_id).removeClass('glyphicon-heart-empty')
+                                          $('#reading_like_span_'+post_chat_id).addClass('glyphicon-heart')
+                                        }   else {
+                                          if (!(has_k.includes('k'))){
+                                            $('#reading_like_count_'+post_chat_id).html(parseInt(has_k)-1)
+                                          }
+                                          $('#reading_like_span_'+post_chat_id).removeClass('glyphicon-heart')
+                                          $('#reading_like_span_'+post_chat_id).addClass('glyphicon-heart-empty')
+                                        }
+                                    }
+                                }
+                            })
+
+                        });
+                        prepender.find('.reading_chat_rest_messages').on('click', function (e) {
+                            e.preventDefault()
+                            var post_chat_id = $(this).attr('data-u')
+                            $.ajax({
+                              url: '/re/post/chat/rest/more/load/', type: 'post', dataType: 'json', cache: false,
+                                data: {
+                                    last_id: $('#rest_last_'+post_chat_id).html(),
+                                    post_chat_id: post_chat_id,
+                                },
+                                success: function (data) {
+                                  if (!($('#rest_start_'+post_chat_id).hasClass('hidden'))){
+                                      $('#rest_start_'+post_chat_id).addClass('hidden')
+                                  }
+
+                                  if (data.rest_next === true){
+                                      $('#rest_more_'+post_chat_id).removeClass('hidden')
+                                  } else {
+                                      $('#rest_more_'+post_chat_id).addClass('hidden')
+                                  }
+
+                                  $.each(data.set, function (key, value) {
+                                        var like_count = value.like_count
+
+                                        if (1000 <= value.like_count){
+                                            like_count = parseInt(value.like_count / 1000)
+                                            like_count = like_count + 'k'
+                                        }
+                                        var like = ''
+                                        if (value.you_like === true){
+                                            like = 'glyphicon-heart'
+                                        } else {
+                                            like = 'glyphicon-heart-empty'
+                                        }
+                                        var delete_div = ''
+                                        if(value.user_id === $('#user_id').html() || value.user_id===$('#reading_post_user_id').html()){
+                                            delete_div = '<div align="right"><a href=""><span class="reading_chat_rest_messages_delete">delete</span></a></div>'
+                                        }
+                                        var pre_rest_appender = '<div class="reading_chat_rest" align="right" id="reading_chat_rest_wrapper_'+value.id+'">' +
+                                            '<div class="reading_like_wrapper">' +
+                                            '<a href=""><span id="rest_like_span_'+value.id+'"class="glyphicon '+like+' reading_like"></span></a><span class="reading_like_text"> </span><span class="reading_like_text" id="rest_like_'+value.id+'" data-u="'+value.like_count+'">'+like_count+'</span>' +
+                                            '</div>' +
+                                            '<div class="reading_chat_content">' +
+                                            '<div class="reading_chat_rest_name">'+value.name+'</div>\n' +
+                                            '<div class="reading_chat_rest_text">'+value.text+'<span>   </span><span class="reading_chat_rest_time">'+date_differ(value.created)+'</span></div>\n' +
+                                            '</div>' +
+                                            '<div class="reading_chat_img">' +
+                                            '<img class="img_small" src="'+ value.photo +'">' +
+                                            '</div>' + delete_div +
+                                            '</div>'
+                                        var rest_appender = $(pre_rest_appender)
+                                        rest_appender.find('.reading_like').on('click', function (e) {
+                                            e.preventDefault()
+                                            $.ajax({
+                                              url: '/re/post/chat/rest/like/', type: 'post', dataType: 'json', cache: false,
+                                                data: {
+                                                    rest_id: value.id,
+                                                },
+                                                success: function (data) {
+                                                  if (data.res === 1){
+                                                      var has_k = $('#rest_like_'+value.id).html()
+
+                                                    if (data.liked === true){
+                                                      if (!(has_k.includes('k'))){
+                                                        $('#rest_like_'+value.id).html(parseInt(has_k)+1)
+                                                      }
+                                                      $('#rest_like_span_'+value.id).removeClass('glyphicon-heart-empty')
+                                                      $('#rest_like_span_'+value.id).addClass('glyphicon-heart')
+                                                    }   else {
+                                                      if (!(has_k.includes('k'))){
+                                                        $('#rest_like_'+value.id).html(parseInt(has_k)-1)
+                                                      }
+                                                      $('#rest_like_span_'+value.id).removeClass('glyphicon-heart')
+                                                      $('#rest_like_span_'+value.id).addClass('glyphicon-heart-empty')
+                                                    }
+                                                  }
+                                                }
+                                            })
+                                        })
+                                      rest_appender.find('.reading_chat_rest_messages_delete').on('click', function (e) {
+                                          e.preventDefault()
+                                          $.ajax({
+                                              url: '/re/post/chat/rest/delete/', type: 'post', dataType: 'json', cache: false,
+                                                data: {
+                                                    rest_id: value.id,
+                                                },
+                                                success: function (data) {
+                                                  if (data.res === 1){
+                                                      if (data.deleted === true){
+                                                          $('#reading_chat_rest_wrapper_'+value.id).replaceWith('<div align="right">removed</div>')
+                                                      }
+                                                  }
+                                                }
+                                            })
+                                      })
+
+                                        $('#rest_wrapper_' + post_chat_id).append(rest_appender)
+                                      $('#rest_last_'+post_chat_id).html(value.id)
+                                  })
+                                }
+                            })
+
+
+                        })
+
+                        $('#modal_reading_chat').prepend(prepender)
+
+                    })
+
+
+
+                    if (start === false){
+                        $('#reading_chat_more_load').removeClass('hidden')
+                        $('#reading_chat_started').addClass('hidden')
+                    } else {
+                        $('#reading_chat_more_load').addClass('hidden')
+                        $('#reading_chat_started').removeClass('hidden')
+                    }
+                }
 
             }
         })
@@ -639,13 +1115,20 @@
             var prepender, align, profile_photo, chat_content, like, like_count, rest_messages;
             var start = false
             var last_id;
-            console.log(data)
             $.each(data.set, function (key, value) {
                 $('#reading_post_chat_last_id').html(value.id)
                 switch (value.kind) {
                     case 'start':
                         start = true
-                        prepender = $('<div class="reading_chat_started" align="center">Convo started</div>')
+                            if(value.rest_count=== 0){
+                                rest_messages = ''
+                            } else if (value.rest_count < 1000){
+                                rest_messages = '<div id="rest_wrapper_'+value.id+'" align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+value.rest_count+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
+                            } else if (1000 <= value.rest_count) {
+                                rest_messages = '<div id="rest_wrapper_'+value.id+'"align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+parseInt(value.like_count / 1000)+'k'+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
+                            }
+
+                            prepender = $(rest_messages)
                         break;
                     case 'text':
                         if (value.you_say === true){
@@ -662,10 +1145,17 @@
                                 '<div class="reading_chat_name">'+reading_post_profile_name+'</div>' +
                                 '<div class="reading_chat_text">'+value.content+'</div>' +
                                 '</div>'
+                            // 작업중인부분 ------------------------------------
+                            var heart;
+                            if (value.you_like === true){
+                                heart = 'glyphicon-heart'
+                            } else {
+                                heart = 'glyphicon-heart-empty'
+                            }
                             like = '<div class="reading_like_wrapper">' +
-                                '<span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">'+like_count+'</span>' +
-                                '</div>' +
+                                '<a href=""><span class="glyphicon '+ heart +' reading_like" id="reading_like_span_'+value.id+'" data-u="'+value.id+'"></span></a><span class="reading_like_text"> </span><span class="reading_like_text" id="reading_like_count_'+value.id+'">'+like_count+'</span>' +
                                 '</div>'
+
 
                             // 작업중인 부분------------------------------------------------------------
                             if(value.rest_count=== 0){
@@ -691,19 +1181,25 @@
                             chat_content = '<div class="reading_chat_content">' +
                                 '<div class="reading_chat_text">'+value.content+'</div>' +
                                 '</div>'
+                            // 작업중인부분 ------------------------------------
+                            var heart;
+                            if (value.you_like === true){
+                                heart = 'glyphicon-heart'
+                            } else {
+                                heart = 'glyphicon-heart-empty'
+                            }
                             like = '<div class="reading_like_wrapper">' +
-                                '<span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">'+like_count+'</span>' +
-                                '</div>' +
+                                '<a href=""><span class="glyphicon '+ heart +' reading_like" id="reading_like_span_'+value.id+'" data-u="'+value.id+'"></span></a><span class="reading_like_text"> </span><span class="reading_like_text" id="reading_like_count_'+value.id+'">'+like_count+'</span>' +
                                 '</div>'
 
+                            // 작업중인 부분------------------------------------------------------------
                             if(value.rest_count=== 0){
                                 rest_messages = ''
                             } else if (value.rest_count < 1000){
-                                rest_messages = '<div align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+value.rest_count+'</span></a></div><a href=""><div id="rest_load_'+value.id+'" class="rest_more_load hidden">more load</div></a>'
+                                rest_messages = '<div id="rest_wrapper_'+value.id+'" align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+value.rest_count+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
                             } else if (1000 <= value.rest_count) {
-                                rest_messages = '<div align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+parseInt(value.like_count / 1000)+'k'+'</span></a></div><a href=""><div id="rest_load_'+value.id+'" class="rest_more_load hidden">more load</div></a>'
+                                rest_messages = '<div id="rest_wrapper_'+value.id+'"align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+parseInt(value.like_count / 1000)+'k'+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
                             }
-
                             prepender = $('<div class="reading_chat_left" align="' + align + '">' + like + chat_content + rest_messages +
                                         '</div>\n')
 
@@ -728,17 +1224,24 @@
                                 '<div class="reading_chat_name">'+reading_post_profile_name+'</div>' +
                                 '<div><img class="reading_chat_img" src="'+value.content+'"></div>'+
                                 '</div>'
+                            // 작업중인부분 ------------------------------------
+                            var heart;
+                            if (value.you_like === true){
+                                heart = 'glyphicon-heart'
+                            } else {
+                                heart = 'glyphicon-heart-empty'
+                            }
                             like = '<div class="reading_like_wrapper">' +
-                                '<span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">'+like_count+'</span>' +
-                                '</div>' +
+                                '<a href=""><span class="glyphicon '+ heart +' reading_like" id="reading_like_span_'+value.id+'" data-u="'+value.id+'"></span></a><span class="reading_like_text"> </span><span class="reading_like_text" id="reading_like_count_'+value.id+'">'+like_count+'</span>' +
                                 '</div>'
 
+                            // 작업중인 부분------------------------------------------------------------
                             if(value.rest_count=== 0){
                                 rest_messages = ''
                             } else if (value.rest_count < 1000){
-                                rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
+                                rest_messages = '<div id="rest_wrapper_'+value.id+'" align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+value.rest_count+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
                             } else if (1000 <= value.rest_count) {
-                                rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
+                                rest_messages = '<div id="rest_wrapper_'+value.id+'"align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+parseInt(value.like_count / 1000)+'k'+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
                             }
 
                             prepender = $('<div class="reading_chat_left" align="' + align + '">' + profile_photo + chat_content + like + rest_messages +
@@ -755,17 +1258,24 @@
                             chat_content = '<div class="reading_chat_content">' +
                                 '<div><img class="reading_chat_img" src="'+value.content+'"></div>' +
                                 '</div>'
+                            // 작업중인부분 ------------------------------------
+                            var heart;
+                            if (value.you_like === true){
+                                heart = 'glyphicon-heart'
+                            } else {
+                                heart = 'glyphicon-heart-empty'
+                            }
                             like = '<div class="reading_like_wrapper">' +
-                                '<span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">'+like_count+'</span>' +
-                                '</div>' +
+                                '<a href=""><span class="glyphicon '+ heart +' reading_like" id="reading_like_span_'+value.id+'" data-u="'+value.id+'"></span></a><span class="reading_like_text"> </span><span class="reading_like_text" id="reading_like_count_'+value.id+'">'+like_count+'</span>' +
                                 '</div>'
 
+                            // 작업중인 부분------------------------------------------------------------
                             if(value.rest_count=== 0){
                                 rest_messages = ''
                             } else if (value.rest_count < 1000){
-                                rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+value.rest_count+'</span></div>'
+                                rest_messages = '<div id="rest_wrapper_'+value.id+'" align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+value.rest_count+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
                             } else if (1000 <= value.rest_count) {
-                                rest_messages = '<div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">'+parseInt(value.like_count / 1000)+'k'+'</span></div>'
+                                rest_messages = '<div id="rest_wrapper_'+value.id+'"align="right"><a href=""><span class="glyphicon glyphicon-comment reading_chat_rest_messages clickable" id="rest_start_'+value.id+'" data-u="'+value.id+'">'+parseInt(value.like_count / 1000)+'k'+'</span></a></div><a href=""><div id="rest_more_'+value.id+'" class="rest_more_load reading_chat_rest_messages hidden" data-u="'+value.id+'" align="center">more</div></a><div class="hidden" id="rest_last_'+value.id+'"></div>'
                             }
 
                             prepender = $('<div class="reading_chat_left" align="' + align + '">' + like + chat_content + rest_messages +
@@ -778,6 +1288,39 @@
                         break;
 
                 }
+                prepender.find('.reading_like').on('click', function (e) {
+
+                            e.preventDefault()
+                            var post_chat_id = $(this).attr('data-u')
+
+                            $.ajax({
+                                url: '/re/post/chat/like/', type: 'post', dataType: 'json', cache: false,
+                                data: {
+                                    post_chat_id: post_chat_id,
+                                },
+                                success: function (data) {
+                                    if (data.res === 1){
+                                        var has_k = $('#reading_like_count_'+post_chat_id).html()
+
+                                        if (data.liked === true){
+                                          if (!(has_k.includes('k'))){
+                                            $('#reading_like_count_'+post_chat_id).html(parseInt(has_k)+1)
+                                          }
+                                          $('#reading_like_span_'+post_chat_id).removeClass('glyphicon-heart-empty')
+                                          $('#reading_like_span_'+post_chat_id).addClass('glyphicon-heart')
+                                        }   else {
+                                          if (!(has_k.includes('k'))){
+                                            $('#reading_like_count_'+post_chat_id).html(parseInt(has_k)-1)
+                                          }
+                                          $('#reading_like_span_'+post_chat_id).removeClass('glyphicon-heart')
+                                          $('#reading_like_span_'+post_chat_id).addClass('glyphicon-heart-empty')
+                                        }
+                                    }
+                                }
+                            })
+
+                        });
+
                 prepender.find('.reading_chat_rest_messages').on('click', function (e) {
                     e.preventDefault()
                     var post_chat_id = $(this).attr('data-u')
@@ -813,7 +1356,7 @@
                                     like = 'glyphicon-heart-empty'
                                 }
                                 var delete_div = ''
-                                if(value.user_id === $('#user_id').html() || value.user_id===$('#reading_post_user_id').html()){
+                                if(value.user_id === $('#user_id').html() || $('#user_id').html()===$('#reading_post_user_id').html()){
                                     delete_div = '<div align="right"><a href=""><span class="reading_chat_rest_messages_delete">delete</span></a></div>'
                                 }
                                 var pre_rest_appender = '<div class="reading_chat_rest" align="right" id="reading_chat_rest_wrapper_'+value.id+'">' +
@@ -822,7 +1365,7 @@
                                     '</div>' +
                                     '<div class="reading_chat_content">' +
                                     '<div class="reading_chat_rest_name">'+value.name+'</div>\n' +
-                                    '<div class="reading_chat_rest_text">'+value.text+'</div>\n' +
+                                    '<div class="reading_chat_rest_text">'+value.text+'<span>   </span><span class="reading_chat_rest_time">'+date_differ(value.created)+'</span></div>\n' +
                                     '</div>' +
                                     '<div class="reading_chat_img">' +
                                     '<img class="img_small" src="'+ value.photo +'">' +
@@ -885,17 +1428,16 @@
                 $('#modal_reading_chat').append(prepender)
 
             })
-
                 if (data.next === null){
                     if ($('#reading_post_user_id').html()===$('#user_id').html()){
+
                         $('.reading_chat_next').addClass('hidden')
                         $('#interaction_update').removeClass('hidden')
-                    } else if ($('#reading_post_user_id').html()==!$('#user_id').html()){
+                    } else {
                         $('.reading_chat_next').addClass('hidden')
                         $('#interaction_form').removeClass('hidden')
                     }
                 } else {
-
                     $('#reading_post_chat_next_id').html(data.next.content.id)
                     if (data.next.content.you_say === true){
                         $('.reading_chat_next').addClass('hidden')
@@ -906,6 +1448,14 @@
                     }
 
                 }
+
+if (start === false){
+                        $('#reading_chat_more_load').removeClass('hidden')
+                        $('#reading_chat_started').addClass('hidden')
+                    } else {
+                        $('#reading_chat_more_load').addClass('hidden')
+                        $('#reading_chat_started').removeClass('hidden')
+                    }
             }
         })
     })

@@ -760,7 +760,6 @@ def re_post_already_read(request):
 
                 next = None
                 if last_post_chat is not None:
-                    print(last_post_chat.get_value())
 
                     try:
                         post_chat_next = PostChat.objects.get(before=last_post_chat)
@@ -782,32 +781,41 @@ def re_post_reading_more_load(request):
     if request.method == "POST":
         if request.user.is_authenticated:
             if request.is_ajax():
-                comment_id = request.POST.get('comment_id', None)
+                last_id = request.POST.get('post_chat_last_id', None)
                 post_id = request.POST.get('post_id', None)
+                print(last_id)
                 try:
-                    post = Post.objects.last()
-                    # post = Post.objects.get(uuid=post_id)
+                    last_post_chat = PostChat.objects.get(uuid=last_id)
                 except:
                     return JsonResponse({'res': 0})
 
-                try:
-                    comment = PostComment.objects.get(uuid=comment_id, user=request.user)
-                except:
-                    try:
-                        comment = PostComment.objects.get(uuid=comment_id, post=post, post__user=request.user)
-                    except:
-                        return JsonResponse({'res': 0})
+                post_chats = PostChat.objects.filter(Q(post__uuid=post_id) & Q(pk__lt=last_post_chat.pk)).order_by('-created')[:11]
 
-                try:
-                    with transaction.atomic():
-                        comment.delete()
-                        from django.db.models import F
-                        post_comment_count = post.postcommentcount
-                        post_comment_count.count = F('count') - 1
-                        post_comment_count.save()
-                except Exception:
-                    return JsonResponse({'res': 0})
-                return JsonResponse({'res': 1})
+                output = []
+                if post_chats:
+                    for post_chat in post_chats:
+                        try:
+                            count = post_chat.postchatlikecount.count
+                        except:
+                            count = None
+                        # 여기서 you_like 부터 시작해야한다.
+                        you_like = False
+                        if PostChatLike.objects.filter(user=request.user, post_chat=post_chat).exists():
+                            you_like = True
+                        sub_output = {
+                            'id': post_chat.uuid,
+                            'kind': post_chat_kind_converter(post_chat.kind),
+                            'like_count': count,
+                            'created': post_chat.created,
+                            'you_say': post_chat.you_say,
+                            'content': post_chat.get_raw_value(),
+                            'rest_count': post_chat.postchatrestmessagecount.count,
+                            'you_like': you_like
+                        }
+
+                        output.append(sub_output)
+
+                return JsonResponse({'res': 1, 'set': output})
         return JsonResponse({'res': 2})
 
 
@@ -817,7 +825,6 @@ def re_post_chat_next_load(request):
         if request.user.is_authenticated:
             if request.is_ajax():
                 post_chat_id = request.POST.get('post_chat_next_id', None)
-                print(post_chat_id)
                 try:
                     # post_chat = PostChat.objects.last()
                     post_chat = PostChat.objects.get(uuid=post_chat_id)
@@ -843,6 +850,8 @@ def re_post_chat_next_load(request):
                         'rest_count': post_chat.postchatrestmessagecount.count,
                         'you_like': you_like
                     }
+                    post_chat_read = PostChatRead.objects.create(post=post_chat.post, post_chat=post_chat, user=request.user)
+
                     output.append(sub_output)
                     try:
                         post_chat_next = PostChat.objects.get(before=post_chat)
