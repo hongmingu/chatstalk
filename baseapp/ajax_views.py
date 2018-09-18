@@ -202,19 +202,16 @@ def re_create_new_text(request):
                     post = Post.objects.get(uuid=post_id)
                 except:
                     return JsonResponse({'res': 0})
-                print('got post: ' + str(post))
 
                 try:
                     post_chat_last = PostChat.objects.filter(post=post).last()
-                    print('any made post chat?: ' + str(post_chat_last.pk))
 
                 except PostChat.DoesNotExist:
-                    print('has error on getting post_chat_last')
-                print('has no error on getting post_chat_last')
+                    return JsonResponse({'res': 0})
+
                 you_say = False
                 if request.POST.get('you_say', None) == 'you':
                     you_say = True
-                print(request.POST.get('text', None))
                 post_chat = PostChat.objects.create(post=post, kind=POSTCHAT_TEXT, before=post_chat_last,
                                                     you_say=you_say, uuid=uuid.uuid4().hex)
                 post_chat_text = PostChatText.objects.create(post_chat=post_chat, text=request.POST.get('text', None))
@@ -346,8 +343,6 @@ def re_post_update(request):
                 open = request.POST.get('open', None)
                 title_command = request.POST.get('title_command', None)
                 desc_command = request.POST.get('desc_command', None)
-                print(title_command)
-                print(desc_command)
                 if open == 'open':
                     post.is_open = True
                 elif open == 'close':
@@ -411,8 +406,7 @@ def re_post_chat_more_load(request):
             if request.is_ajax():
                 post_id = request.POST.get('post_id', None)
                 post_chat_id = request.POST.get('post_chat_id', None)
-                print(post_id)
-                print(post_chat_id)
+
                 try:
                     post = Post.objects.get(uuid=post_id)
                 except:
@@ -429,6 +423,35 @@ def re_post_chat_more_load(request):
 
         return JsonResponse({'res': 2})
 
+
+@ensure_csrf_cookie
+def re_home_feed(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                # 여기서 posts 옵션 준다. 20개씩 줄 것이므로 21로 잡는다. #########
+                posts = Post.objects.filter().order_by('-updated')[:21]
+                # filter(Q(post__uuid=post_id) & Q(pk__lt=last_post_chat.pk))
+                ################################
+                output = []
+                count = 0
+                next = None
+                for post in posts:
+                    count = count + 1
+                    if count == 21:
+                        next = post.uuid
+                        break
+                    sub_output = {
+                        'id': post.uuid,
+                        'created': post.created,
+                    }
+
+                    output.append(sub_output)
+
+                return JsonResponse({'res': 1, 'set': output, 'next': next})
+
+        return JsonResponse({'res': 2})
+
 @ensure_csrf_cookie
 def re_comment_add(request):
     if request.method == "POST":
@@ -437,8 +460,8 @@ def re_comment_add(request):
                 post_id = request.POST.get('post_id', None)
                 text = request.POST.get('comment', None)
                 try:
-                    # post = Post.objects.get(uuid=post_id)
-                    post = Post.objects.last()
+                    post = Post.objects.get(uuid=post_id)
+                    # post = Post.objects.last()
 
                 except:
                     return JsonResponse({'res': 0})
@@ -478,8 +501,8 @@ def re_comment_delete(request):
                 comment_id = request.POST.get('comment_id', None)
                 post_id = request.POST.get('post_id', None)
                 try:
-                    post = Post.objects.last()
-                    # post = Post.objects.get(uuid=post_id)
+                    # post = Post.objects.last()
+                    post = Post.objects.get(uuid=post_id)
                 except:
                     return JsonResponse({'res': 0})
 
@@ -559,8 +582,8 @@ def re_post_like(request):
             if request.is_ajax():
                 post_id = request.POST.get('post_id', None)
                 try:
-                    post = Post.objects.last()
-                    # post = Post.objects.get(uuid=post_id)
+                    # post = Post.objects.last()
+                    post = Post.objects.get(uuid=post_id)
                 except:
                     return JsonResponse({'res': 0})
                 try:
@@ -605,7 +628,7 @@ def re_user_home_populate(request):
             if request.is_ajax():
                 post_id = request.POST.get('post_id', None)
                 try:
-                    post = Post.objects.last()
+                    post = Post.objects.get(uuid=post_id)
                 except:
                     return JsonResponse({'res': 0})
                 from django.db.models import Q
@@ -655,7 +678,6 @@ def re_user_home_populate(request):
                 new = True
                 post_chat_last = PostChat.objects.filter(post=post).last()
                 post_chat_read_last = PostChatRead.objects.filter(post=post, user=request.user).last()
-
                 if post_chat_read_last is not None:
                     if post_chat_read_last.post_chat == post_chat_last:
                         new = False
@@ -689,14 +711,15 @@ def re_post_already_read(request):
         if request.user.is_authenticated:
             if request.is_ajax():
                 post_id = request.POST.get('post_id', None)
+                print(post_id)
                 try:
-                    post = Post.objects.last()
-                    # post = Post.objects.get(uuid=post_id)
+                    # post = Post.objects.last()
+                    post = Post.objects.get(uuid=post_id)
                 except:
                     return JsonResponse({'res': 0})
 
                 try:
-                    post_chat_reads = PostChatRead.objects.filter(post_chat__post=post).order_by('-created')[:20]
+                    post_chat_reads = PostChatRead.objects.filter(post_chat__post=post, user=request.user).order_by('-created')[:20]
                 except:
                     return JsonResponse({'res': 0})
 

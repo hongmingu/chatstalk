@@ -59,7 +59,7 @@
             background-color: lightgray; font-size: 12px;
         }
         .home_feed_chat_new{
-            background-color: hotpink; font-size: 12px;
+            border: #cd4a42 2px solid; border-radius: 3px
         }
         .home_feed_new_comment{
             background-color: lightgoldenrodyellow;
@@ -163,6 +163,9 @@
 
 <div class="hidden" id="page_kind" data-u="home"></div>
 <div class="hidden" id="last_num" data-u=""></div>
+<div class="hidden" id="post_last_id"></div>
+
+<div class="hidden" id="clicked_post_id"></div>
 
 <div class="hidden" id="reading_post_id"></div>
 <div class="hidden" id="reading_post_profile_photo"></div>
@@ -179,18 +182,11 @@
 <div class="container-fluid margin_top_50">
     <div class="row">
         <div class="col-xs-12 col-sm-offset-3 col-sm-6 col-md-offset-4 col-md-4">
-            <div class="row" id="content">
+            <div class="row">
                 <div align="center"><a href="{% url 'baseapp:create_new' %}"><div class="clickable padding_5 main_background_color write_new_post">Write New Post</div></a></div>
                 <!--여기서 modal -->
-
-                <div class="row div_base" id="div_" data-u="1">
-                    <script defer>
-                        home_populate()
-                    </script>
-                </div>
-
-
-<!--대화창을 지울 생각을 한 건 행운이 따른 것이다.-->
+                <div id="content"></div>
+                <div class="hidden" align="center" id="home_feed_more_load"><a href="{% url 'baseapp:create_new' %}"><div class="clickable padding_5 main_background_color write_new_post">More Load</div></a></div>
 
             </div>
         </div>
@@ -219,6 +215,26 @@
       </div>
     </div>
 </div>
+<div class="modal fade" id="modal_feed_menu">
+    <div class="modal-dialog modal-dialog_menu">
+      <div class="modal-content modal-content_menu">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body modal-body_menu" id="modal_feed_menu_content">
+            <div align="center">
+                <input type="text" id="modal_feed_input" style="width: 80%">
+            </div>
+            <div align="center" style="margin-top: 10px">
+              <a href=""><span class="clickable padding_5" id="modal_feed_copy" style="background-color: #85edb3; border-radius: 3px">copy link</span></a>
+            </div>
+        </div>
+      </div>
+    </div>
+</div>
+
   <!-- Hidden 으로 데이터 저장해놓고 modal on show 랑 hide 에서 그 데이터 불러와서 모달 채우게 하자. 그리고 임플린은 친구 중심이고
   피드가 존재하게 되었기 때문에 팔로우가 부가적으로 존재하는 것 뿐이다. -->
   <div class="modal fade" id="modal_reading_post">
@@ -231,113 +247,24 @@
             <div class="modal_top_padder"></div>
             <div id="modal_reading_contents">
                 <div class="modal_reading_chat">
-                    <a href=""><div class="reading_chat_more_load clickable" id="reading_chat_more_load" align="center">MORE LOAD</div></a>
-                    <div class="reading_chat_started" id="reading_chat_started" align="center">Convo started</div>
+                    <a href=""><div class="reading_chat_more_load clickable hidden" id="reading_chat_more_load" align="center">MORE LOAD</div></a>
+                    <div class="reading_chat_started hidden" id="reading_chat_started" align="center">Convo started</div>
                     <div id="modal_reading_chat">
-                        <div class="reading_chat_started" align="center">Convo started</div>
-                    <div class="reading_chat_left" align="left">
-                        <div class="reading_chat_img">
-                            <img class="img_small" src="http://static.news.zumst.com/images/111/2018/01/10/39832329eef6467b94ee5b390ffd348f.jpg">
-                        </div>
-                        <div class="reading_chat_content">
-                            <div class="reading_chat_name">욜로욜로욜로요~</div>
-                            <div class="reading_chat_text">욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요~</div>
-                        </div>
-                        <div class="reading_like_wrapper">
-                            <span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">102000k</span>
-                        </div>
-                    </div>
 
-                    <div><span class="glyphicon glyphicon-comment reading_chat_rest_messages">10</span></div>
 
-                    <div class="reading_chat_right" align="right">
-                        <div class="reading_like_wrapper">
-                            <span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">102000k</span>
-                        </div>
-                        <div class="reading_chat_content">
-                            <div class="reading_chat_name">욜로욜로욜로요~</div>
-                            <div class="reading_chat_text">욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요욜로욜로욜로요~</div>
-
-                        </div>
-
-                        <div class="reading_chat_img">
-                            <img class="img_small" src="http://static.news.zumst.com/images/111/2018/01/10/39832329eef6467b94ee5b390ffd348f.jpg">
-                        </div>
-                    </div>
-
-                    <div class="reading_chat_right" align="right">
-                        <div class="reading_like_wrapper">
-                            <span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">102000k</span>
-                        </div>
-                        <div class="reading_chat_content">
-                            <div class="reading_chat_name">욜로욜로욜로요~</div>
-                            <div><img class="reading_chat_img" src="https://lh5.googleusercontent.com/-AW0OXT3lU_0/VGFIvdFewbI/AAAAAAAAkiU/s0wd-K57WDY/s288/20141110-947.jpg"></div>
-                        </div>
-                        <div class="reading_chat_img">
-                            <img class="img_small" src="http://static.news.zumst.com/images/111/2018/01/10/39832329eef6467b94ee5b390ffd348f.jpg">
-                        </div>
-                    </div>
-                    <div class="reading_chat_rest" align="right">
-
-                        <div class="reading_like_wrapper">
-                            <span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">102000k</span>
-                        </div>
-
-                        <div class="reading_chat_content">
-                            <div class="reading_chat_rest_name">욜로욜로욜로요~</div>
-                            <div class="reading_chat_rest_text">욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~</div>
-
-                        </div>
-                        <div class="reading_chat_img">
-                            <img class="img_small" src="http://static.news.zumst.com/images/111/2018/01/10/39832329eef6467b94ee5b390ffd348f.jpg">
-                        </div>
-                        <div align="right"><span class="reading_chat_rest_messages_delete">delete</span></div>
-
-                    </div>
-
-                    <div class="reading_chat_rest" align="right">
-
-                        <div class="reading_like_wrapper">
-                            <span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">102000k</span>
-                        </div>
-
-                        <div class="reading_chat_content">
-                            <div class="reading_chat_rest_name">욜로욜로욜로요~</div>
-                            <div class="reading_chat_rest_text">욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~</div>
-
-                        </div>
-                        <div class="reading_chat_img">
-                            <img class="img_small" src="http://static.news.zumst.com/images/111/2018/01/10/39832329eef6467b94ee5b390ffd348f.jpg">
-                        </div>
-                    </div>
-                    <div class="reading_chat_rest_just_added" align="right">
-
-                        <div class="reading_like_wrapper">
-                            <span class="glyphicon glyphicon-heart reading_like"></span><span class="reading_like_text" style=""> </span><span class="reading_like_text">102000k</span>
-                        </div>
-
-                        <div class="reading_chat_content">
-                            <div class="reading_chat_rest_name">욜로욜로욜로요~</div>
-                            <div class="reading_chat_rest_text">욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~욜로욜로욜로요~</div>
-
-                        </div>
-                        <div class="reading_chat_img">
-                            <img class="img_small" src="http://static.news.zumst.com/images/111/2018/01/10/39832329eef6467b94ee5b390ffd348f.jpg">
-                        </div>
-                    </div>
                     </div>
 
 
                 </div>
                 <div class="modal_reading_interaction" id="modal_reading_interaction" align="center">
                     <a href="">
-                        <div class="clickable reading_chat_interaction_white hidden reading_chat_next reading_chat_play" id="interaction_play_white">
+                        <div class="clickable reading_chat_interaction_white hidden reading_chat_next reading_chat_play hidden" id="interaction_play_white">
                             <span class="glyphicon glyphicon-play interaction_play"></span>
                         </div>
                     </a>
 
                     <a href="">
-                        <div class="clickable reading_chat_interaction_green reading_chat_next reading_chat_play" id="interaction_play_green">
+                        <div class="clickable reading_chat_interaction_green reading_chat_next reading_chat_play hidden" id="interaction_play_green">
                             <span class="glyphicon glyphicon-play interaction_play"></span>
                         </div>
                     </a>
@@ -368,6 +295,54 @@
   </div>
 
 </body>
+<script>
+    $("#modal_feed_menu").on("shown.bs.modal", function () {
+        var clicked_post = $('#clicked_post_id').html()
+        var scheme = window.location.protocol == "https:" ? "https" : "http";
+        var path = scheme + '://' + window.location.host + '/post/' + clicked_post;
+        $('#modal_feed_input').val(path).select();
+
+    }).on("hidden.bs.modal", function () {
+        $('#clicked_post_id').html('')
+    });
+
+    $('#modal_feed_copy').click(function (e) {
+        e.preventDefault()
+        var clicked_post = $('#clicked_post_id').html()
+        var scheme = window.location.protocol == "https:" ? "https" : "http";
+        var path = scheme + '://' + window.location.host + '/post/' + clicked_post;
+        $('#modal_feed_input').val(path).select();
+        document.execCommand('Copy')
+    })
+</script>
+<script>
+    $(function () {
+        $.ajax({url:'/re/home/feed/', type:'post', dataType:'json', cache:false,
+            data:{
+                last_id: $('#post_last_id').html()
+            },
+            success:function (data) {
+            $.each(data.set, function (key, value) {
+                var string = value.id
+                var appender = '<div class="row div_base" id="post_div_'+value.id+'" data-u="'+value.id+'">' +
+                    '<script defer>' +
+                    '    home_populate("'+value.id+'")' +
+                    '<'+'/script></div>'
+
+                    //'console.log($("#post_div_'+value.id+'").attr("data-u"))' +
+                $('#content').append(appender)
+            })
+                if (data.next === null){
+                    $('#home_feed_more_load').addClass('hidden')
+                } else {
+                    $('#home_feed_more_load').removeClass('hidden')
+                }
+
+            }
+        })
+    })
+
+</script>
 
 <script>
 
@@ -385,14 +360,16 @@
                 post_id:reading_post_id,
             },
             success:function (data) {
+            console.log(data)
                 if (data.res === 1) {
                 var start = false
                     $.each(data.set, function (key, value) {
+                        if (key === 0){
+                            $('#reading_post_chat_last_id').html(value.id)
+                        }
                         var prepender;
 
                         var align, profile_photo, chat_content, like, like_count, rest_messages;
-
-                        $('#reading_post_chat_last_id').html(value.id)
                         switch (value.kind) {
                             case 'start':
                                 start = true
@@ -630,7 +607,7 @@
                                             like = 'glyphicon-heart-empty'
                                         }
                                         var delete_div = ''
-                                        if(value.user_id === $('#user_id').html() || value.user_id===$('#reading_post_user_id').html()){
+                                        if(value.user_id === $('#user_id').html() || $('#user_id').html() ===$('#reading_post_user_id').html()){
                                             delete_div = '<div align="right"><a href=""><span class="reading_chat_rest_messages_delete">delete</span></a></div>'
                                         }
                                         var pre_rest_appender = '<div class="reading_chat_rest" align="right" id="reading_chat_rest_wrapper_'+value.id+'">' +
@@ -740,6 +717,15 @@ if (start === false){
         })
 
     }).on("hidden.bs.modal", function () {
+        var post_id = $('#reading_post_id').html()
+
+        var appender = '<div class="row div_base" id="post_div_'+post_id+'" data-u="'+post_id+'">' +
+            '<script defer>' +
+            '    home_populate("'+post_id+'")' +
+            '<'+'/script></div>'
+
+        //'console.log($("#post_div_'+value.id+'").attr("data-u"))' +
+        $('#post_div_'+post_id).replaceWith(appender)
         $('#modal_reading_chat').empty()
     });
     $('#reading_chat_more_load').click(function (e) {
@@ -762,8 +748,6 @@ if (start === false){
                         var prepender;
 
                         var align, profile_photo, chat_content, like, like_count, rest_messages;
-
-                        $('#reading_post_chat_last_id').html(value.id)
                         switch (value.kind) {
                             case 'start':
                                 start = true
@@ -1001,7 +985,7 @@ if (start === false){
                                             like = 'glyphicon-heart-empty'
                                         }
                                         var delete_div = ''
-                                        if(value.user_id === $('#user_id').html() || value.user_id===$('#reading_post_user_id').html()){
+                                        if(value.user_id === $('#user_id').html() || $('#user_id').html() ===$('#reading_post_user_id').html()){
                                             delete_div = '<div align="right"><a href=""><span class="reading_chat_rest_messages_delete">delete</span></a></div>'
                                         }
                                         var pre_rest_appender = '<div class="reading_chat_rest" align="right" id="reading_chat_rest_wrapper_'+value.id+'">' +
@@ -1446,16 +1430,8 @@ if (start === false){
                         $('.reading_chat_next').addClass('hidden')
                         $('#interaction_play_green').removeClass('hidden')
                     }
-
+                //다른사람 글 볼때 딜리트 활성화 제거 .
                 }
-
-if (start === false){
-                        $('#reading_chat_more_load').removeClass('hidden')
-                        $('#reading_chat_started').addClass('hidden')
-                    } else {
-                        $('#reading_chat_more_load').addClass('hidden')
-                        $('#reading_chat_started').removeClass('hidden')
-                    }
             }
         })
     })

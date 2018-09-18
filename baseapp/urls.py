@@ -34,6 +34,9 @@ urlpatterns = [
             name='re_post_chat_modify_populate'),
     re_path(r'^re/post/chat/more/load/$', base_ajax_views.re_post_chat_more_load,
             name='re_post_chat_more_load'),
+    re_path(r'^re/home/feed/$', base_ajax_views.re_home_feed,
+            name='re_home_feed'),
+
     re_path(r'^re/user/home/populate/$', base_ajax_views.re_user_home_populate,
             name='re_user_home_populate'),
     re_path(r'^re/comment/add/$', base_ajax_views.re_comment_add,
