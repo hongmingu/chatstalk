@@ -22,10 +22,12 @@ from django.http import JsonResponse
 
 from authapp import options
 from authapp import texts
+from relation.models import FollowerCount, FollowingCount
 from .forms import *
 from .models import *
 from .token import *
 from .utils import *
+
 from django.contrib.auth import update_session_auth_hash
 
 
@@ -236,6 +238,8 @@ def main_create_log_in(request):
                             user=new_user_create,
                             gender=form.cleaned_data['gender']
                         )
+                        # 여기 기본적인 릴레이션 모델
+                        new_following_count = FollowerCount.objects.create(user=new_user_create, )
 
                 except Exception:
                     return render_with_clue_loginform_createform(request, 'authapp/main_second.html',

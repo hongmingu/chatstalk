@@ -71,6 +71,12 @@ urlpatterns = [
 
     re_path(r'^re/post/chat/rest/delete/$', base_ajax_views.re_post_chat_rest_delete,
             name='re_post_chat_rest_delete'),
+
+    re_path(r'^re/profile/follow/$', base_ajax_views.re_profile_follow,
+            name='re_profile_follow'),
+
+    re_path(r'^re/profile/following/$', base_ajax_views.re_profile_following,
+            name='re_profile_following'),
     # re_path(r'^email/key/send/$', views.email_key_send, name='email_key_send'),
     # re_path(r'^email/key/confirm/(?P<uid>([A-Za-z0-9_](?:(?:[A-Za-z0-9_]|(?:\.(?!\.))){0,28}(?:[A-Za-z0-9_]))?))/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         # views.email_key_confirm, name='email_key_confirm'),

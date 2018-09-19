@@ -945,7 +945,6 @@ def re_post_chat_add_rest(request):
                 post_chat_id = request.POST.get('post_chat_id', None)
                 text = request.POST.get('text', None)
                 post_chat = None
-                print(post_chat_id)
                 try:
                     post_chat = PostChat.objects.get(uuid=post_chat_id)
                 except:
@@ -1097,5 +1096,108 @@ def re_post_chat_rest_delete(request):
                         return JsonResponse({'res': 1, 'deleted': True})
 
                 return JsonResponse({'res': 2})
+
+        return JsonResponse({'res': 2})
+
+
+
+@ensure_csrf_cookie
+def re_profile_follow(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                chosen_user_id = request.POST.get('user_id', None)
+                chosen_user = None
+                try:
+                    chosen_user = User.objects.get(username=chosen_user_id)
+                except User.DoesNotExist:
+                    return JsonResponse({'res': 0})
+
+                if chosen_user is not None:
+                    # 어이없는 스스로 팔로우 방지
+                    if chosen_user == request.user:
+                        return JsonResponse({'res': 0})
+                    following = None
+                    try:
+                        following = Following.objects.get(following=chosen_user, user=request.user)
+                    except Following.DoesNotExist:
+                        pass
+                    result = None
+                    if following is not None:
+                        try:
+                            with transaction.atomic():
+                                following.delete()
+                                follower = None
+                                try:
+                                    follower = Follower.objects.get(follower=request.user, user=chosen_user)
+                                except Follower.DoesNotExist:
+                                    pass
+                                if follower is not None:
+                                    follower.delete()
+                                from django.db.models import F
+                                following_count = request.user.followingcount
+                                following_count.count = F('count') - 1
+                                following_count.save()
+                                follower_count = chosen_user.followercount
+                                follower_count.count = F('count') - 1
+                                follower_count.save()
+                                result = False
+
+                                # customers = Customer.objects.filter(scoops_ordered__gt=F('store_visits'))
+                        except Exception:
+                            return JsonResponse({'res': 0})
+                    else:
+                        try:
+                            with transaction.atomic():
+                                following = Following.objects.create(following=chosen_user, user=request.user)
+                                follower = Follower.objects.create(follower=request.user, user=chosen_user)
+                                from django.db.models import F
+                                following_count = request.user.followingcount
+                                following_count.count = F('count') + 1
+                                following_count.save()
+                                follower_count = chosen_user.followercount
+                                follower_count.count = F('count') + 1
+                                follower_count.save()
+                                result = True
+
+                                # customers = Customer.objects.filter(scoops_ordered__gt=F('store_visits'))
+                        except Exception:
+                            return JsonResponse({'res': 0})
+                    return JsonResponse({'res': 1, 'result': result})
+
+                return JsonResponse({'res': 2})
+
+        return JsonResponse({'res': 2})
+
+
+@ensure_csrf_cookie
+def re_profile_following(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                user_id = request.POST.get('user_id', None)
+                user = None
+                try:
+                    user = User.objects.get(username=user_id)
+                except User.DoesNotExist:
+                    pass
+
+                next = None
+                output = []
+                if user is not None:
+                    followings = Following.objects.filter(user=user).order_by('created')[:31]
+                    count = 0
+                    for following in followings:
+                        count = count+1
+                        if count == 31:
+                            next = following.following.username
+                        sub_output = {
+                            'username': following.following.userusername.username,
+                            'photo': following.following.userphoto.file_50_url(),
+                        }
+                        output.append(sub_output)
+
+
+                return JsonResponse({'res': 1, 'set': output, 'next':next})
 
         return JsonResponse({'res': 2})

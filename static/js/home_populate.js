@@ -1,12 +1,12 @@
-function home_populate(){
-                            var id = $('script').last().parent().attr('data-u')
+var home_populate = function home_populate(post_id_value){
+                            var id = post_id_value
                             var parent_div = $('script').last().parent()
                             var user_id = $('#user_id').attr('data-u')
                             $(function () {
                                 $.ajax({
                                     url: '/re/user/home/populate/', type: 'post', dataType:'json', cache: false,
                                     data: {
-                                        post_id: id,
+                                        post_id: post_id_value,
                                     },
                                     success: function (data) {
 
@@ -74,7 +74,7 @@ function home_populate(){
                                             }
                                             var _new = '';
                                             if (data.set.new === true){
-                                                _new = '<div class="home_feed_chat_new" align="center">new</div>'
+                                                _new = 'home_feed_chat_new'
                                             }
                                             // 제목에 공백만 있는 건 허용하지 말자. 자바스크립트로. 그렇게 하고 파이썬 뷰에서 그렇게 하자.
                                             var append_to = $('<div class="media">\n' +
@@ -83,7 +83,7 @@ function home_populate(){
                                                 'class="home_feed_name">'+data.set.username+'</span></div>\n' +
                                                 '<div class="col-xs-2" align="right">\n' +
                                                 '<a href="#"><span\n' +
-                                                'class="glyphicon glyphicon-option-horizontal grey"></span></a></div>\n' +
+                                                'class="glyphicon glyphicon-option-horizontal grey" id="option_'+data.set.id+'"></span></a></div>\n' +
                                                 '</div>\n' +
                                                 '<a href=""><div id="chat_div_'+data.set.id+'" class="home_feed_chat_total">'+
                                                 '<div class="media-left">\n' +
@@ -91,7 +91,7 @@ function home_populate(){
                                                 'class="media-object img_small">\n' +
                                                 '</div>\n' +
                                                 '<div class="media-body">\n' +
-                                                '<div class="home_feed_chat">'+_last_chat+'</div>' + _new +
+                                                '<div class="home_feed_chat '+_new+'">'+_last_chat+'</div>' +
                                                 '</div>\n' +
                                                 '</div></a>\n' +
                                                 '<div class="home_feed_title '+ _title_class +'">'+_title+'</div>\n' +
@@ -119,6 +119,12 @@ function home_populate(){
                                                 '</div>\n' +
                                                 '</form>\n' +
                                                 '</div>')
+                                            append_to.find('#option_'+data.set.id).on('click', function (e) {
+                                                e.preventDefault()
+                                                $('#clicked_post_id').html(data.set.id)
+                                                $('#modal_feed_menu').modal('show')
+
+                                            })
 
                                             append_to.find('#chat_div_'+data.set.id).on('click', function (e) {
                                                 e.preventDefault()
@@ -330,7 +336,7 @@ function home_populate(){
                                                 })
                                             })
 
-                                            $('#div_').append(append_to)
+                                            $('#post_div_'+post_id_value).append(append_to)
                                         }
                                     }
                                 })
