@@ -13,15 +13,15 @@ def user_profile(request, user_username):
     if request.method == "GET":
         user = None
         try:
-            user = User.objects.get(userusername__username=user_username)
+            chosen_user = User.objects.get(userusername__username=user_username)
         except:
             return render(request, '404.html')
-        if user is not None:
+        if chosen_user is not None:
             following = None
-            if Following.objects.filter(user=request.user, following=user).exists():
+            if Follow.objects.filter(user=request.user, follow=chosen_user).exists():
                 following = True
 
-            return render(request, 'baseapp/user_profile.html', {'chosen_user': user, 'following': following})
+            return render(request, 'baseapp/user_profile.html', {'chosen_user': chosen_user, 'following': following})
 
 def create_new(request):
     if request.method == "POST":

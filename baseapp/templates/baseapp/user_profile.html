@@ -25,6 +25,9 @@
         .profile_list_wrapper{
             margin-top: 10px;
         }
+        .modal_follow_wrapper{
+            overflow-y: auto;
+        }
     </style>
 
 
@@ -53,17 +56,17 @@
                 <div class="row div_base" id="chat_base">
                     <div align="center">
                         <img class="img_300_300" id="img_300"
-                             src="https://steamuserimages-a.akamaihd.net/ugc/901148415696627963/FDEB1F811010C4CC526036FC1A0B8BE94B3AC574/">
+                             src="{{ chosen_user.userphoto.file_300_url }}">
                     </div>
 
-                    <div class="margin_top_20" align="center"><span class="user_name">트와이스</span></div>
-                    <div class="margin_top_20" align="center"><span class="user_username" style="">username_for_you</span></div>
+                    <div class="margin_top_20" align="center"><span class="user_name">{{ chosen_user.usertextname.name }}</span></div>
+                    <div class="margin_top_20" align="center"><span class="user_username">{{ chosen_user.userusername.username }}</span></div>
 
                     <div class="row margin_top_20">
                         <div class="col-xs-6" align="right"><span class="user_fellowship_title">Following: </span><a href="#"><span
                                 class="user_fellowship_count" id="count_following">{{ chosen_user.followingcount.count }}</span></a></div>
                         <div class="col-xs-6" align="left"><span class="user_fellowship_title">Followers: </span><a href="#"><span
-                                class="user_fellowship_count" id="count_followers">{{ chosen_user.followercount.count }}</span></a></div>
+                                class="user_fellowship_count" id="count_follower">{{ chosen_user.followercount.count }}</span></a></div>
                     </div>
                 {% if following == None %}
                     <a href="">
@@ -75,7 +78,7 @@
                 {% else %}
                     <a href="">
                         <div class="margin_top_20 light_background_color hidden" align="center" id="follow">
-                            <span class="user_change_profile clickable" id="follow_text">following</span>
+                            <span class="user_change_profile clickable" id="follow_text">now following <span class="glyphicon glyphicon-ok"></span></span>
                         </div>
                     </a>
 
@@ -98,23 +101,51 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body modal_follow_wrapper" id="modal_following_wrapper">
             <div align="center">following</div>
             <div id="modal_following_list">
 
             </div>
-            <div class="hidden" align="center" id="modal_following_more">more</div>
+            <a href=""><div class="hidden" align="center" id="modal_following_more">more</div></a>
         </div>
       </div>
     </div>
 </div>
+<div class="modal fade" id="modal_follower">
+    <div class="modal-dialog modal-dialog_menu">
+      <div class="modal-content modal-content_menu">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body modal_follow_wrapper" id="modal_follower_wrapper">
+            <div align="center">followers</div>
+            <div id="modal_follower_list">
 
+            </div>
+            <a href=""><div class="hidden" align="center" id="modal_follower_more">more</div></a>
+        </div>
+      </div>
+    </div>
+</div>
   <!-- Hidden 으로 데이터 저장해놓고 modal on show 랑 hide 에서 그 데이터 불러와서 모달 채우게 하자. 그리고 임플린은 친구 중심이고
   피드가 존재하게 되었기 때문에 팔로우가 부가적으로 존재하는 것 뿐이다. -->
 
 
 </body>
 <script>
+$(function () {
+    var height = $(window).height();
+    $('.modal_follow_wrapper').css('max-height', height-120);
+    $(window).on('resize', function(){
+
+        if($(window).height() != height){
+            height = $(window).height();
+            $('.modal_follow_wrapper').css('max-height', height-120);
+        }
+    });
+})
     $(function () {
         if($('#user_id').html()===$('#chosen_user_id').html()){
             $('#change_profile').removeClass('hidden')
@@ -132,19 +163,28 @@
                 success:function (data) {
                     console.log(data)
                     if (data.result === true){
-                        $('#follow_text').html('following')
-                        var count_followers = parseInt($('#count_followers').html())+1
-                        $('#count_followers').html(count_followers)
+                        $('#follow_text').html('now following <span class="glyphicon glyphicon-ok"></span>')
+                        var count_follower = parseInt($('#count_follower').html())+1
+                        $('#count_follower').html(count_follower)
                     } else {
                         $('#follow_text').html('follow')
-                        var count_followers = parseInt($('#count_followers').html())-1
-                        $('#count_followers').html(count_followers)
+                        var count_follower = parseInt($('#count_follower').html())-1
+                        $('#count_follower').html(count_follower)
                     }
                 }
             })
         })
 
         $("#modal_following").on("shown.bs.modal", function () {
+    var height = $(window).height();
+    $('.modal_follow_wrapper').css('max-height', height-120);
+    $(window).on('resize', function(){
+
+        if($(window).height() != height){
+            height = $(window).height();
+            $('.modal_follow_wrapper').css('max-height', height-120);
+        }
+    });
             var chosen_user_id = $('#chosen_user_id').html()
 
             $.ajax({url:'/re/profile/following/', type:'post', dataType:'json', cache:false,
@@ -212,6 +252,86 @@
             $('#modal_following').modal('show')
         })
 
+
+        $("#modal_follower").on("shown.bs.modal", function () {
+
+                var height = $(window).height();
+    $('.modal_follow_wrapper').css('max-height', height-120);
+    $(window).on('resize', function(){
+
+        if($(window).height() != height){
+            height = $(window).height();
+            $('.modal_follow_wrapper').css('max-height', height-120);
+        }
+    });
+            var chosen_user_id = $('#chosen_user_id').html()
+
+            $.ajax({url:'/re/profile/follower/', type:'post', dataType:'json', cache:false,
+                data:{
+                    user_id: $('#chosen_user_id').html(),
+                    next_id: $('#next_id').html()
+                },
+                success:function (data) {
+                console.log(data)
+                    if (data.res === 1){
+                        $.each(data.set, function (key, value) {
+                            var appender = '<div class="profile_list_wrapper"><a href="/'+value.username+'/">\n' +
+                                '<img class="img_small" src="'+value.photo+'">\n' +
+                                '<span class="profile_list_username">'+value.username+'</span>\n' +
+                                '</a></div>'
+                            $('#modal_follower_list').append(appender)
+                        })
+                    }
+                    if (data.next === null){
+                        $('#next_id').html('')
+                        $('#modal_follower_more').addClass('hidden')
+                    } else {
+                        $('#next_id').html(data.next)
+                        $('#modal_follower_more').removeClass('hidden')
+                    }
+
+                }
+            })
+        }).on("hidden.bs.modal", function () {
+            $('#modal_follower_list').empty()
+            $('#next_id').html('')
+        });
+
+        $('#modal_follower_more').click(function (e) {
+            e.preventDefault()
+            var chosen_user_id = $('#chosen_user_id').html()
+
+            $.ajax({url:'/re/profile/follower/', type:'post', dataType:'json', cache:false,
+                data:{
+                    user_id: $('#chosen_user_id').html(),
+                    next_id: $('#next_id').html()
+                },
+                success:function (data) {
+                console.log(data)
+                    if (data.res === 1){
+                        $.each(data.set, function (key, value) {
+                            var appender = '<div class="profile_list_wrapper"><a href="/'+value.username+'/">\n' +
+                                '<img class="img_small" src="'+value.photo+'">\n' +
+                                '<span class="profile_list_username">'+value.username+'</span>\n' +
+                                '</a></div>'
+                            $('#modal_follower_list').append(appender)
+                        })
+                    }
+                    if (data.next === null){
+                        $('#next_id').html('')
+                        $('#modal_follower_more').addClass('hidden')
+                    } else {
+                        $('#next_id').html(data.next)
+                        $('#modal_follower_more').removeClass('hidden')
+                    }
+
+                }
+            })
+        })
+
+        $('#count_follower').click(function (e) {
+            $('#modal_follower').modal('show')
+        })
     })
 
 </script>

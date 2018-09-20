@@ -1117,23 +1117,17 @@ def re_profile_follow(request):
                     # 어이없는 스스로 팔로우 방지
                     if chosen_user == request.user:
                         return JsonResponse({'res': 0})
-                    following = None
+                    follow = None
                     try:
-                        following = Following.objects.get(following=chosen_user, user=request.user)
-                    except Following.DoesNotExist:
+                        follow = Follow.objects.get(follow=chosen_user, user=request.user)
+                    except Follow.DoesNotExist:
                         pass
                     result = None
-                    if following is not None:
+                    if follow is not None:
                         try:
                             with transaction.atomic():
-                                following.delete()
-                                follower = None
-                                try:
-                                    follower = Follower.objects.get(follower=request.user, user=chosen_user)
-                                except Follower.DoesNotExist:
-                                    pass
-                                if follower is not None:
-                                    follower.delete()
+                                follow.delete()
+
                                 from django.db.models import F
                                 following_count = request.user.followingcount
                                 following_count.count = F('count') - 1
@@ -1149,8 +1143,7 @@ def re_profile_follow(request):
                     else:
                         try:
                             with transaction.atomic():
-                                following = Following.objects.create(following=chosen_user, user=request.user)
-                                follower = Follower.objects.create(follower=request.user, user=chosen_user)
+                                follow = Follow.objects.create(follow=chosen_user, user=request.user)
                                 from django.db.models import F
                                 following_count = request.user.followingcount
                                 following_count.count = F('count') + 1
@@ -1176,6 +1169,7 @@ def re_profile_following(request):
         if request.user.is_authenticated:
             if request.is_ajax():
                 user_id = request.POST.get('user_id', None)
+                next_id = request.POST.get('next_id', None)
                 user = None
                 try:
                     user = User.objects.get(username=user_id)
@@ -1185,18 +1179,66 @@ def re_profile_following(request):
                 next = None
                 output = []
                 if user is not None:
-                    followings = Following.objects.filter(user=user).order_by('created')[:31]
+                    if next_id == '':
+                        followings = Follow.objects.filter(user=user).order_by('created')[:31]
+                    else:
+                        try:
+                            last_following = Follow.objects.get(follow__username=next_id, user=user)
+                        except:
+                            return JsonResponse({'res': 0})
+                        followings = Follow.objects.filter(Q(user=user) & Q(pk__gte=last_following.pk)).order_by('created')[:31]
                     count = 0
-                    for following in followings:
+                    for follow in followings:
                         count = count+1
                         if count == 31:
-                            next = following.following.username
+                            next = follow.follow.username
+                            break
                         sub_output = {
-                            'username': following.following.userusername.username,
-                            'photo': following.following.userphoto.file_50_url(),
+                            'username': follow.follow.userusername.username,
+                            'photo': follow.follow.userphoto.file_50_url(),
                         }
                         output.append(sub_output)
 
+                return JsonResponse({'res': 1, 'set': output, 'next':next})
+
+        return JsonResponse({'res': 2})
+
+@ensure_csrf_cookie
+def re_profile_follower(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                user_id = request.POST.get('user_id', None)
+                next_id = request.POST.get('next_id', None)
+                user = None
+                try:
+                    user = User.objects.get(username=user_id)
+                except User.DoesNotExist:
+                    pass
+
+                next = None
+                output = []
+                if user is not None:
+                    if next_id == '':
+                        followers = Follow.objects.filter(follow=user).order_by('created')[:31]
+                    else:
+                        try:
+
+                            last_follower = Follow.objects.get(follow=user, user__username=next_id)
+                        except:
+                            return JsonResponse({'res': 0})
+                        followers = Follow.objects.filter(Q(follow=user) & Q(pk__gte=last_follower.pk)).order_by('created')[:31]
+                    count = 0
+                    for follow in followers:
+                        count = count+1
+                        if count == 31:
+                            next = follow.user.username
+                            break
+                        sub_output = {
+                            'username': follow.user.userusername.username,
+                            'photo': follow.user.userphoto.file_50_url(),
+                        }
+                        output.append(sub_output)
 
                 return JsonResponse({'res': 1, 'set': output, 'next':next})
 
