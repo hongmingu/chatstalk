@@ -37,43 +37,6 @@ from object.numbers import *
 # 좋아요 비공개 할 수 있게
 # 챗스톡, 페이지픽, 임플린, 챗카부 순으로 만들자.
 
-@ensure_csrf_cookie
-def task(request):
-    if request.method == "POST":
-        if request.user.is_authenticated:
-            if request.is_ajax():
-
-                if request.POST.get('command', None) is None:
-                    return JsonResponse({'res': 2})
-
-                elif request.POST.get('command', None) == 'home':
-                    if request.POST.get('last_num', None) == '':
-                        Post.objects.all()
-                    else:
-                        print(request.POST.get('last_num', None))
-
-                    return JsonResponse({'res': 1})
-                elif request.POST.get('command', None) == '_home':
-                    post = None
-                    try:
-                        post = Post.objects.get(pk=request.POST.get('pk', None))
-                    except Post.DoesNotExist:
-                        post = Post.objects.all().values('pk')
-                        print(post)
-                        return JsonResponse({'res': 0, 'error': 0})
-
-                    content = {}
-                    content['username'] = post.user.userusername.username
-                    if post.has_title:
-                        content['title'] = post.posttitle.title
-                    if post.has_description:
-                        content['description'] = post.postdescription.description
-                    content['like_count'] = post.postlikecount.count
-
-                    return JsonResponse({'res': 1, 'message': content})
-
-        return JsonResponse({'res': 2})
-
 
 @ensure_csrf_cookie
 def re_create_new_upload_photo(request):
@@ -430,20 +393,25 @@ def re_home_feed(request):
         if request.user.is_authenticated:
             if request.is_ajax():
                 # 여기서 posts 옵션 준다. 20개씩 줄 것이므로 21로 잡는다. #########
-                posts = Post.objects.filter().order_by('-updated')[:21]
+                posts = Post.objects.filter(Q(user__is_followed__user=request.user) | Q(postfollow__user=request.user)).order_by('-updated')[:21]
                 # filter(Q(post__uuid=post_id) & Q(pk__lt=last_post_chat.pk))
                 ################################
                 output = []
                 count = 0
                 next = None
+                post_follow = None
                 for post in posts:
                     count = count + 1
                     if count == 21:
                         next = post.uuid
                         break
+                    post_follow = True
+                    if Follow.objects.filter(user=request.user, follow=post.user).exists():
+                        post_follow = False
                     sub_output = {
                         'id': post.uuid,
                         'created': post.created,
+                        'post_follow': post_follow
                     }
 
                     output.append(sub_output)
@@ -532,11 +500,12 @@ def re_comment_more_load(request):
         if request.user.is_authenticated:
             if request.is_ajax():
                 post_id = request.POST.get('post_id', None)
+                print(post_id)
                 last_comment_id = request.POST.get('last_comment_id', None)
+                print(last_comment_id)
 
                 try:
-                    post = Post.objects.last()
-                    # post = Post.objects.get(uuid=post_id)
+                    post = Post.objects.get(uuid=post_id)
                 except Exception:
                     return JsonResponse({'res': 0})
 
@@ -548,7 +517,7 @@ def re_comment_more_load(request):
                 output = []
 
                 post_comment_end = PostComment.objects.last()
-
+                post_comment = None
                 end = False
                 if post_comments:
                     for item in post_comment_uuids:
@@ -570,7 +539,6 @@ def re_comment_more_load(request):
                 else:
                     output = None
                     end = True
-
                 return JsonResponse({'res': 1, 'set': output, 'end': end})
 
         return JsonResponse({'res': 2})
@@ -978,8 +946,6 @@ def re_post_chat_rest_more_load(request):
             if request.is_ajax():
                 post_chat_id = request.POST.get('post_chat_id', None)
                 last_id = request.POST.get('last_id', None)
-                print(post_chat_id)
-                print(last_id)
                 post_chat = None
                 try:
                     post_chat = PostChat.objects.get(uuid=post_chat_id)
@@ -1011,6 +977,7 @@ def re_post_chat_rest_more_load(request):
                             'id': post_chat_rest_message.uuid,
                             'user_id': post_chat_rest_message.user.username,
                             'name': post_chat_rest_message.user.usertextname.name,
+                            'username': post_chat_rest_message.user.userusername.username,
                             'text': post_chat_rest_message.text,
                             'created': post_chat_rest_message.created,
                             'like_count': post_chat_rest_message.postchatrestmessagelikecount.count,
@@ -1241,5 +1208,131 @@ def re_profile_follower(request):
                         output.append(sub_output)
 
                 return JsonResponse({'res': 1, 'set': output, 'next':next})
+
+        return JsonResponse({'res': 2})
+
+
+@ensure_csrf_cookie
+def re_post_like_list(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_id = request.POST.get('post_id', None)
+                next_id = request.POST.get('next_id', None)
+                post = None
+                try:
+                    post = Post.objects.get(uuid=post_id)
+                except:
+                    return JsonResponse({'res': 1})
+
+                next = None
+                output = []
+                if post is not None:
+                    if next_id == '':
+                        likes = PostLike.objects.filter(post=post).order_by('created')[:31]
+                    else:
+                        try:
+
+                            last_like = PostLike.objects.get(post=post, user__username=next_id)
+                        except:
+                            return JsonResponse({'res': 0})
+                        likes = PostLike.objects.filter(Q(post=post) & Q(pk__gte=last_like.pk)).order_by('created')[:31]
+                    count = 0
+                    for like in likes:
+                        count = count+1
+                        if count == 31:
+                            next = like.user.username
+                            break
+                        sub_output = {
+                            'username': like.user.userusername.username,
+                            'photo': like.user.userphoto.file_50_url(),
+                        }
+                        output.append(sub_output)
+
+                return JsonResponse({'res': 1, 'set': output, 'next': next})
+
+        return JsonResponse({'res': 2})
+
+
+@ensure_csrf_cookie
+def re_post_chat_like_list(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_chat_id = request.POST.get('post_chat_id', None)
+                next_id = request.POST.get('next_id', None)
+                post_chat = None
+                try:
+                    post_chat = PostChat.objects.get(uuid=post_chat_id)
+                except:
+                    return JsonResponse({'res': 1})
+
+                next = None
+                output = []
+                if post_chat is not None:
+                    if next_id == '':
+                        likes = PostChatLike.objects.filter(post_chat=post_chat).order_by('created')[:31]
+                    else:
+                        try:
+
+                            last_like = PostChatLike.objects.get(post_chat=post_chat, user__username=next_id)
+                        except:
+                            return JsonResponse({'res': 0})
+                        likes = PostChatLike.objects.filter(Q(post_chat=post_chat) & Q(pk__gte=last_like.pk)).order_by('created')[:31]
+                    count = 0
+                    for like in likes:
+                        count = count+1
+                        if count == 31:
+                            next = like.user.username
+                            break
+                        sub_output = {
+                            'username': like.user.userusername.username,
+                            'photo': like.user.userphoto.file_50_url(),
+                        }
+                        output.append(sub_output)
+
+                return JsonResponse({'res': 1, 'set': output, 'next': next})
+
+        return JsonResponse({'res': 2})
+
+
+@ensure_csrf_cookie
+def re_post_chat_rest_like_list(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_chat_rest_id = request.POST.get('post_chat_rest_id', None)
+                next_id = request.POST.get('next_id', None)
+                post_chat_rest_message = None
+                try:
+                    post_chat_rest_message = PostChatRestMessage.objects.get(uuid=post_chat_rest_id)
+                except:
+                    return JsonResponse({'res': 0})
+
+                next = None
+                output = []
+                if post_chat_rest_message is not None:
+                    if next_id == '':
+                        likes = PostChatRestMessageLike.objects.filter(post_chat_rest_message=post_chat_rest_message).order_by('created')[:31]
+                    else:
+                        try:
+
+                            last_like = PostChatRestMessageLike.objects.get(post_chat_rest_message=post_chat_rest_message, user__username=next_id)
+                        except:
+                            return JsonResponse({'res': 0})
+                        likes = PostChatRestMessageLike.objects.filter(Q(post_chat_rest_message=post_chat_rest_message) & Q(pk__gte=last_like.pk)).order_by('created')[:31]
+                    count = 0
+                    for like in likes:
+                        count = count+1
+                        if count == 31:
+                            next = like.user.username
+                            break
+                        sub_output = {
+                            'username': like.user.userusername.username,
+                            'photo': like.user.userphoto.file_50_url(),
+                        }
+                        output.append(sub_output)
+
+                return JsonResponse({'res': 1, 'set': output, 'next': next})
 
         return JsonResponse({'res': 2})

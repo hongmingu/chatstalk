@@ -173,7 +173,11 @@
 <div class="hidden" id="reading_post_profile_name"></div>
 <div class="hidden" id="reading_post_chat_last_id"></div>
 <div class="hidden" id="reading_post_chat_next_id"></div>
-
+<div class="hidden" id="post_liking_next_id"></div>
+<div class="hidden" id="post_chat_liking_next_id"></div>
+<div class="hidden" id="post_chat_rest_liking_next_id"></div>
+<div class="hidden" id="clicked_post_chat_id"></div>
+<div class="hidden" id="clicked_post_chat_rest_id"></div>
 {% if user.is_authenticated %}
     <div class="hidden" id="user_id" data-u="{{ user.username }}">{{ user.username }}</div>
 {% endif %}
@@ -238,7 +242,7 @@
     </div>
 </div>
 
-<div class="modal fade" id="modal_sample" style="z-index: 1060;">
+<div class="modal fade modal_second_membrane" id="modal_second" style="z-index: 1100;">
     <div class="modal-dialog modal-dialog_menu">
       <div class="modal-content modal-content_menu">
         <div class="modal-header">
@@ -311,16 +315,216 @@
     </div>
   </div>
 
+<div class="modal fade" id="modal_post_liking">
+    <div class="modal-dialog modal-dialog_menu">
+      <div class="modal-content modal-content_menu">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body modal_follow_wrapper" id="modal_post_liking_wrapper">
+            <div align="center">likes</div>
+            <div id="modal_post_liking_list">
+
+            </div>
+            <a href=""><div class="hidden" align="center" id="modal_post_liking_more">more</div></a>
+        </div>
+      </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modal_post_chat_liking">
+    <div class="modal-dialog modal-dialog_menu">
+      <div class="modal-content modal-content_menu">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body modal_follow_wrapper" id="modal_post_chat_liking_wrapper">
+            <div align="center">likes</div>
+            <div id="modal_post_chat_liking_list">
+
+            </div>
+            <a href=""><div class="hidden" align="center" id="modal_post_chat_liking_more">more</div></a>
+        </div>
+      </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modal_post_chat_rest_liking">
+    <div class="modal-dialog modal-dialog_menu">
+      <div class="modal-content modal-content_menu">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body modal_follow_wrapper" id="modal_post_chat_rest_liking_wrapper">
+            <div align="center">likes</div>
+            <div id="modal_post_chat_rest_liking_list">
+
+            </div>
+            <a href=""><div class="hidden" align="center" id="modal_post_chat_rest_liking_more">more</div></a>
+        </div>
+      </div>
+    </div>
+</div>
 </body>
+<script>
+
+$(function () {
+    $("#modal_post_chat_rest_liking").on("shown.bs.modal", function () {
+        var height = $(window).height();
+        $('.modal_follow_wrapper').css('max-height', height-120);
+        $(window).on('resize', function(){
+
+            if($(window).height() != height){
+                height = $(window).height();
+                $('.modal_follow_wrapper').css('max-height', height-120);
+            }
+        });
+            var post_chat_id = $('#clicked_post_chat_rest_id').html()
+
+            $.ajax({url:'/re/post/chat/rest/like/list/', type:'post', dataType:'json', cache:false,
+                data:{
+                    post_chat_rest_id: post_chat_id,
+                    next_id: $('#post_chat_rest_liking_next_id').html()
+                },
+                success:function (data) {
+                console.log(data)
+                    if (data.res === 1){
+                        $.each(data.set, function (key, value) {
+                            var appender = '<div class="profile_list_wrapper"><a href="/'+value.username+'/">\n' +
+                                '<img class="img_small" src="'+value.photo+'">\n' +
+                                '<span class="profile_list_username">'+value.username+'</span>\n' +
+                                '</a></div>'
+                            $('#modal_post_chat_rest_liking_list').append(appender)
+                        })
+                    }
+                    if (data.next === null){
+                        $('#post_chat_rest_liking_next_id').html('')
+                        $('#modal_post_chat_rest_liking_more').addClass('hidden')
+                    } else {
+                        $('#post_chat_rest_liking_next_id').html(data.next)
+                        $('#modal_post_chat_rest_liking_more').removeClass('hidden')
+                    }
+
+                }
+            })
+    }).on("hidden.bs.modal", function () {
+
+            $('#modal_post_chat_rest_liking_list').empty()
+            $('#post_chat_rest_liking_next_id').html('')
+            $('#reading_post_chat_rest_id').html('')
+    })
+
+
+    $("#modal_post_chat_liking").on("shown.bs.modal", function () {
+        var height = $(window).height();
+        $('.modal_follow_wrapper').css('max-height', height-120);
+        $(window).on('resize', function(){
+
+            if($(window).height() != height){
+                height = $(window).height();
+                $('.modal_follow_wrapper').css('max-height', height-120);
+            }
+        });
+            var post_chat_id = $('#clicked_post_chat_id').html()
+
+            $.ajax({url:'/re/post/chat/like/list/', type:'post', dataType:'json', cache:false,
+                data:{
+                    post_chat_id: post_chat_id,
+                    next_id: $('#post_chat_liking_next_id').html()
+                },
+                success:function (data) {
+                console.log(data)
+                    if (data.res === 1){
+                        $.each(data.set, function (key, value) {
+                            var appender = '<div class="profile_list_wrapper"><a href="/'+value.username+'/">\n' +
+                                '<img class="img_small" src="'+value.photo+'">\n' +
+                                '<span class="profile_list_username">'+value.username+'</span>\n' +
+                                '</a></div>'
+                            $('#modal_post_chat_liking_list').append(appender)
+                        })
+                    }
+                    if (data.next === null){
+                        $('#post_chat_liking_next_id').html('')
+                        $('#modal_post_chat_liking_more').addClass('hidden')
+                    } else {
+                        $('#post_chat_liking_next_id').html(data.next)
+                        $('#modal_post_chat_liking_more').removeClass('hidden')
+                    }
+
+                }
+            })
+    }).on("hidden.bs.modal", function () {
+
+            $('#modal_post_chat_liking_list').empty()
+            $('#post_chat_liking_next_id').html('')
+            $('#reading_post_chat_id').html('')
+    })
+
+
+    $("#modal_post_liking").on("shown.bs.modal", function () {
+    var height = $(window).height();
+    $('.modal_follow_wrapper').css('max-height', height-120);
+    $(window).on('resize', function(){
+
+        if($(window).height() != height){
+            height = $(window).height();
+            $('.modal_follow_wrapper').css('max-height', height-120);
+        }
+    });
+            var post_id = $('#reading_post_id').html()
+
+            $.ajax({url:'/re/post/like/list/', type:'post', dataType:'json', cache:false,
+                data:{
+                    post_id: post_id,
+                    next_id: $('#post_liking_next_id').html()
+                },
+                success:function (data) {
+                console.log(data)
+                    if (data.res === 1){
+                        $.each(data.set, function (key, value) {
+                            var appender = '<div class="profile_list_wrapper"><a href="/'+value.username+'/">\n' +
+                                '<img class="img_small" src="'+value.photo+'">\n' +
+                                '<span class="profile_list_username">'+value.username+'</span>\n' +
+                                '</a></div>'
+                            $('#modal_post_liking_list').append(appender)
+                        })
+                    }
+                    if (data.next === null){
+                        $('#post_liking_next_id').html('')
+                        $('#modal_post_liking_more').addClass('hidden')
+                    } else {
+                        $('#post_liking_next_id').html(data.next)
+                        $('#modal_post_liking_more').removeClass('hidden')
+                    }
+
+                }
+            })
+        }).on("hidden.bs.modal", function () {
+            $('#modal_post_liking_list').empty()
+            $('#post_liking_next_id').html('')
+            $('#reading_post_id').html('')
+        });
+
+})
+
+</script>
 <script>
     $("#modal_feed_menu").on("shown.bs.modal", function () {
         var clicked_post = $('#clicked_post_id').html()
         var scheme = window.location.protocol == "https:" ? "https" : "http";
         var path = scheme + '://' + window.location.host + '/post/' + clicked_post;
         $('#modal_feed_input').val(path).select();
-
     }).on("hidden.bs.modal", function () {
         $('#clicked_post_id').html('')
+        $('#modal_feed_input').val('')
     });
 
     $('#modal_feed_copy').click(function (e) {
@@ -363,7 +567,6 @@
             }
         })
     })
-
 </script>
 
 <script>
@@ -382,7 +585,6 @@
                 post_id:reading_post_id,
             },
             success:function (data) {
-            console.log(data)
                 if (data.res === 1) {
                 var start = false
                     $.each(data.set, function (key, value) {
@@ -429,7 +631,7 @@
                                         heart = 'glyphicon-heart-empty'
                                     }
                                     like = '<div class="reading_like_wrapper">' +
-                                        '<a href=""><span class="glyphicon '+ heart +' reading_like" id="reading_like_span_'+value.id+'" data-u="'+value.id+'"></span></a><span class="reading_like_text"> </span><span class="reading_like_text" id="reading_like_count_'+value.id+'">'+like_count+'</span>' +
+                                        '<a href=""><span class="glyphicon '+ heart +' reading_like" id="reading_like_span_'+value.id+'" data-u="'+value.id+'"></span></a><span class="reading_like_text"> </span><a href=""><span class="reading_like_text" id="reading_like_count_'+value.id+'">'+like_count+'</span></a>' +
                                         '</div>'
 
                                     // 작업중인 부분------------------------------------------------------------
@@ -563,6 +765,13 @@
                             default:
                                 break;
                         }
+
+                        prepender.find('#reading_like_count_'+value.id).on('click', function (e) {
+                            e.preventDefault()
+                            $('#clicked_post_chat_id').html(value.id)
+                            $('#modal_post_chat_liking').modal('show')
+                        });
+
                         prepender.find('.reading_like').on('click', function (e) {
 
                             e.preventDefault()
@@ -634,10 +843,10 @@
                                         }
                                         var pre_rest_appender = '<div class="reading_chat_rest" align="right" id="reading_chat_rest_wrapper_'+value.id+'">' +
                                             '<div class="reading_like_wrapper">' +
-                                            '<a href=""><span id="rest_like_span_'+value.id+'"class="glyphicon '+like+' reading_like"></span></a><span class="reading_like_text"> </span><span class="reading_like_text" id="rest_like_'+value.id+'" data-u="'+value.like_count+'">'+like_count+'</span>' +
+                                            '<a href=""><span id="rest_like_span_'+value.id+'"class="glyphicon '+like+' reading_like"></span></a><span class="reading_like_text"> </span><a href=""><span class="reading_like_text" id="rest_like_'+value.id+'" data-u="'+value.like_count+'">'+like_count+'</span></a>' +
                                             '</div>' +
                                             '<div class="reading_chat_content">' +
-                                            '<div class="reading_chat_rest_name">'+value.name+'</div>\n' +
+                                            '<div class="reading_chat_rest_name"><a href="/'+value.username+'/"><span>'+value.name+'</span></a></div>\n' +
                                             '<div class="reading_chat_rest_text">'+value.text+'<span>   </span><span class="reading_chat_rest_time">'+date_differ(value.created)+'</span></div>\n' +
                                             '</div>' +
                                             '<div class="reading_chat_img">' +
@@ -645,6 +854,11 @@
                                             '</div>' + delete_div +
                                             '</div>'
                                         var rest_appender = $(pre_rest_appender)
+                                      rest_appender.find('#rest_like_'+value.id).on('click', function (e) {
+                                          e.preventDefault()
+                                          $('#clicked_post_chat_rest_id').html(value.id)
+                                          $('#modal_post_chat_rest_liking').modal('show')
+                                      })
                                         rest_appender.find('.reading_like').on('click', function (e) {
                                             e.preventDefault()
                                             $.ajax({
@@ -1015,7 +1229,7 @@ if (start === false){
                                             '<a href=""><span id="rest_like_span_'+value.id+'"class="glyphicon '+like+' reading_like"></span></a><span class="reading_like_text"> </span><span class="reading_like_text" id="rest_like_'+value.id+'" data-u="'+value.like_count+'">'+like_count+'</span>' +
                                             '</div>' +
                                             '<div class="reading_chat_content">' +
-                                            '<div class="reading_chat_rest_name">'+value.name+'</div>\n' +
+                                            '<div class="reading_chat_rest_name"><a href="/'+value.username+'/"><span>'+value.name+'</span></a></div>\n' +
                                             '<div class="reading_chat_rest_text">'+value.text+'<span>   </span><span class="reading_chat_rest_time">'+date_differ(value.created)+'</span></div>\n' +
                                             '</div>' +
                                             '<div class="reading_chat_img">' +

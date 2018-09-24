@@ -60,7 +60,7 @@ var home_populate = function home_populate(post_id_value){
                                                     if(value.comment_user_id === user_id || user_id === post_user_id){
                                                         _remove = '<a href=""><span class="glyphicon glyphicon-remove home_feed_comment_delete clickable" data-u="'+value.comment_uuid+'"></span></a>'
                                                     }
-                                                    _comment = _comment + '<div id="comment_div_'+value.comment_uuid+'"><div><a href="#"><span class="comments_name">'+value.comment_username+'</span></a></div><div><span class="comments">'+value.comment_text+'</span>   <span class="home_feed_comment_time">'+date_differ(value.comment_created)+'</span> '+_remove+'</div></div>'
+                                                    _comment = _comment + '<div id="comment_div_'+value.comment_uuid+'"><div><a href="/'+value.comment_username+'/"><span class="comments_name">'+value.comment_username+'</span></a></div><div><span class="comments">'+value.comment_text+'</span>   <span class="home_feed_comment_time">'+date_differ(value.comment_created)+'</span> '+_remove+'</div></div>'
                                                     _last_comment_id = value.comment_uuid
                                                 })
                                             }
@@ -79,8 +79,8 @@ var home_populate = function home_populate(post_id_value){
                                             // 제목에 공백만 있는 건 허용하지 말자. 자바스크립트로. 그렇게 하고 파이썬 뷰에서 그렇게 하자.
                                             var append_to = $('<div class="media">\n' +
                                                 '<div class="media-heading margin_bottom_30">\n' +
-                                                '<div class="col-xs-10 padding_left_0" align="left"><span\n' +
-                                                'class="home_feed_name">'+data.set.username+'</span></div>\n' +
+                                                '<div class="col-xs-10 padding_left_0" align="left"><a href="/'+data.set.username+'/"><span\n' +
+                                                'class="home_feed_name">'+data.set.username+'</span></a></div>\n' +
                                                 '<div class="col-xs-2" align="right">\n' +
                                                 '<a href="#"><span\n' +
                                                 'class="glyphicon glyphicon-option-horizontal grey" id="option_'+data.set.id+'"></span></a></div>\n' +
@@ -98,7 +98,7 @@ var home_populate = function home_populate(post_id_value){
                                                 '<div class="home_feed_desc '+ _desc_class +'">'+ _desc+'</div>\n' +
                                                 '<div class="media-bottom"><br/>\n' +
                                                 '<div class="col-xs-5" align="left"><span\n' +
-                                                'class="glyphicon glyphicon-heart heart_black"></span> <span class="home_feed_like_count" id="basic_heart_'+data.set.id+'">'+data.set.like_count+'</span></div>\n' +
+                                                'class="glyphicon glyphicon-heart heart_black"></span> <a href=""><span class="home_feed_like_count" id="basic_heart_'+data.set.id+'">'+data.set.like_count+'</span></a></div>\n' +
                                                 '<div class="col-xs-5" align="right"><span class="home_feed_time">'+date_differ(data.set.created)+'</span>\n' +
                                                 '</div>\n' +
                                                 '<div class="col-xs-2" align="right"><a href="#"><span class="glyphicon'+_like+'heart" id="like_'+data.set.id+'"></span></a></div>\n' +
@@ -119,6 +119,12 @@ var home_populate = function home_populate(post_id_value){
                                                 '</div>\n' +
                                                 '</form>\n' +
                                                 '</div>')
+
+                                            append_to.find('#basic_heart_'+data.set.id).on('click', function (e) {
+                                                e.preventDefault()
+                                                $('#reading_post_id').html(data.set.id)
+                                                $('#modal_post_liking').modal('show')
+                                            })
                                             append_to.find('#option_'+data.set.id).on('click', function (e) {
                                                 e.preventDefault()
                                                 $('#clicked_post_id').html(data.set.id)
@@ -303,7 +309,7 @@ var home_populate = function home_populate(post_id_value){
                                                                     if(value.comment_user_id === user_id || user_id === post_user_id){
                                                                         _remove = '<a href=""><span class="glyphicon glyphicon-remove home_feed_comment_delete clickable" data-u="'+value.comment_uuid+'"></span></a>'
                                                                     }
-                                                                    _comment = _comment + '<div id="comment_div_'+value.comment_uuid+'"><div><a href="#"><span class="comments_name">'+value.comment_username+'</span></a></div><div><span class="comments">'+value.comment_text+'</span>   <span class="home_feed_comment_time">'+date_differ(value.comment_created)+'</span> '+_remove+'</div></div>'
+                                                                    _comment = _comment + '<div id="comment_div_'+value.comment_uuid+'"><div><a href="/'+value.comment_username+'/"><span class="comments_name">'+value.comment_username+'</span></a></div><div><span class="comments">'+value.comment_text+'</span>   <span class="home_feed_comment_time">'+date_differ(value.comment_created)+'</span> '+_remove+'</div></div>'
                                                                     $('#last_comment_'+data.set.id).html(value.comment_uuid)
                                                                     //이제 end 일 경우 hidden 붙이는거랑 삭제 구현하자.
                                                                 })
