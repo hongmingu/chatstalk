@@ -11,9 +11,9 @@ urlpatterns = [
     re_path(r'^$', authviews.main_create_log_in, name='main_create_log_in'),
     re_path(r'^create/new/$', views.create_new, name='create_new'),
     re_path(r'^(?P<user_username>([A-Za-z0-9_](?:(?:[A-Za-z0-9_]|(?:\.(?!\.))){0,28}(?:[A-Za-z0-9_]))?))/$', views.user_profile, name='user_profile'),
-    re_path(r'^(?P<user_username>([A-Za-z0-9_](?:(?:[A-Za-z0-9_]|(?:\.(?!\.))){0,28}(?:[A-Za-z0-9_]))?))/(?P<uuid>([0-9a-f]{32}))/$',
-            views.post, name='post'),
+
     re_path(r'^post/update/(?P<uuid>([0-9a-f]{32}))/$', views.post_update, name='post_update'),
+    re_path(r'^post/(?P<uuid>([0-9a-f]{32}))/$', views.post, name='post'),
 
     re_path(r'^re_settings/ajax/$', auth_ajax_views.re_settings, name='re_settings'),
     re_path(r'^re_settings/ajax/upload_user_photo/$', auth_ajax_views.upload_user_photo, name='re_upload_user_photo'),
@@ -86,6 +86,12 @@ urlpatterns = [
 
     re_path(r'^re/post/chat/rest/like/list/$', base_ajax_views.re_post_chat_rest_like_list,
             name='re_post_chat_rest_like_list'),
+
+    re_path(r'^re/post/follow/$', base_ajax_views.re_post_follow,
+            name='re_post_follow'),
+
+    re_path(r'^re/post/follow/list/$', base_ajax_views.re_post_follow_list,
+            name='re_post_follow_list'),
     # re_path(r'^email/key/send/$', views.email_key_send, name='email_key_send'),
     # re_path(r'^email/key/confirm/(?P<uid>([A-Za-z0-9_](?:(?:[A-Za-z0-9_]|(?:\.(?!\.))){0,28}(?:[A-Za-z0-9_]))?))/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         # views.email_key_confirm, name='email_key_confirm'),

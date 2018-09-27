@@ -393,7 +393,7 @@ def re_home_feed(request):
         if request.user.is_authenticated:
             if request.is_ajax():
                 # 여기서 posts 옵션 준다. 20개씩 줄 것이므로 21로 잡는다. #########
-                posts = Post.objects.filter(Q(user__is_followed__user=request.user) | Q(postfollow__user=request.user)).order_by('-updated')[:21]
+                posts = Post.objects.filter((Q(user__is_followed__user=request.user) | Q(postfollow__user=request.user)) & Q(is_open=True)).order_by('-updated').distinct()[:21]
                 # filter(Q(post__uuid=post_id) & Q(pk__lt=last_post_chat.pk))
                 ################################
                 output = []
@@ -500,9 +500,7 @@ def re_comment_more_load(request):
         if request.user.is_authenticated:
             if request.is_ajax():
                 post_id = request.POST.get('post_id', None)
-                print(post_id)
                 last_comment_id = request.POST.get('last_comment_id', None)
-                print(last_comment_id)
 
                 try:
                     post = Post.objects.get(uuid=post_id)
@@ -540,6 +538,47 @@ def re_comment_more_load(request):
                     output = None
                     end = True
                 return JsonResponse({'res': 1, 'set': output, 'end': end})
+        else:
+            post_id = request.POST.get('post_id', None)
+            last_comment_id = request.POST.get('last_comment_id', None)
+
+            try:
+                post = Post.objects.get(uuid=post_id)
+            except Exception:
+                return JsonResponse({'res': 0})
+
+            post_comment_last = PostComment.objects.get(uuid=last_comment_id)
+
+            post_comments = PostComment.objects.filter(
+                Q(post=post) & Q(created__gt=post_comment_last.created)).order_by('created')[:20]
+
+            post_comment_uuids = [post_comment.uuid for post_comment in post_comments]
+            output = []
+
+            post_comment_end = PostComment.objects.last()
+            post_comment = None
+            end = False
+            if post_comments:
+                for item in post_comment_uuids:
+                    try:
+                        post_comment = PostComment.objects.get(uuid=item)
+                    except:
+                        pass
+                    if post_comment is not None:
+                        sub_output = {
+                            'comment_user_id': post_comment.user.username,
+                            'comment_username': post_comment.user.userusername.username,
+                            'comment_text': post_comment.text,
+                            'comment_created': post_comment.created,
+                            'comment_uuid': post_comment.uuid,
+                        }
+                        output.append(sub_output)
+                        if post_comment.uuid == post_comment_end.uuid:
+                            end = True
+            else:
+                output = None
+                end = True
+            return JsonResponse({'res': 1, 'set': output, 'end': end})
 
         return JsonResponse({'res': 2})
 
@@ -652,6 +691,14 @@ def re_user_home_populate(request):
                     else:
                         new = True
 
+                user_follow = False
+                if Follow.objects.filter(user=request.user, follow=post.user).exists():
+                    user_follow = True
+
+                post_follow = False
+                if PostFollow.objects.filter(post=post, user=request.user).exists():
+                    post_follow = True
+
                 output = {'title': post.title,
                           'desc': post.description,
                           'username': post.user.userusername.username,
@@ -667,6 +714,65 @@ def re_user_home_populate(request):
                           'comment_count': post.postcommentcount.count,
                           'three_comments': post.get_three_comments(),
                           'new': new,
+                          'user_follow': user_follow,
+                          'post_follow': post_follow,
+                          'post_follow_count': post.postfollowcount.count,
+                          }
+                return JsonResponse({'res': 1, 'set': output})
+        else:
+            if request.is_ajax():
+                post_id = request.POST.get('post_id', None)
+                try:
+                    post = Post.objects.get(uuid=post_id)
+                except:
+                    return JsonResponse({'res': 0})
+                from django.db.models import Q
+                name = post.user.usertextname.name
+                profile_photo = post.user.userphoto.file_50_url()
+
+                if post.has_another_profile:
+                    name = post.postprofile.name
+                    profile_photo = post.postprofile.file_50_url()
+                you_liked = False
+                post_chat_read = None
+                post_chat = None
+                post_chat_last_chat = None
+                if post_chat_read is None:
+                    try:
+                        post_chat = PostChat.objects.filter(post=post).order_by('created')[1]
+                    except IndexError:
+                        post_chat_last_chat = {'kind': 'start'}
+                    if post_chat is not None:
+                        if post_chat.kind == POSTCHAT_TEXT:
+                            post_chat_last_chat = {'kind': 'text', 'you_say': post_chat.you_say,
+                                    'text': escape(post_chat.postchattext.text)}
+                        elif post_chat.kind == POSTCHAT_PHOTO:
+                            post_chat_last_chat = {'kind': 'photo', 'you_say': post_chat.you_say, 'url': post_chat.postchatphoto.file.url}
+
+                new = True
+
+                user_follow = False
+
+                post_follow = False
+
+                output = {'title': post.title,
+                          'desc': post.description,
+                          'username': post.user.userusername.username,
+                          'user_id': post.user.username,
+                          'name': name,
+                          'photo': profile_photo,
+                          'created': post.created,
+                          'last_chat': post_chat_last_chat,
+                          'absolute_url': post.get_absolute_url(),
+                          'id': post.uuid,
+                          'like_count': post.postlikecount.count,
+                          'you_liked': you_liked,
+                          'comment_count': post.postcommentcount.count,
+                          'three_comments': post.get_three_comments(),
+                          'new': new,
+                          'user_follow': user_follow,
+                          'post_follow': post_follow,
+                          'post_follow_count': post.postfollowcount.count,
                           }
                 return JsonResponse({'res': 1, 'set': output})
 
@@ -679,7 +785,6 @@ def re_post_already_read(request):
         if request.user.is_authenticated:
             if request.is_ajax():
                 post_id = request.POST.get('post_id', None)
-                print(post_id)
                 try:
                     # post = Post.objects.last()
                     post = Post.objects.get(uuid=post_id)
@@ -764,6 +869,55 @@ def re_post_already_read(request):
 
                 return JsonResponse({'res': 1, 'set': output, 'next': next})
 
+        else:
+            if request.is_ajax():
+                post_id = request.POST.get('post_id', None)
+                try:
+                    # post = Post.objects.last()
+                    post = Post.objects.get(uuid=post_id)
+                except:
+                    return JsonResponse({'res': 0})
+                output = []
+                post_chats = PostChat.objects.filter(post=post).order_by('created')[:2]
+
+                last_post_chat = None
+                for post_chat in post_chats:
+
+                    try:
+                        count = post_chat.postchatlikecount.count
+                    except:
+                        count = None
+                    you_like = False
+                    sub_output = {
+                        'id': post_chat.uuid,
+                        'kind': post_chat_kind_converter(post_chat.kind),
+                        'like_count': count,
+                        'created': post_chat.created,
+                        'you_say': post_chat.you_say,
+                        'content': post_chat.get_raw_value(),
+                        'rest_count': post_chat.postchatrestmessagecount.count,
+                        'you_like': you_like
+                    }
+
+                    output.insert(0, sub_output)
+
+                    last_post_chat = post_chat
+
+                next = None
+                if last_post_chat is not None:
+
+                    try:
+                        post_chat_next = PostChat.objects.get(before=last_post_chat)
+                    except PostChat.DoesNotExist:
+                        post_chat_next = None
+                    if post_chat_next is not None:
+                        next = {
+                            'kind': post_chat_kind_converter(post_chat_next.kind),
+                            'content': post_chat_next.get_value(),
+                        }
+
+                return JsonResponse({'res': 1, 'set': output, 'next': next})
+
         return JsonResponse({'res': 2})
 
 
@@ -772,9 +926,8 @@ def re_post_reading_more_load(request):
     if request.method == "POST":
         if request.user.is_authenticated:
             if request.is_ajax():
-                last_id = request.POST.get('post_chat_last_id', None)
+                last_id = request.POST.get('post_chat_before_id', None)
                 post_id = request.POST.get('post_id', None)
-                print(last_id)
                 try:
                     last_post_chat = PostChat.objects.get(uuid=last_id)
                 except:
@@ -817,7 +970,6 @@ def re_post_chat_next_load(request):
             if request.is_ajax():
                 post_chat_id = request.POST.get('post_chat_next_id', None)
                 try:
-                    # post_chat = PostChat.objects.last()
                     post_chat = PostChat.objects.get(uuid=post_chat_id)
                 except:
                     return JsonResponse({'res': 0})
@@ -855,6 +1007,47 @@ def re_post_chat_next_load(request):
                         }
 
                 return JsonResponse({'res': 1, 'set': output, 'next': next})
+
+        else:
+            if request.is_ajax():
+                post_chat_id = request.POST.get('post_chat_next_id', None)
+                try:
+                    post_chat = PostChat.objects.get(uuid=post_chat_id)
+                except:
+                    return JsonResponse({'res': 0})
+                output = []
+                next = None
+                if post_chat is not None:
+                    try:
+                        count = post_chat.postchatlikecount.count
+                    except:
+                        count = None
+                    you_like = False
+                    if PostChatLike.objects.filter(user=request.user, post_chat=post_chat).exists():
+                        you_like = True
+                    sub_output = {
+                        'id': post_chat.uuid,
+                        'kind': post_chat_kind_converter(post_chat.kind),
+                        'like_count': count,
+                        'created': post_chat.created,
+                        'you_say': post_chat.you_say,
+                        'content': post_chat.get_raw_value(),
+                        'rest_count': post_chat.postchatrestmessagecount.count,
+                        'you_like': you_like
+                    }
+
+                    output.append(sub_output)
+                    try:
+                        post_chat_next = PostChat.objects.get(before=post_chat)
+                    except PostChat.DoesNotExist:
+                        post_chat_next = None
+                    if post_chat_next is not None:
+                        next = {
+                            'kind': post_chat_kind_converter(post_chat_next.kind),
+                            'content': post_chat_next.get_value(),
+                        }
+
+                return JsonResponse({'res': 1, 'set': output, 'next': next})
         return JsonResponse({'res': 2})
 
 
@@ -864,7 +1057,6 @@ def re_post_chat_like(request):
         if request.user.is_authenticated:
             if request.is_ajax():
                 post_chat_id = request.POST.get('post_chat_id', None)
-                print(post_chat_id)
                 try:
                     post_chat = PostChat.objects.get(uuid=post_chat_id)
                 except PostChat.DoesNotExist:
@@ -987,6 +1179,52 @@ def re_post_chat_rest_more_load(request):
                         output.append(sub_output)
 
                 return JsonResponse({'res': 1, 'set': output, 'rest_next': next})
+        else:
+            if request.is_ajax():
+                post_chat_id = request.POST.get('post_chat_id', None)
+                last_id = request.POST.get('last_id', None)
+                post_chat = None
+                try:
+                    post_chat = PostChat.objects.get(uuid=post_chat_id)
+                except:
+                    return JsonResponse({'res': 0})
+                post_chat_rest_messages = None
+                if last_id == '' and post_chat is not None:
+                    post_chat_rest_messages = PostChatRestMessage.objects.filter(post_chat=post_chat).order_by('created')[:11]
+                elif last_id != '' and post_chat is not None:
+                    try:
+                        last_post_chat_rest_message = PostChatRestMessage.objects.get(uuid=last_id)
+                    except:
+                        return JsonResponse({'res': 0})
+
+                    post_chat_rest_messages = PostChatRestMessage.objects.filter(Q(post_chat=post_chat) & Q(pk__gt=last_post_chat_rest_message.pk)).order_by('created')[:11]
+                count = 0
+                next = False
+                output = []
+                if post_chat_rest_messages is not None:
+                    for post_chat_rest_message in post_chat_rest_messages:
+                        count = count + 1
+                        if count == 11:
+                            next = True
+                            break
+                        you_like = False
+                        if PostChatRestMessageLike.objects.filter(user=request.user, post_chat_rest_message=post_chat_rest_message).exists():
+                            you_like = True
+                        sub_output = {
+                            'id': post_chat_rest_message.uuid,
+                            'user_id': post_chat_rest_message.user.username,
+                            'name': post_chat_rest_message.user.usertextname.name,
+                            'username': post_chat_rest_message.user.userusername.username,
+                            'text': post_chat_rest_message.text,
+                            'created': post_chat_rest_message.created,
+                            'like_count': post_chat_rest_message.postchatrestmessagelikecount.count,
+                            'photo': post_chat_rest_message.user.userphoto.file_50_url(),
+                            'you_like': you_like,
+                        }
+                        output.append(sub_output)
+
+                return JsonResponse({'res': 1, 'set': output, 'rest_next': next})
+
         return JsonResponse({'res': 2})
 
 @ensure_csrf_cookie
@@ -1035,7 +1273,6 @@ def re_post_chat_rest_like(request):
         return JsonResponse({'res': 2})
 
 
-
 @ensure_csrf_cookie
 def re_post_chat_rest_delete(request):
     if request.method == "POST":
@@ -1065,7 +1302,6 @@ def re_post_chat_rest_delete(request):
                 return JsonResponse({'res': 2})
 
         return JsonResponse({'res': 2})
-
 
 
 @ensure_csrf_cookie
@@ -1169,6 +1405,7 @@ def re_profile_following(request):
                 return JsonResponse({'res': 1, 'set': output, 'next':next})
 
         return JsonResponse({'res': 2})
+
 
 @ensure_csrf_cookie
 def re_profile_follower(request):
@@ -1330,6 +1567,96 @@ def re_post_chat_rest_like_list(request):
                         sub_output = {
                             'username': like.user.userusername.username,
                             'photo': like.user.userphoto.file_50_url(),
+                        }
+                        output.append(sub_output)
+
+                return JsonResponse({'res': 1, 'set': output, 'next': next})
+
+        return JsonResponse({'res': 2})
+
+
+@ensure_csrf_cookie
+def re_post_follow(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_id = request.POST.get('post_id', None)
+                post = None
+                try:
+                    post = Post.objects.get(uuid=post_id)
+                except:
+                    return JsonResponse({'res': 0})
+                post_follow = None
+                try:
+                    post_follow = PostFollow.objects.get(post=post, user=request.user)
+                except PostFollow.DoesNotExist:
+                    post_follow = None
+
+                follow = None
+                if post_follow is not None:
+                    try:
+                        with transaction.atomic():
+                            post_follow.delete()
+                            from django.db.models import F
+                            post_follow_count = post.postfollowcount
+                            post_follow_count.count = F('count') - 1
+                            post_follow_count.save()
+                            follow = False
+                            # customers = Customer.objects.filter(scoops_ordered__gt=F('store_visits'))
+                    except Exception:
+                        return JsonResponse({'res': 0})
+                else:
+                    try:
+                        with transaction.atomic():
+                            post_follow = PostFollow.objects.create(post=post, user=request.user)
+                            from django.db.models import F
+                            post_follow_count = post.postfollowcount
+                            post_follow_count.count = F('count') + 1
+                            post_follow_count.save()
+                            follow = True
+                            # customers = Customer.objects.filter(scoops_ordered__gt=F('store_visits'))
+                    except Exception:
+                        return JsonResponse({'res': 0})
+
+                return JsonResponse({'res': 1, 'follow': follow})
+
+        return JsonResponse({'res': 2})
+
+@ensure_csrf_cookie
+def re_post_follow_list(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_id = request.POST.get('post_id', None)
+                next_id = request.POST.get('next_id', None)
+                post = None
+                try:
+                    post = Post.objects.get(uuid=post_id)
+                except:
+                    return JsonResponse({'res': 0})
+
+                next = None
+                output = []
+                post_follows = None
+                if post is not None:
+                    if next_id == '':
+                        post_follows = PostFollow.objects.filter(post=post).order_by('created')[:31]
+                    else:
+                        try:
+
+                            last_post_follow = PostFollow.objects.get(post=post, user__username=next_id)
+                        except:
+                            return JsonResponse({'res': 0})
+                        post_follows = PostFollow.objects.filter(Q(post=post) & Q(pk__gte=last_post_follow.pk)).order_by('created')[:31]
+                    count = 0
+                    for post_follow in post_follows:
+                        count = count+1
+                        if count == 31:
+                            next = post_follow.user.username
+                            break
+                        sub_output = {
+                            'username': post_follow.user.userusername.username,
+                            'photo': post_follow.user.userphoto.file_50_url(),
                         }
                         output.append(sub_output)
 

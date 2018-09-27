@@ -43,9 +43,9 @@
     <div class="hidden" id="next_id"></div>
 
 {% if user.is_authenticated %}
-    <div class="hidden" id="user_id" data-u="{{ user.username }}">{{ user.username }}</div>
+    <div class="hidden" id="user_id">{{ user.username }}</div>
 {% else %}
-    <div class="hidden" id="user_id" data-u=""></div>
+    <div class="hidden" id="user_id"></div>
 {% endif %}
 <!--page info end -->
 
@@ -129,7 +129,7 @@
       </div>
     </div>
 </div>
-
+{% include 'baseapp/_modal_need_login.html' %}
   <!-- Hidden 으로 데이터 저장해놓고 modal on show 랑 hide 에서 그 데이터 불러와서 모달 채우게 하자. 그리고 임플린은 친구 중심이고
   피드가 존재하게 되었기 때문에 팔로우가 부가적으로 존재하는 것 뿐이다. -->
 
@@ -157,6 +157,10 @@ $(function () {
         }
         $('#follow').click(function (e) {
             e.preventDefault()
+            if($('#user_id').html()===''){
+                $('#modal_need_login').modal('show')
+                return false;
+            }
             $.ajax({url:'/re/profile/follow/', type:'post', dataType:'json', cache:false,
                 data:{
                     user_id: $('#chosen_user_id').html()

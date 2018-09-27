@@ -44,12 +44,18 @@
           </button>
         </div>
         <div class="modal-body modal-body_menu">
+                {% if user.is_authenticated %}
             <div class="row">
-              <p class="h4" align="center"><a href="{% url 'authapp:settings' %}"><span class="clickable padding_5" style="background-color: #00aced">Settings</span></a></p>
+              <p class="h4" align="center"><a href="{% url 'authapp:settings' %}"><span class="clickable padding_5 navbar_modal_menu">Settings</span></a></p>
             </div>
             <div class="row">
-              <p class="h4" align="center"><a href="{% url 'authapp:log_out' %}"><span class="clickable padding_5" style="background-color: #00aced">Log out</span></a></p>
+              <p class="h4" align="center"><a href="{% url 'authapp:log_out' %}"><span class="clickable padding_5 navbar_modal_menu">Log out</span></a></p>
             </div>
+                {% else %}
+            <div class="row">
+              <p class="h4" align="center"><a href="{% url 'baseapp:main_create_log_in' %}"><span class="clickable padding_5 navbar_modal_menu">Log in / Create new account</span></a></p>
+            </div>
+            {% endif %}
         </div>
         <div class="modal-footer modal-footer_menu">
           <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>

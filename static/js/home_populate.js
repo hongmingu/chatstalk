@@ -1,7 +1,7 @@
 var home_populate = function home_populate(post_id_value){
                             var id = post_id_value
                             var parent_div = $('script').last().parent()
-                            var user_id = $('#user_id').attr('data-u')
+                            var user_id = $('#user_id').html()
                             $(function () {
                                 $.ajax({
                                     url: '/re/user/home/populate/', type: 'post', dataType:'json', cache: false,
@@ -52,7 +52,7 @@ var home_populate = function home_populate(post_id_value){
                                             }
                                             var _comment = '';
                                             var _last_comment_id = '';
-                                            var post_user_id = data.set.id
+                                            var post_user_id = data.set.user_id
 
                                             if (data.set.three_comments !== null){
                                                 $.each(data.set.three_comments, function (key, value) {
@@ -76,6 +76,21 @@ var home_populate = function home_populate(post_id_value){
                                             if (data.set.new === true){
                                                 _new = 'home_feed_chat_new'
                                             }
+
+                                            //--------------------------------------------------------------------------------------------
+                                            var _post_follow;
+
+                                            if (data.set.user_follow === true){
+                                                _post_follow = '<div><span class="home_feed_post_followers">followers</span><span> </span><a href=""><span class="home_feed_post_follow_count" id="post_follow_count_'+data.set.id+'">'+data.set.post_follow_count+'</span></a></div>';
+                                            } else {
+                                                if (data.set.post_follow === true){
+                                                    _post_follow = '<div><a href=""><span class="home_feed_post_following" id="post_follow_'+data.set.id+'">following</span></a><span> </span><a href=""><span class="home_feed_post_follow_count" id="post_follow_count_'+data.set.id+'">'+data.set.post_follow_count+'</span></a></div>';
+
+                                                } else {
+                                                    _post_follow = '<div><a href=""><span class="home_feed_post_follow" id="post_follow_'+data.set.id+'">follow</span></a><span> </span><a href=""><span class="home_feed_post_follow_count" id="post_follow_count_'+data.set.id+'">'+data.set.post_follow_count+'</span></a></div>';
+                                                }
+                                            }
+
                                             // 제목에 공백만 있는 건 허용하지 말자. 자바스크립트로. 그렇게 하고 파이썬 뷰에서 그렇게 하자.
                                             var append_to = $('<div class="media">\n' +
                                                 '<div class="media-heading margin_bottom_30">\n' +
@@ -87,8 +102,8 @@ var home_populate = function home_populate(post_id_value){
                                                 '</div>\n' +
                                                 '<a href=""><div id="chat_div_'+data.set.id+'" class="home_feed_chat_total">'+
                                                 '<div class="media-left">\n' +
-                                                '<img src="'+data.set.photo+'"\n' +
-                                                'class="media-object img_small">\n' +
+                                                '<img src="'+data.set.photo+'"' +
+                                                'class="media-object img_small">' +
                                                 '</div>\n' +
                                                 '<div class="media-body">\n' +
                                                 '<div class="home_feed_chat '+_new+'">'+_last_chat+'</div>' +
@@ -102,6 +117,7 @@ var home_populate = function home_populate(post_id_value){
                                                 '<div class="col-xs-5" align="right"><span class="home_feed_time">'+date_differ(data.set.created)+'</span>\n' +
                                                 '</div>\n' +
                                                 '<div class="col-xs-2" align="right"><a href="#"><span class="glyphicon'+_like+'heart" id="like_'+data.set.id+'"></span></a></div>\n' +
+                                                _post_follow +
                                                 '<div class=""><span class="comments_title">Comments '+data.set.comment_count+'</span></div>\n' +
                                                 '<div class="comments_list" id="comment_list_'+id+'">'+_comment+'</div>\n' +
                                                 '<a href="#"><div class="home_feed_comment_more clickable '+_more_comments_class+'" align="center" id="more_comments_'+data.set.id+'">more comments</div></a>\n' +
@@ -120,13 +136,55 @@ var home_populate = function home_populate(post_id_value){
                                                 '</form>\n' +
                                                 '</div>')
 
+                                            append_to.find('#post_follow_count_'+data.set.id).on('click', function (e) {
+                                                e.preventDefault()
+                                                if($('#user_id').html()===''){
+                                                    $('#modal_need_login').modal('show')
+                                                    return false;
+                                                }
+                                                $('#clicked_post_id').html(data.set.id)
+                                                $('#modal_post_follow').modal('show')
+
+                                            })
+                                            append_to.find('#post_follow_'+data.set.id).on('click', function (e) {
+                                                e.preventDefault()
+                                                if($('#user_id').html()===''){
+                                                    $('#modal_need_login').modal('show')
+                                                    return false;
+                                                }
+                                                $.ajax({url:'/re/post/follow/', type:'post', dataType:'json', cache:false,
+                                                    data:{
+                                                        post_id:data.set.id,
+                                                    },
+                                                    success:function (sub_data) {
+                                                        if (sub_data.res === 1) {
+                                                            var current_count = parseInt($('#post_follow_count_'+data.set.id).html())
+                                                            if (sub_data.follow === true){
+                                                                $('#post_follow_'+data.set.id).removeClass('home_feed_post_follow').addClass('home_feed_post_following').html('following')
+                                                                $('#post_follow_count_'+data.set.id).html(current_count + 1)
+                                                            } else if (sub_data.follow === false){
+                                                                $('#post_follow_'+data.set.id).removeClass('home_feed_post_following').addClass('home_feed_post_follow').html('follow')
+                                                                $('#post_follow_count_'+data.set.id).html(current_count - 1)
+                                                            }
+
+
+                                                        }
+                                                    }
+                                                })
+                                            })
+
                                             append_to.find('#basic_heart_'+data.set.id).on('click', function (e) {
                                                 e.preventDefault()
+                                                if($('#user_id').html()===''){
+                                                    $('#modal_need_login').modal('show')
+                                                    return false;
+                                                }
                                                 $('#reading_post_id').html(data.set.id)
                                                 $('#modal_post_liking').modal('show')
                                             })
                                             append_to.find('#option_'+data.set.id).on('click', function (e) {
                                                 e.preventDefault()
+
                                                 $('#clicked_post_id').html(data.set.id)
                                                 $('#modal_feed_menu').modal('show')
 
@@ -134,6 +192,7 @@ var home_populate = function home_populate(post_id_value){
 
                                             append_to.find('#chat_div_'+data.set.id).on('click', function (e) {
                                                 e.preventDefault()
+
                                                 $('#reading_post_id').html(data.set.id)
                                                 $('#reading_post_profile_photo').html(data.set.photo)
                                                 $('#reading_post_profile_name').html(data.set.name)
@@ -142,6 +201,12 @@ var home_populate = function home_populate(post_id_value){
                                             })
                                             append_to.find('#like_'+data.set.id).on('click', function (e) {
                                                 e.preventDefault()
+
+                                                if($('#user_id').html()===''){
+                                                    $('#modal_need_login').modal('show')
+                                                    return false;
+
+                                                }
                                                 $.ajax({url:'/re/post/like/', type:'post', dataType:'json', cache:false,
                                                     data:{
                                                         post_id:data.set.id,
@@ -171,6 +236,7 @@ var home_populate = function home_populate(post_id_value){
                                             //이제 대화 모달이랑 그다음 포스트메뉴 모달 만들고 프로필창 만들고 .
                                             append_to.find('.home_feed_comment_delete').on('click', function (e) {
                                                 e.preventDefault()
+
                                                 var deleted_id = $(this).attr('data-u')
                                                 $.ajax({url:'/re/comment/delete/', type:'post', dataType:'json', cache:false,
                                                     data:{
@@ -186,6 +252,11 @@ var home_populate = function home_populate(post_id_value){
                                                 })
                                             })
                                             append_to.find('#textarea_'+id).on('keypress', function (e) {
+                                                if($('#user_id').html()===''){
+                                                    $('#modal_need_login').modal('show')
+                                                    return false;
+                                                }
+
                                                 if (e.keyCode == 13 && !e.shiftKey) {
                                                     var text = $('#textarea_'+id).val()
                                                     if (text === '') {
@@ -241,6 +312,11 @@ var home_populate = function home_populate(post_id_value){
 
                                             append_to.find('#btn_comment_'+id).on('click', function (e) {
                                                 e.preventDefault()
+
+                                                if($('#user_id').html()===''){
+                                                    $('#modal_need_login').modal('show')
+                                                    return false;
+                                                }
                                                 var text = $('#textarea_'+id).val()
                                                 if (text === '') {
                                                     return false;
