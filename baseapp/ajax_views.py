@@ -451,7 +451,7 @@ def re_comment_add(request):
                     sub_output = {
                             'comment_user_id': post_comment.user.username,
                             'comment_username': post_comment.user.userusername.username,
-                            'comment_text': post_comment.text,
+                            'comment_text': escape(post_comment.text),
                             'comment_created': post_comment.created,
                             'comment_uuid': post_comment.uuid,
                         }
@@ -527,7 +527,7 @@ def re_comment_more_load(request):
                             sub_output = {
                                 'comment_user_id': post_comment.user.username,
                                 'comment_username': post_comment.user.userusername.username,
-                                'comment_text': post_comment.text,
+                                'comment_text': escape(post_comment.text),
                                 'comment_created': post_comment.created,
                                 'comment_uuid': post_comment.uuid,
                             }
@@ -568,7 +568,7 @@ def re_comment_more_load(request):
                         sub_output = {
                             'comment_user_id': post_comment.user.username,
                             'comment_username': post_comment.user.userusername.username,
-                            'comment_text': post_comment.text,
+                            'comment_text': escape(post_comment.text),
                             'comment_created': post_comment.created,
                             'comment_uuid': post_comment.uuid,
                         }
