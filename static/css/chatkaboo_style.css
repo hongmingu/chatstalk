@@ -825,3 +825,14 @@ transform: translateX(10px) translateY(-10px)
         .navbar_modal_menu{
             background-color: #8e97ed; border-radius: 3px;
         }
+
+
+        .profile_list_username{
+            font-weight: bold; font-size: 12px;
+        }
+        .profile_list_wrapper{
+            margin-top: 10px;
+        }
+        .modal_follow_wrapper{
+            overflow-y: auto;
+        }

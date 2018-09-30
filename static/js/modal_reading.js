@@ -197,6 +197,10 @@ $(function () {
 
                         prepender.find('#reading_like_count_'+value.id).on('click', function (e) {
                             e.preventDefault()
+                            if($('#user_id').html()===''){
+                                $('#modal_need_login').modal('show')
+                                return false;
+                            }
                             $('#clicked_post_chat_id').html(value.id)
                             $('#modal_post_chat_liking').modal('show')
                         });
@@ -204,6 +208,10 @@ $(function () {
                         prepender.find('.reading_like').on('click', function (e) {
 
                             e.preventDefault()
+                            if($('#user_id').html()===''){
+                                $('#modal_need_login').modal('show')
+                                return false;
+                            }
                             var post_chat_id = $(this).attr('data-u')
 
                             $.ajax({
@@ -285,11 +293,21 @@ $(function () {
                                         var rest_appender = $(pre_rest_appender)
                                       rest_appender.find('#rest_like_'+value.id).on('click', function (e) {
                                           e.preventDefault()
+                                          if($('#user_id').html()===''){
+                                                $('#modal_need_login').modal('show')
+                                                return false;
+                                            }
+
                                           $('#clicked_post_chat_rest_id').html(value.id)
                                           $('#modal_post_chat_rest_liking').modal('show')
                                       })
                                         rest_appender.find('.reading_like').on('click', function (e) {
                                             e.preventDefault()
+
+                                            if($('#user_id').html()===''){
+                                                $('#modal_need_login').modal('show')
+                                                return false;
+                                            }
                                             $.ajax({
                                               url: '/re/post/chat/rest/like/', type: 'post', dataType: 'json', cache: false,
                                                 data: {
@@ -318,6 +336,11 @@ $(function () {
                                         })
                                       rest_appender.find('.reading_chat_rest_messages_delete').on('click', function (e) {
                                           e.preventDefault()
+
+                                          if($('#user_id').html()===''){
+                                                $('#modal_need_login').modal('show')
+                                                return false;
+                                            }
                                           $.ajax({
                                               url: '/re/post/chat/rest/delete/', type: 'post', dataType: 'json', cache: false,
                                                 data: {
@@ -395,6 +418,7 @@ if (start === false){
     });
     $('#reading_chat_more_load').click(function (e) {
         e.preventDefault()
+
         var reading_post_id = $('#reading_post_id').html()
         var reading_post_profile_photo = $('#reading_post_profile_photo').html()
         var reading_post_profile_name = $('#reading_post_profile_name').html()
@@ -588,12 +612,20 @@ if (start === false){
 
                         prepender.find('#reading_like_count_'+value.id).on('click', function (e) {
                             e.preventDefault()
+                            if($('#user_id').html()===''){
+                                $('#modal_need_login').modal('show')
+                                return false;
+                            }
                             $('#clicked_post_chat_id').html(value.id)
                             $('#modal_post_chat_liking').modal('show')
                         });
                         prepender.find('.reading_like').on('click', function (e) {
 
                             e.preventDefault()
+                            if($('#user_id').html()===''){
+                                $('#modal_need_login').modal('show')
+                                return false;
+                            }
                             var post_chat_id = $(this).attr('data-u')
 
                             $.ajax({
@@ -676,11 +708,19 @@ if (start === false){
 
                                       rest_appender.find('#rest_like_'+value.id).on('click', function (e) {
                                           e.preventDefault()
+                                          if($('#user_id').html()===''){
+                                                $('#modal_need_login').modal('show')
+                                                return false;
+                                            }
                                           $('#clicked_post_chat_rest_id').html(value.id)
                                           $('#modal_post_chat_rest_liking').modal('show')
                                       })
                                         rest_appender.find('.reading_like').on('click', function (e) {
                                             e.preventDefault()
+                                            if($('#user_id').html()===''){
+                                                $('#modal_need_login').modal('show')
+                                                return false;
+                                            }
                                             $.ajax({
                                               url: '/re/post/chat/rest/like/', type: 'post', dataType: 'json', cache: false,
                                                 data: {
@@ -709,6 +749,11 @@ if (start === false){
                                         })
                                       rest_appender.find('.reading_chat_rest_messages_delete').on('click', function (e) {
                                           e.preventDefault()
+
+                                          if($('#user_id').html()===''){
+                                                $('#modal_need_login').modal('show')
+                                                return false;
+                                            }
                                           $.ajax({
                                               url: '/re/post/chat/rest/delete/', type: 'post', dataType: 'json', cache: false,
                                                 data: {
@@ -952,6 +997,10 @@ if (start === false){
                 }
                 prepender.find('#reading_like_count_'+value.id).on('click', function (e) {
                     e.preventDefault()
+                                                              if($('#user_id').html()===''){
+                                                $('#modal_need_login').modal('show')
+                                                return false;
+                                            }
                     $('#clicked_post_chat_id').html(value.id)
                     $('#modal_post_chat_liking').modal('show')
                 });
@@ -959,6 +1008,10 @@ if (start === false){
                 prepender.find('.reading_like').on('click', function (e) {
 
                             e.preventDefault()
+                                                              if($('#user_id').html()===''){
+                                                $('#modal_need_login').modal('show')
+                                                return false;
+                                            }
                             var post_chat_id = $(this).attr('data-u')
 
                             $.ajax({
@@ -999,7 +1052,6 @@ if (start === false){
                             post_chat_id: post_chat_id,
                         },
                         success: function (data) {
-                          console.log(data)
                           if (!($('#rest_start_'+post_chat_id).hasClass('hidden'))){
                               $('#rest_start_'+post_chat_id).addClass('hidden')
                           }
@@ -1043,11 +1095,19 @@ if (start === false){
 
                                       rest_appender.find('#rest_like_'+value.id).on('click', function (e) {
                                           e.preventDefault()
+                                                                            if($('#user_id').html()===''){
+                                                $('#modal_need_login').modal('show')
+                                                return false;
+                                            }
                                           $('#clicked_post_chat_rest_id').html(value.id)
                                           $('#modal_post_chat_rest_liking').modal('show')
                                       })
                                 rest_appender.find('.reading_like').on('click', function (e) {
                                     e.preventDefault()
+                                                                      if($('#user_id').html()===''){
+                                                $('#modal_need_login').modal('show')
+                                                return false;
+                                            }
                                     $.ajax({
                                       url: '/re/post/chat/rest/like/', type: 'post', dataType: 'json', cache: false,
                                         data: {
@@ -1076,6 +1136,10 @@ if (start === false){
                                 })
                               rest_appender.find('.reading_chat_rest_messages_delete').on('click', function (e) {
                                   e.preventDefault()
+                                                                    if($('#user_id').html()===''){
+                                                $('#modal_need_login').modal('show')
+                                                return false;
+                                            }
                                   $.ajax({
                                       url: '/re/post/chat/rest/delete/', type: 'post', dataType: 'json', cache: false,
                                         data: {
@@ -1127,11 +1191,10 @@ if (start === false){
     })
 
 $('.modal_reading_form_textarea').on("keypress", function (e) {
-    if ($('#user_id').html()===''){
-        var scheme = window.location.protocol == "https:" ? "https" : "http";
-        var path = scheme + '://' + window.location.host;
-        location.href = path
-    }
+  if($('#user_id').html()===''){
+                $('#modal_need_login').modal('show')
+                return false;
+            }
     /* ENTER PRESSED*/
     if (e.keyCode == 13 && !e.shiftKey) {
         var text = $('.modal_reading_form_textarea').val()
@@ -1218,12 +1281,11 @@ $('.modal_reading_form_textarea').on("keypress", function (e) {
 
     $('.modal_reading_form_textarea_button').click(function (e) {
         e.preventDefault()
+  if($('#user_id').html()===''){
+                $('#modal_need_login').modal('show')
+                return false;
+            }
 
-        if ($('#user_id').html()===''){
-            var scheme = window.location.protocol == "https:" ? "https" : "http";
-            var path = scheme + '://' + window.location.host;
-            location.href = path
-        }
         var text = $('.modal_reading_form_textarea').val()
         if (text === '') {
             return false;

@@ -19,15 +19,6 @@
     {% endif %}
 
     <style>
-        .profile_list_username{
-            font-weight: bold; font-size: 12px;
-        }
-        .profile_list_wrapper{
-            margin-top: 10px;
-        }
-        .modal_follow_wrapper{
-            overflow-y: auto;
-        }
     </style>
 
 
@@ -39,8 +30,11 @@
 <!--navbar end-->
 <!--page info-->
 {% include 'others/bootstrap_tester.html' %}
+<div class="hidden" id="page_kind">user</div>
+
     <div class="hidden" id="chosen_user_id">{{ chosen_user.username }}</div>
     <div class="hidden" id="next_id"></div>
+<div class="hidden" id="last_post_id"></div>
 
 {% if user.is_authenticated %}
     <div class="hidden" id="user_id">{{ user.username }}</div>
@@ -135,6 +129,40 @@
 
 
 </body>
+<script>
+    $(function () {
+        if($('#user_id').html()===$('#chosen_user_id').html()){
+            $.ajax({url:'/re/profile/post/', type:'post', dataType:'json', cache:false,
+                data:{
+                    chosen_user_id: $('#chosen_user_id').html(),
+                    last_post_id: $('#last_post_id').html()
+                },
+                success:function (data) {
+                    $.each(data.set, function (key, value) {
+                        var string = value.id
+                        var appender = '<div class="row div_base" id="post_div_'+value.id+'">' +
+                            '<script defer>' +
+                            '    home_populate("'+value.id+'")' +
+                            '<'+'/script></div>' +
+                            '<div align="right"><span class="profile_update">update</span><span>  </span><span class="delete">delete</span></div>'
+
+                            //'console.log($("#post_div_'+value.id+'").attr("data-u"))' +
+                        $('#content').append(appender)
+                    })
+                        if (data.next === null){
+                            $('#profile_post_more_load').addClass('hidden')
+                        } else {
+                            $('#profile_post_more_load').removeClass('hidden')
+                        }
+
+                }
+            })
+
+        }
+        else {
+        }
+    })
+</script>
 <script>
 $(function () {
     var height = $(window).height();

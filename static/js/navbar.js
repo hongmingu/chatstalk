@@ -1,4 +1,3 @@
-
     $(function () {
         $('#nav_li_a_menu').click(function (e) {
             e.preventDefault();

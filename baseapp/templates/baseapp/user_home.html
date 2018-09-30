@@ -9,7 +9,6 @@
     <script src="{% static 'js/navbar.js' %}"></script>
     <script src="{% static 'js/a_selected.js' %}"></script>
     <script src="{% static 'js/re_socket.js' %}"></script>
-    <script src="{% static 'js/nav_badge.js' %}"></script>
     <script src="{% static 'js/date_differ.js' %}"></script>
     <script src="{% static 'js/home_populate.js' %}"></script>
     <script src="{% static 'js/modal_resize.js' %}"></script>
@@ -35,7 +34,7 @@
 <!--page info-->
 {% include 'others/bootstrap_tester.html' %}
 
-<div class="hidden" id="page_kind" data-u="home"></div>
+<div class="hidden" id="page_kind">home</div>
 <div class="hidden" id="last_num" data-u=""></div>
 <div class="hidden" id="post_last_id"></div>
 
@@ -315,7 +314,15 @@
 </script>
 
 <script>
+$(function () {
+    if ($('#user_id').html()!==''){
+        alert('logged in')
+    } else {
+        alert('not logged in')
 
+    }
+
+})
 </script>
 
 

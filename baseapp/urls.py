@@ -76,7 +76,8 @@ urlpatterns = [
 
     re_path(r'^re/profile/following/$', base_ajax_views.re_profile_following,
             name='re_profile_following'),
-
+    re_path(r'^re/profile/post/$', base_ajax_views.re_profile_post,
+            name='re_profile_post'),
     re_path(r'^re/profile/follower/$', base_ajax_views.re_profile_follower,
             name='re_profile_follower'),
     re_path(r'^re/post/like/list/$', base_ajax_views.re_post_like_list,

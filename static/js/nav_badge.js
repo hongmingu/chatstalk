@@ -4,7 +4,7 @@ $(function () {
                 'top': $($(this).attr('data-u')).offset().top,
                 'left': $($(this).attr('data-u')).offset().left,
             })
-        })
+        });
         var width = $(window).width();
 
         $(window).on('resize', function(){
@@ -26,7 +26,6 @@ $(function () {
                         })
                     })
                 } else if (width<343) {
-                    console.log('changed')
 
                     $('.nav_badge').each(function () {
                         $(this).css({

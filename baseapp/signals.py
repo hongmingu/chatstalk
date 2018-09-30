@@ -5,8 +5,9 @@ from relation.models import *
 from notice.models import *
 from django.db import transaction
 from django.db.models import F
-
+from django.utils.timezone import now
 from object.numbers import *
+
 KINDS_CHOICES = (
     (POSTCHAT_START, "start"),
     (POSTCHAT_TEXT, "text"),
@@ -20,6 +21,9 @@ def created_post_chat(sender, instance, created, **kwargs):
         if instance.kind != POSTCHAT_START:
             PostChatLikeCount.objects.create(post_chat=instance)
         PostChatRestMessageCount.objects.create(post_chat=instance)
+        post = instance.post
+        post.post_chat_created = now()
+        post.save()
 
 
 @receiver(post_save, sender=PostChatRestMessage)
@@ -33,6 +37,8 @@ def created_post_rest_message(sender, instance, created, **kwargs):
 @receiver(post_save, sender=Follow)
 def created_follow(sender, instance, created, **kwargs):
     if created:
+        if instance.user == instance.follow:
+            return
         try:
             with transaction.atomic():
                 notice = Notice.objects.create(user=instance.follow, kind=FOLLOW)
@@ -40,7 +46,8 @@ def created_follow(sender, instance, created, **kwargs):
                 notice_count = instance.follow.noticecount
                 notice_count.count = F('count') + 1
                 notice_count.save()
-        except Exception:
+        except Exception as e:
+            print(e)
             pass
 
 
@@ -55,7 +62,8 @@ def deleted_notice_follow(sender, instance, **kwargs):
                         notice_count.count = F('count') - 1
                         notice_count.save()
                     instance.notice.delete()
-            except Exception:
+            except Exception as e:
+                print(e)
                 pass
     except:
         pass
@@ -67,6 +75,8 @@ def deleted_notice_follow(sender, instance, **kwargs):
 @receiver(post_save, sender=PostFollow)
 def created_post_follow(sender, instance, created, **kwargs):
     if created:
+        if instance.user == instance.post.user:
+            return
         try:
             with transaction.atomic():
                 notice = Notice.objects.create(user=instance.post.user, kind=POST_FOLLOW)
@@ -99,6 +109,8 @@ def deleted_notice_post_follow(sender, instance, **kwargs):
 @receiver(post_save, sender=PostComment)
 def created_post_comment(sender, instance, created, **kwargs):
     if created:
+        if instance.user == instance.post.user:
+            return
         try:
             with transaction.atomic():
                 notice = Notice.objects.create(user=instance.post.user, kind=POST_COMMENT)
@@ -131,6 +143,8 @@ def deleted_notice_post_comment(sender, instance, **kwargs):
 @receiver(post_save, sender=PostLike)
 def created_post_like(sender, instance, created, **kwargs):
     if created:
+        if instance.user == instance.post.user:
+            return
         try:
             with transaction.atomic():
                 notice = Notice.objects.create(user=instance.post.user, kind=POST_LIKE)
@@ -165,6 +179,8 @@ def deleted_notice_post_like(sender, instance, **kwargs):
 @receiver(post_save, sender=PostChatLike)
 def created_post_chat_like(sender, instance, created, **kwargs):
     if created:
+        if instance.user == instance.post_chat.post.user:
+            return
         try:
             with transaction.atomic():
                 notice = Notice.objects.create(user=instance.post_chat.post.user, kind=POST_CHAT_LIKE)
@@ -199,6 +215,8 @@ def deleted_notice_post_chat_like(sender, instance, **kwargs):
 @receiver(post_save, sender=PostChatRestMessage)
 def created_post_chat_rest(sender, instance, created, **kwargs):
     if created:
+        if instance.user == instance.post_chat.post.user:
+            return
         try:
             with transaction.atomic():
                 notice = Notice.objects.create(user=instance.post_chat.post.user, kind=POST_CHAT_REST)
@@ -233,11 +251,13 @@ def deleted_notice_post_chat_rest(sender, instance, **kwargs):
 @receiver(post_save, sender=PostChatRestMessageLike)
 def created_post_chat_rest_like(sender, instance, created, **kwargs):
     if created:
+        if instance.user == instance.post_chat_rest_message.user:
+            return
         try:
             with transaction.atomic():
                 notice = Notice.objects.create(user=instance.user, kind=POST_CHAT_REST_LIKE)
                 notice_post_chat_rest_like = NoticePostChatRestLike.objects.create(notice=notice, post_chat_rest_like=instance)
-                notice_count = instance.user.noticecount
+                notice_count = instance.post_chat_rest_message.user.noticecount
                 notice_count.count = F('count') + 1
                 notice_count.save()
         except Exception as e:

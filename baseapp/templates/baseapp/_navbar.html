@@ -1,13 +1,27 @@
 <nav class="navbar navbar-default navbar-fixed-top navbar_base">
     <div class="container-fluid padding_right_0" style="">
         <ul class="nav navbar-nav navbar_ul_base" style="">
-            <li><a class="padding_15_i" id="a_home" href="#"><i id="i_home" class="glyphicon glyphicon-home"></i></a></li>
-            <li><a class="padding_15_i" id="a_chat" href="#"><i id="i_chat" class="glyphicon glyphicon-comment"></i></a></li>
-            <li><a class="padding_15_i" id="a_feed" href="#"><i id="i_leaf" class="glyphicon glyphicon-leaf"></i></a></li>
-            <li><a class="padding_15_i" id="a_user" href="#"><i id="i_user" class="glyphicon glyphicon-user"></i></a></li>
+            <li>
+                <a class="padding_15_i" id="a_home" href="/">
+                    <i id="i_home" class="glyphicon glyphicon-home"></i>
+                </a>
+            </li>
+            <li>
+                <a class="padding_15_i" id="a_feed" href="#">
+                    <i id="i_feed" class="glyphicon glyphicon-comment"></i>
+                </a>
+            </li>
+            <li>
+                <a class="padding_15_i" id="a_user" href="#">
+                    <i id="i_user" class="glyphicon glyphicon-user"></i>
+                </a>
+            </li>
 
-            <li id="nav_div_ul_li_bsearch"><a class="padding_15_i" id="a_note" href="#">
-                <i id="i_note" class="glyphicon glyphicon-certificate"></i></a></li>
+            <li id="nav_div_ul_li_bsearch">
+                <a class="padding_15_i" id="a_note" href="#">
+                    <i id="i_note" class="glyphicon glyphicon-certificate"></i>
+                </a>
+            </li>
             <li>
                 <form class="navbar-form navbar-left mobile_display_none margin_top_bottom_10">
                     <div class="input-group input-group-sm">
@@ -32,8 +46,8 @@
 
 <span class="nav_badge" id="badge_home" data-u="#i_home"></span>
 <span class="nav_badge" id="badge_chat" data-u="#i_chat"></span>
-<span class="nav_badge" id="badge_leaf" data-u="#i_leaf"></span>
 <span class="nav_badge" id="badge_user" data-u="#i_user"></span>
+<span class="nav_badge" id="badge_note" data-u="#i_note"></span>
 
 <div class="modal fade" id="modal_menu">
     <div class="modal-dialog modal-dialog_menu">
@@ -44,14 +58,14 @@
           </button>
         </div>
         <div class="modal-body modal-body_menu">
-                {% if user.is_authenticated %}
+            {% if user.is_authenticated %}
             <div class="row">
               <p class="h4" align="center"><a href="{% url 'authapp:settings' %}"><span class="clickable padding_5 navbar_modal_menu">Settings</span></a></p>
             </div>
             <div class="row">
               <p class="h4" align="center"><a href="{% url 'authapp:log_out' %}"><span class="clickable padding_5 navbar_modal_menu">Log out</span></a></p>
             </div>
-                {% else %}
+            {% else %}
             <div class="row">
               <p class="h4" align="center"><a href="{% url 'baseapp:main_create_log_in' %}"><span class="clickable padding_5 navbar_modal_menu">Log in / Create new account</span></a></p>
             </div>
