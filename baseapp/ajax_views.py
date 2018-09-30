@@ -1023,8 +1023,6 @@ def re_post_chat_next_load(request):
                     except:
                         count = None
                     you_like = False
-                    if PostChatLike.objects.filter(user=request.user, post_chat=post_chat).exists():
-                        you_like = True
                     sub_output = {
                         'id': post_chat.uuid,
                         'kind': post_chat_kind_converter(post_chat.kind),
@@ -1059,7 +1057,8 @@ def re_post_chat_like(request):
                 post_chat_id = request.POST.get('post_chat_id', None)
                 try:
                     post_chat = PostChat.objects.get(uuid=post_chat_id)
-                except PostChat.DoesNotExist:
+                except PostChat.DoesNotExist as e:
+                    print(e)
                     return JsonResponse({'res': 0})
                 try:
                     post_chat_like = PostChatLike.objects.get(post_chat=post_chat, user=request.user)
@@ -1077,7 +1076,8 @@ def re_post_chat_like(request):
                             post_chat_like_count.save()
                             liked = False
                             # customers = Customer.objects.filter(scoops_ordered__gt=F('store_visits'))
-                    except Exception:
+                    except Exception as e:
+                        print(e)
                         return JsonResponse({'res': 0})
                 else:
                     try:
@@ -1089,7 +1089,8 @@ def re_post_chat_like(request):
                             post_chat_like_count.save()
                             liked = True
                             # customers = Customer.objects.filter(scoops_ordered__gt=F('store_visits'))
-                    except Exception:
+                    except Exception as e:
+                        print(e)
                         return JsonResponse({'res': 0})
 
                 return JsonResponse({'res': 1, 'liked': liked})
@@ -1208,8 +1209,6 @@ def re_post_chat_rest_more_load(request):
                             next = True
                             break
                         you_like = False
-                        if PostChatRestMessageLike.objects.filter(user=request.user, post_chat_rest_message=post_chat_rest_message).exists():
-                            you_like = True
                         sub_output = {
                             'id': post_chat_rest_message.uuid,
                             'user_id': post_chat_rest_message.user.username,
@@ -1279,7 +1278,6 @@ def re_post_chat_rest_delete(request):
         if request.user.is_authenticated:
             if request.is_ajax():
                 rest_id = request.POST.get('rest_id', None)
-                print(rest_id)
                 try:
                     rest_message = PostChatRestMessage.objects.get(uuid=rest_id)
                 except PostChatRestMessage.DoesNotExist:
@@ -1445,6 +1443,80 @@ def re_profile_follower(request):
                         output.append(sub_output)
 
                 return JsonResponse({'res': 1, 'set': output, 'next':next})
+
+        return JsonResponse({'res': 2})
+
+
+@ensure_csrf_cookie
+def re_profile_post(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                chosen_user_id = request.POST.get('chosen_user_id', None)
+                last_id = request.POST.get('last_post_id', None)
+                user = None
+                try:
+                    user = User.objects.get(username=chosen_user_id)
+                except User.DoesNotExist:
+                    pass
+                master = False
+                if user == request.user:
+                    master = True
+                posts = None
+
+                if master:
+                    if last_id == '':
+                        posts = Post.objects.filter((Q(user=user))).order_by('-post_chat_created').distinct()[:21]
+                    else:
+                        last_post = None
+                        try:
+                            last_post = Post.objects.get(uuid=last_id)
+                        except Exception as e:
+                            print(e)
+                            pass
+                        if last_post is not None:
+                            posts = Post.objects.filter((Q(user=user)) & Q(post_chat_created__lte=last_post.post_chat_created)).exclude(pk=last_post.pk).order_by('-post_chat_created').distinct()[:21]
+                        else:
+                            posts = Post.objects.filter(Q(user=user)).order_by('-post_chat_created').distinct()[:21]
+                else:
+                    if last_id == '':
+                        posts = Post.objects.filter((Q(user=user) & Q(is_open=True))).order_by('-post_chat_created').distinct()[:21]
+                    else:
+                        last_post = None
+                        try:
+                            last_post = Post.objects.get(uuid=last_id)
+                        except Exception as e:
+                            print(e)
+                            pass
+                        if last_post is not None:
+                            posts = Post.objects.filter((Q(user=user)) & Q(is_open=True) & Q(post_chat_created__lte=last_post.post_chat_created)).exclude(pk=last_post.pk).order_by('-post_chat_created').distinct()[:21]
+                        else:
+                            posts = Post.objects.filter(Q(user=user) & Q(is_open=True)).order_by('-post_chat_created').distinct()[:21]
+                # 이제 리스트 만드는 코드가 필요하다. #########
+
+                # filter(Q(post__uuid=post_id) & Q(pk__lt=last_post_chat.pk))
+                ################################
+                output = []
+                count = 0
+                next = None
+                post_follow = None
+                for post in posts:
+                    count = count + 1
+                    if count == 21:
+                        next = post.uuid
+                        break
+                    post_follow = True
+                    if Follow.objects.filter(user=request.user, follow=post.user).exists():
+                        post_follow = False
+                    sub_output = {
+                        'id': post.uuid,
+                        'created': post.created,
+                        'post_follow': post_follow
+                    }
+
+                    output.append(sub_output)
+
+                return JsonResponse({'res': 1, 'set': output, 'next': next})
 
         return JsonResponse({'res': 2})
 
