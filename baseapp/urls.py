@@ -10,6 +10,8 @@ urlpatterns = [
 
     re_path(r'^$', authviews.main_create_log_in, name='main_create_log_in'),
     re_path(r'^create/new/$', views.create_new, name='create_new'),
+    re_path(r'^explore/feed/$', views.explore_feed, name='explore_feed'),
+    re_path(r'^note/all/$', views.note_all, name='note_all'),
     re_path(r'^(?P<user_username>([A-Za-z0-9_](?:(?:[A-Za-z0-9_]|(?:\.(?!\.))){0,28}(?:[A-Za-z0-9_]))?))/$', views.user_profile, name='user_profile'),
 
     re_path(r'^post/update/(?P<uuid>([0-9a-f]{32}))/$', views.post_update, name='post_update'),
@@ -78,6 +80,11 @@ urlpatterns = [
             name='re_profile_following'),
     re_path(r'^re/profile/post/$', base_ajax_views.re_profile_post,
             name='re_profile_post'),
+    re_path(r'^re/profile/post/delete/$', base_ajax_views.re_profile_post_delete,
+            name='re_profile_post_delete'),
+
+    re_path(r'^re/profile/populate/$', base_ajax_views.re_profile_populate,
+            name='re_profile_populate'),
     re_path(r'^re/profile/follower/$', base_ajax_views.re_profile_follower,
             name='re_profile_follower'),
     re_path(r'^re/post/like/list/$', base_ajax_views.re_post_like_list,
@@ -93,6 +100,9 @@ urlpatterns = [
 
     re_path(r'^re/post/follow/list/$', base_ajax_views.re_post_follow_list,
             name='re_post_follow_list'),
+
+    re_path(r'^re/explore/feed/$', base_ajax_views.re_explore_feed,
+            name='re_explore_feed'),
     # re_path(r'^email/key/send/$', views.email_key_send, name='email_key_send'),
     # re_path(r'^email/key/confirm/(?P<uid>([A-Za-z0-9_](?:(?:[A-Za-z0-9_]|(?:\.(?!\.))){0,28}(?:[A-Za-z0-9_]))?))/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         # views.email_key_confirm, name='email_key_confirm'),

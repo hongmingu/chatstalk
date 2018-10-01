@@ -1,10 +1,10 @@
-var home_populate = function home_populate(post_id_value){
+var profile_populate = function profile_populate(post_id_value){
                             var id = post_id_value
                             var parent_div = $('script').last().parent()
                             var user_id = $('#user_id').html()
                             $(function () {
                                 $.ajax({
-                                    url: '/re/user/home/populate/', type: 'post', dataType:'json', cache: false,
+                                    url: '/re/profile/populate/', type: 'post', dataType:'json', cache: false,
                                     data: {
                                         post_id: post_id_value,
                                     },

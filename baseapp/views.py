@@ -109,3 +109,18 @@ def post(request, uuid):
             return render(request, 'baseapp/post.html', {'id_data': id_data})
 
         return render(request, 'baseapp/post.html', )
+
+
+def explore_feed(request):
+    if request.method == "GET":
+        if request.user.is_authenticated:
+            return render(request, 'baseapp/user_feed.html')
+        else:
+            return redirect(reverse('baseapp:main_create_log_in'))
+
+def note_all(request):
+    if request.method == "GET":
+        if request.user.is_authenticated:
+            return render(request, 'baseapp/user_note.html')
+        else:
+            return redirect(reverse('baseapp:main_create_log_in'))

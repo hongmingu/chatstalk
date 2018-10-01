@@ -1498,13 +1498,13 @@ def re_profile_post(request):
                 ################################
                 output = []
                 count = 0
-                next = None
+                last = None
+                sub_output = None
                 post_follow = None
                 for post in posts:
                     count = count + 1
-                    if count == 21:
-                        next = post.uuid
-                        break
+                    if count == 20:
+                        last = post.uuid
                     post_follow = True
                     if Follow.objects.filter(user=request.user, follow=post.user).exists():
                         post_follow = False
@@ -1516,10 +1516,178 @@ def re_profile_post(request):
 
                     output.append(sub_output)
 
-                return JsonResponse({'res': 1, 'set': output, 'next': next})
+                return JsonResponse({'res': 1, 'set': output, 'last': last, 'master': master})
 
         return JsonResponse({'res': 2})
 
+
+@ensure_csrf_cookie
+def re_profile_post_delete(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_id = request.POST.get('post_id', None)
+                post = None
+                try:
+                    post = Post.objects.get(uuid=post_id, user=request.user)
+                except Exception as e:
+                    print(e)
+                    return JsonResponse({'res': 0})
+                if post is not None:
+                    post.delete()
+
+                return JsonResponse({'res': 1})
+
+        return JsonResponse({'res': 2})
+@ensure_csrf_cookie
+def re_profile_populate(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                post_id = request.POST.get('post_id', None)
+                try:
+                    post = Post.objects.get(uuid=post_id)
+                except:
+                    return JsonResponse({'res': 0})
+                from django.db.models import Q
+                name = post.user.usertextname.name
+                profile_photo = post.user.userphoto.file_50_url()
+
+                if post.has_another_profile:
+                    name = post.postprofile.name
+                    profile_photo = post.postprofile.file_50_url()
+                you_liked = False
+                if PostLike.objects.filter(user=request.user, post=post).exists():
+                    you_liked = True
+                post_chat_read = PostChatRead.objects.filter(post=post, user=request.user).last()
+                post_chat = None
+                post_chat_last_chat = None
+                if post_chat_read is None:
+                    try:
+                        post_chat = PostChat.objects.filter(post=post).order_by('created')[1]
+                    except IndexError:
+                        post_chat_last_chat = {'kind': 'start'}
+                    if post_chat is not None:
+                        if post_chat.kind == POSTCHAT_TEXT:
+                            post_chat_last_chat = {'kind': 'text', 'you_say': post_chat.you_say,
+                                    'text': escape(post_chat.postchattext.text)}
+                        elif post_chat.kind == POSTCHAT_PHOTO:
+                            post_chat_last_chat = {'kind': 'photo', 'you_say': post_chat.you_say, 'url': post_chat.postchatphoto.file.url}
+                else:
+                    if post_chat_read.post_chat.kind == POSTCHAT_START:
+                        try:
+                            post_chat = PostChat.objects.filter(post=post).order_by('created')[1]
+                        except IndexError:
+                            post_chat_last_chat = {'kind': 'start'}
+                        if post_chat is not None:
+                            if post_chat.kind == POSTCHAT_TEXT:
+                                post_chat_last_chat = {'kind': 'text', 'you_say': post_chat.you_say,
+                                                  'text': escape(post_chat.postchattext.text)}
+                            elif post_chat.kind == POSTCHAT_PHOTO:
+                                post_chat_last_chat = {'kind': 'photo', 'you_say': post_chat.you_say,
+                                                  'url': post_chat.postchatphoto.file.url}
+                    elif post_chat_read.post_chat.kind == POSTCHAT_TEXT:
+                        post_chat = post_chat_read.post_chat
+                        post_chat_last_chat = {'kind': 'text', 'you_say': post_chat.you_say, 'text': escape(post_chat.postchattext.text)}
+                    elif post_chat_read.post_chat.kind == POSTCHAT_PHOTO:
+                        post_chat = post_chat_read.post_chat
+                        post_chat_last_chat = {'kind': 'photo', 'you_say': post_chat.you_say, 'url': post_chat.postchatphoto.file.url}
+
+                new = True
+                post_chat_last = PostChat.objects.filter(post=post).last()
+                post_chat_read_last = PostChatRead.objects.filter(post=post, user=request.user).last()
+                if post_chat_read_last is not None:
+                    if post_chat_read_last.post_chat == post_chat_last:
+                        new = False
+                    else:
+                        new = True
+
+                user_follow = False
+                if Follow.objects.filter(user=request.user, follow=post.user).exists():
+                    user_follow = True
+
+                post_follow = False
+                if PostFollow.objects.filter(post=post, user=request.user).exists():
+                    post_follow = True
+
+                output = {'title': post.title,
+                          'desc': post.description,
+                          'username': post.user.userusername.username,
+                          'user_id': post.user.username,
+                          'name': name,
+                          'photo': profile_photo,
+                          'created': post.created,
+                          'last_chat': post_chat_last_chat,
+                          'absolute_url': post.get_absolute_url(),
+                          'id': post.uuid,
+                          'like_count': post.postlikecount.count,
+                          'you_liked': you_liked,
+                          'comment_count': post.postcommentcount.count,
+                          'three_comments': post.get_three_comments(),
+                          'new': new,
+                          'user_follow': user_follow,
+                          'post_follow': post_follow,
+                          'post_follow_count': post.postfollowcount.count,
+                          }
+                return JsonResponse({'res': 1, 'set': output})
+        else:
+            if request.is_ajax():
+                post_id = request.POST.get('post_id', None)
+                try:
+                    post = Post.objects.get(uuid=post_id)
+                except:
+                    return JsonResponse({'res': 0})
+                from django.db.models import Q
+                name = post.user.usertextname.name
+                profile_photo = post.user.userphoto.file_50_url()
+
+                if post.has_another_profile:
+                    name = post.postprofile.name
+                    profile_photo = post.postprofile.file_50_url()
+                you_liked = False
+                post_chat_read = None
+                post_chat = None
+                post_chat_last_chat = None
+                if post_chat_read is None:
+                    try:
+                        post_chat = PostChat.objects.filter(post=post).order_by('created')[1]
+                    except IndexError:
+                        post_chat_last_chat = {'kind': 'start'}
+                    if post_chat is not None:
+                        if post_chat.kind == POSTCHAT_TEXT:
+                            post_chat_last_chat = {'kind': 'text', 'you_say': post_chat.you_say,
+                                    'text': escape(post_chat.postchattext.text)}
+                        elif post_chat.kind == POSTCHAT_PHOTO:
+                            post_chat_last_chat = {'kind': 'photo', 'you_say': post_chat.you_say, 'url': post_chat.postchatphoto.file.url}
+
+                new = True
+
+                user_follow = False
+
+                post_follow = False
+
+                output = {'title': post.title,
+                          'desc': post.description,
+                          'username': post.user.userusername.username,
+                          'user_id': post.user.username,
+                          'name': name,
+                          'photo': profile_photo,
+                          'created': post.created,
+                          'last_chat': post_chat_last_chat,
+                          'absolute_url': post.get_absolute_url(),
+                          'id': post.uuid,
+                          'like_count': post.postlikecount.count,
+                          'you_liked': you_liked,
+                          'comment_count': post.postcommentcount.count,
+                          'three_comments': post.get_three_comments(),
+                          'new': new,
+                          'user_follow': user_follow,
+                          'post_follow': post_follow,
+                          'post_follow_count': post.postfollowcount.count,
+                          }
+                return JsonResponse({'res': 1, 'set': output})
+
+        return JsonResponse({'res': 2})
 
 @ensure_csrf_cookie
 def re_post_like_list(request):
@@ -1735,3 +1903,37 @@ def re_post_follow_list(request):
                 return JsonResponse({'res': 1, 'set': output, 'next': next})
 
         return JsonResponse({'res': 2})
+
+
+@ensure_csrf_cookie
+def re_explore_feed(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                # 여기서 posts 옵션 준다. 20개씩 줄 것이므로 21로 잡는다. #########
+                posts = Post.objects.filter(~Q(user__is_followed__user=request.user) & Q(is_open=True)).order_by('-post_chat_created').distinct()[:21]
+                ################################
+                output = []
+                count = 0
+                next = None
+                post_follow = None
+                for post in posts:
+                    count = count + 1
+                    if count == 21:
+                        next = post.uuid
+                        break
+                    post_follow = True
+                    if Follow.objects.filter(user=request.user, follow=post.user).exists():
+                        post_follow = False
+                    sub_output = {
+                        'id': post.uuid,
+                        'created': post.created,
+                        'post_follow': post_follow
+                    }
+
+                    output.append(sub_output)
+
+                return JsonResponse({'res': 1, 'set': output, 'next': next})
+
+        return JsonResponse({'res': 2})
+

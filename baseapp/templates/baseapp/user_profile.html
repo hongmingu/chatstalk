@@ -8,11 +8,13 @@
     {% load static from staticfiles %}
     <script src="{% static 'js/navbar.js' %}"></script>
     <script src="{% static 'js/a_selected.js' %}"></script>
-    <script src="{% static 'js/re_socket.js' %}"></script>
-    <script src="{% static 'js/nav_badge.js' %}"></script>
+    <script defer src="{% static 'js/nav_badge.js' %}"></script>
     <script src="{% static 'js/date_differ.js' %}"></script>
+    <script src="{% static 'js/profile_populate.js' %}"></script>
     <script src="{% static 'js/modal_resize.js' %}"></script>
-
+    <script src="{% static 'js/modal_feed_menu.js' %}"></script>
+    <script src="{% static 'js/modal_opens.js' %}"></script>
+    <script src="{% static 'js/modal_profile_reading.js' %}"></script>
     <link href="https://fonts.googleapis.com/css?family=Tauri" rel="stylesheet">
     {% if user.is_authenticated %}
     {% else %}
@@ -34,8 +36,27 @@
 
     <div class="hidden" id="chosen_user_id">{{ chosen_user.username }}</div>
     <div class="hidden" id="next_id"></div>
-<div class="hidden" id="last_post_id"></div>
+    <div class="hidden" id="last_post_id"></div>
+<div class="hidden" id="post_to_delete"></div>
 
+
+<div class="hidden" id="post_last_id"></div>
+
+<div class="hidden" id="clicked_post_id"></div>
+
+<div class="hidden" id="reading_post_id"></div>
+<div class="hidden" id="reading_post_profile_photo"></div>
+<div class="hidden" id="reading_post_user_id"></div>
+<div class="hidden" id="reading_post_profile_name"></div>
+<div class="hidden" id="reading_post_chat_last_id"></div>
+<div class="hidden" id="reading_post_chat_before_id"></div>
+<div class="hidden" id="reading_post_chat_next_id"></div>
+<div class="hidden" id="post_liking_next_id"></div>
+<div class="hidden" id="post_follow_next_id"></div>
+<div class="hidden" id="post_chat_liking_next_id"></div>
+<div class="hidden" id="post_chat_rest_liking_next_id"></div>
+<div class="hidden" id="clicked_post_chat_id"></div>
+<div class="hidden" id="clicked_post_chat_rest_id"></div>
 {% if user.is_authenticated %}
     <div class="hidden" id="user_id">{{ user.username }}</div>
 {% else %}
@@ -124,6 +145,9 @@
     </div>
 </div>
 {% include 'baseapp/_modal_need_login.html' %}
+{% include 'baseapp/_modal_reading.html' %}
+{% include 'baseapp/_modal_post.html' %}
+{% include 'baseapp/_modal_post_delete.html' %}
   <!-- Hidden 으로 데이터 저장해놓고 modal on show 랑 hide 에서 그 데이터 불러와서 모달 채우게 하자. 그리고 임플린은 친구 중심이고
   피드가 존재하게 되었기 때문에 팔로우가 부가적으로 존재하는 것 뿐이다. -->
 
@@ -131,37 +155,69 @@
 </body>
 <script>
     $(function () {
-        if($('#user_id').html()===$('#chosen_user_id').html()){
-            $.ajax({url:'/re/profile/post/', type:'post', dataType:'json', cache:false,
-                data:{
-                    chosen_user_id: $('#chosen_user_id').html(),
-                    last_post_id: $('#last_post_id').html()
-                },
-                success:function (data) {
-                    $.each(data.set, function (key, value) {
-                        var string = value.id
-                        var appender = '<div class="row div_base" id="post_div_'+value.id+'">' +
-                            '<script defer>' +
-                            '    home_populate("'+value.id+'")' +
-                            '<'+'/script></div>' +
-                            '<div align="right"><span class="profile_update">update</span><span>  </span><span class="delete">delete</span></div>'
+            $('#post_delete').click(function (e) {
+                e.preventDefault()
+              $.ajax({
+                  url: '/re/profile/post/delete/', type: 'post', dataType: 'json', cache: false,
+                  data: {
+                      post_id: $('#post_to_delete').html(),
+                  },
+                  success: function (data) {
+                    if(data.res === 1){
+                        $('#post_wrapper_'+$('#post_to_delete').html()).replaceWith('<div>post removed</div>')
+                        $('#modal_post_delete').modal('hide')
+                    }
+                  }
+              })
 
-                            //'console.log($("#post_div_'+value.id+'").attr("data-u"))' +
-                        $('#content').append(appender)
-                    })
-                        if (data.next === null){
-                            $('#profile_post_more_load').addClass('hidden')
-                        } else {
-                            $('#profile_post_more_load').removeClass('hidden')
-                        }
-
-                }
             })
 
-        }
-        else {
-        }
+            $("#modal_post_delete").on("shown.bs.modal", function () {
+
+    }).on("hidden.bs.modal", function () {
+
+                        $('#post_to_delete').html('')
+
+        })
+    });
+    $(function () {
+
+        $.ajax({url:'/re/profile/post/', type:'post', dataType:'json', cache:false,
+            data:{
+                chosen_user_id: $('#chosen_user_id').html(),
+                last_post_id: $('#last_post_id').html()
+            },
+            success:function (data) {
+            console.log(data)
+                var _modifier = ''
+                $.each(data.set, function (key, value) {
+
+                    if (data.master === true){
+                        _modifier = '<div align="right"><a href="/post/update/'+value.id+'/"><span class="profile_update">update</span></a><span>  </span><a href=""><span class="profile_delete">delete</span></a></div>'
+                    }
+                    var appender = '<div id="post_wrapper_'+value.id+'"><div class="row div_base profile_post_div" id="post_div_'+value.id+'">' +
+                        '<script defer>' +
+                        '    profile_populate("'+value.id+'")' +
+                        '<'+'/script></div>' + _modifier + '</div>'
+                        //'console.log($("#post_div_'+value.id+'").attr("data-u"))' +
+                    var jq_appender = $(appender)
+                    jq_appender.find('.profile_delete').on('click', function (e) {
+                        e.preventDefault()
+                        $('#post_to_delete').html(value.id)
+                        $('#modal_post_delete').modal('show')
+                    })
+                    $('#content').append(jq_appender)
+                })
+                    if (data.next === null){
+                        $('#profile_post_more_load').addClass('hidden')
+                    } else {
+                        $('#profile_post_more_load').removeClass('hidden')
+                    }
+
+            }
+        })
     })
+
 </script>
 <script>
 $(function () {

@@ -354,10 +354,6 @@ transform: translateX(10px) translateY(-10px)
             font-size: 12px;
         }
 
-        .margin_bottom_30 {
-            margin-bottom: 30px;
-        }
-
         .home_feed_time {
             font-size: 12px;
         }
@@ -835,4 +831,13 @@ transform: translateX(10px) translateY(-10px)
         }
         .modal_follow_wrapper{
             overflow-y: auto;
+        }
+        .profile_delete{
+            border-radius: 3px; font-size: 14px; background-color: #1b6d85; color: white;
+        }
+        .profile_update{
+            border-radius: 3px; font-size: 14px; background-color: #15852a; color: white;
+        }
+        .profile_post_div{
+            margin-top: 25px; margin-bottom: 0px;
         }
