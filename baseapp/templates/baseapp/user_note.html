@@ -8,7 +8,6 @@
     {% load static from staticfiles %}
     <script src="{% static 'js/navbar.js' %}"></script>
     <script src="{% static 'js/a_selected.js' %}"></script>
-    <script src="{% static 'js/re_socket.js' %}"></script>
     <script src="{% static 'js/date_differ.js' %}"></script>
     <script src="{% static 'js/home_populate.js' %}"></script>
     <script src="{% static 'js/modal_resize.js' %}"></script>
@@ -35,28 +34,12 @@
 {% include 'others/bootstrap_tester.html' %}
 
 <div class="hidden" id="page_kind">note</div>
-<div class="hidden" id="last_num" data-u=""></div>
-<div class="hidden" id="post_last_id"></div>
+<div class="hidden" id="next_note_id"></div>
 
-<div class="hidden" id="clicked_post_id"></div>
-
-<div class="hidden" id="reading_post_id"></div>
-<div class="hidden" id="reading_post_profile_photo"></div>
-<div class="hidden" id="reading_post_user_id"></div>
-<div class="hidden" id="reading_post_profile_name"></div>
-<div class="hidden" id="reading_post_chat_last_id"></div>
-<div class="hidden" id="reading_post_chat_before_id"></div>
-<div class="hidden" id="reading_post_chat_next_id"></div>
-<div class="hidden" id="post_liking_next_id"></div>
-<div class="hidden" id="post_follow_next_id"></div>
-<div class="hidden" id="post_chat_liking_next_id"></div>
-<div class="hidden" id="post_chat_rest_liking_next_id"></div>
-<div class="hidden" id="clicked_post_chat_id"></div>
-<div class="hidden" id="clicked_post_chat_rest_id"></div>
 {% if user.is_authenticated %}
-    <div class="hidden" id="user_id" data-u="{{ user.username }}">{{ user.username }}</div>
+    <div class="hidden" id="user_id">{{ user.username }}</div>
 {% else %}
-    <div class="hidden" id="user_id" data-u=""></div>
+    <div class="hidden" id="user_id"></div>
 {% endif %}
 <!--page info end -->
 
@@ -64,40 +47,94 @@
     <div class="row">
         <div class="col-xs-12 col-sm-offset-3 col-sm-6 col-md-offset-4 col-md-4">
             <div class="row">
-                <div align="center"><a href="{% url 'baseapp:create_new' %}"><div class="clickable padding_5 main_background_color write_new_post">Write New Post</div></a></div>
-                <!--여기서 modal -->
                 <div id="content"></div>
-                <div class="hidden" align="center" id="home_feed_more_load"><a href="{% url 'baseapp:create_new' %}"><div class="clickable padding_5 main_background_color write_new_post">More Load</div></a></div>
+                <div class="hidden" align="center" id="home_feed_more_load"><a href=""><div class="clickable padding_5 main_background_color write_new_post">More Load</div></a></div>
 
             </div>
         </div>
     </div>
 </div>
-{% include 'baseapp/_modal_reading.html' %}
-{% include 'baseapp/_modal_post.html' %}
-{% include 'baseapp/_modal_need_login.html' %}
+
 </body>
 <script>
     $(function () {
-        $.ajax({url:'/re/home/feed/', type:'post', dataType:'json', cache:false,
+        $.ajax({url:'/re/note/all/', type:'post', dataType:'json', cache:false,
             data:{
-                last_id: $('#post_last_id').html()
+                next_id: $('#next_note_id').html()
             },
             success:function (data) {
+            console.log(data)
             $.each(data.set, function (key, value) {
-                var string = value.id
-                var appender = '<div class="row div_base" id="post_div_'+value.id+'" data-u="'+value.id+'">' +
-                    '<script defer>' +
-                    '    home_populate("'+value.id+'")' +
-                    '<'+'/script></div>'
-
-                    //'console.log($("#post_div_'+value.id+'").attr("data-u"))' +
+                var appender;
+                switch (value.notice_kind) {
+                    case 1001:
+                        appender = '<div class="note_wrapper">\n' +
+                            '<div class="note_img_wrapper"><a href="/'+value.notice_value.username+'/"><img class="note_img_small clickable" src="'+value.notice_value.user_photo+'"></a></div>\n' +
+                            '<div class="note_text_wrapper"><a href="/'+value.notice_value.username+'/"><span class="note_text_username clickable">'+value.notice_value.username+'</span></a>follow you.</div>\n' +
+                            '</div>'
+                        //follow
+                        break;
+                    case 2001:
+                        appender = '<div class="note_wrapper">\n' +
+                        '<div class="note_img_wrapper"><a href="/'+value.notice_value.username+'/"><img class="note_img_small clickable" src="'+value.notice_value.user_photo+'"></a></div>\n' +
+                        '<div class="note_text_wrapper"><a href="/'+value.notice_value.username+'/"><span class="note_text_username clickable">'+value.notice_value.username+'</span></a>follow your <a href="/post/'+value.notice_value.post_id+'/"><span class="note_text_post clickable">post</span></a></div>\n' +
+                        '</div>'
+                        //post_follow
+                        break;
+                    case 2002:
+                        appender = '<div class="note_wrapper">\n' +
+                        '<div class="note_img_wrapper"><a href="/'+value.notice_value.username+'/"><img class="note_img_small clickable" src="'+value.notice_value.user_photo+'"></a></div>\n' +
+                        '<div class="note_text_wrapper"><a href="/'+value.notice_value.username+'/"><span class="note_text_username clickable">'+value.notice_value.username+'</span></a>comments on <a href="/post/'+value.notice_value.post_id+'/"><span class="note_text_post clickable">post</span></a> :<span class="note_text_detail">'+value.notice_value.comment_text+'</span></div>\n' +
+                        '</div>'
+                        //post_comment
+                        break;
+                    case 2003:
+                        appender = '<div class="note_wrapper">\n' +
+                        '<div class="note_img_wrapper"><a href="/'+value.notice_value.username+'/"><img class="note_img_small clickable" src="'+value.notice_value.user_photo+'"></a></div>\n' +
+                        '<div class="note_text_wrapper"><a href="/'+value.notice_value.username+'/"><span class="note_text_username clickable">'+value.notice_value.username+'</span></a>likes <a href="/post/'+value.notice_value.post_id+'/"><span class="note_text_post clickable">post</span></a></div>\n' +
+                        '</div>'
+                        //post_like
+                        break;
+                    case 3001:
+                        appender = '<div class="note_wrapper">\n' +
+                        '<div class="note_img_wrapper"><a href="/'+value.notice_value.username+'/"><img class="note_img_small clickable" src="'+value.notice_value.user_photo+'"></a></div>\n' +
+                        '<div class="note_text_wrapper"><a href="/'+value.notice_value.username+'/"><span class="note_text_username clickable">someone</span></a>님이 당신의 <a href="/post/'+value.notice_value.post_id+'/"><span class="note_text_post clickable">글</span></a> 을 좋아합니다.<span class="note_text_detail">blah blah</span></div>\n' +
+                        '</div>'
+                        //post_chat_like
+                        break;
+                    case 4001:
+                        appender = '<div class="note_wrapper">\n' +
+                        '<div class="note_img_wrapper"><a href="/'+value.notice_value.username+'/"><img class="note_img_small clickable" src="'+value.notice_value.user_photo+'"></a></div>\n' +
+                        '<div class="note_text_wrapper"><a href="/'+value.notice_value.username+'/"><span class="note_text_username clickable">someone</span></a>님이 당신의 <a href="/post/'+value.notice_value.post_id+'/"><span class="note_text_post clickable">글</span></a> 을 좋아합니다.<span class="note_text_detail">blah blah</span></div>\n' +
+                        '</div>'
+                        //post_chat_rest
+                        break;
+                    case 4002:
+                        appender = '<div class="note_wrapper">\n' +
+                        '<div class="note_img_wrapper"><a href="/'+value.notice_value.username+'/"><img class="note_img_small clickable" src="'+value.notice_value.user_photo+'"></a></div>\n' +
+                        '<div class="note_text_wrapper"><a href="/'+value.notice_value.username+'/"><span class="note_text_username clickable">someone</span></a>님이 당신의 <a href="/post/'+value.notice_value.post_id+'/"><span class="note_text_post clickable">글</span></a> 을 좋아합니다.<span class="note_text_detail">blah blah</span></div>\n' +
+                        '</div>'
+                        //post_chat_rest_like
+                        break;
+                    default:
+                        break;
+                }
                 $('#content').append(appender)
+
+
+                var string = value.id
+                //var appender = '<div class="row div_base" id="post_div_'+value.id+'" data-u="'+value.id+'">' +
+                //    '<script defer>' +
+                //    '    home_populate("'+value.id+'")' +
+                //    '<'+'/script></div>'
+
             })
                 if (data.next === null){
                     $('#home_feed_more_load').addClass('hidden')
+                    $('#next_note_id').html('')
                 } else {
                     $('#home_feed_more_load').removeClass('hidden')
+                    $('#next_note_id').html(data.next)
                 }
 
             }
@@ -106,15 +143,6 @@
 </script>
 
 <script>
-$(function () {
-    if ($('#user_id').html()!==''){
-        alert('logged in')
-    } else {
-        alert('not logged in')
-
-    }
-
-})
 </script>
 
 

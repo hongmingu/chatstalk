@@ -27,6 +27,7 @@ from authapp import texts
 from object.models import *
 from .forms import PostProfilePhotoForm, PostChatPhotoForm
 from relation.models import *
+from notice.models import *
 from .models import *
 from django.contrib.auth import update_session_auth_hash
 from django.utils.html import escape, _js_escapes, normalize_newlines
@@ -392,19 +393,33 @@ def re_home_feed(request):
     if request.method == "POST":
         if request.user.is_authenticated:
             if request.is_ajax():
-                # 여기서 posts 옵션 준다. 20개씩 줄 것이므로 21로 잡는다. #########
-                posts = Post.objects.filter((Q(user__is_followed__user=request.user) | Q(postfollow__user=request.user)) & Q(is_open=True)).order_by('-updated').distinct()[:21]
-                # filter(Q(post__uuid=post_id) & Q(pk__lt=last_post_chat.pk))
+                last_id = request.POST.get('last_id', None)
+                posts = None
+                if last_id == '':
+                    posts = Post.objects.filter(
+                        (Q(user__is_followed__user=request.user) | Q(post_follow__user=request.user)) & Q(
+                            is_open=True)).order_by('-post_chat_created').distinct()[:20]
+                else:
+                    last_post = None
+                    try:
+                        last_post = Post.objects.get(uuid=last_id)
+                    except Exception as e:
+                        print(e)
+                        return JsonResponse({'res': 0})
+
+                    posts = Post.objects.filter(
+                        (Q(user__is_followed__user=request.user) | Q(post_follow__user=request.user)) & Q(
+                            is_open=True) & Q(post_chat_created__lte=last_post.post_chat_created)).order_by('-post_chat_created').distinct()[:20]
+
                 ################################
                 output = []
                 count = 0
-                next = None
+                last = None
                 post_follow = None
                 for post in posts:
                     count = count + 1
-                    if count == 21:
-                        next = post.uuid
-                        break
+                    if count == 20:
+                        last = post.uuid
                     post_follow = True
                     if Follow.objects.filter(user=request.user, follow=post.user).exists():
                         post_follow = False
@@ -416,7 +431,7 @@ def re_home_feed(request):
 
                     output.append(sub_output)
 
-                return JsonResponse({'res': 1, 'set': output, 'next': next})
+                return JsonResponse({'res': 1, 'set': output, 'last': last})
 
         return JsonResponse({'res': 2})
 
@@ -1910,25 +1925,83 @@ def re_explore_feed(request):
     if request.method == "POST":
         if request.user.is_authenticated:
             if request.is_ajax():
+                last_id = request.POST.get('last_id', None)
+                posts = None
+                if last_id == '':
+                    posts = Post.objects.filter(~Q(user__is_followed__user=request.user) & Q(is_open=True) & ~Q(user=request.user)).exclude(
+                        Q(post_follow__user=request.user)).order_by('-post_chat_created').distinct()[:20]
+                else:
+                    last_post = None
+                    try:
+                        last_post = Post.objects.get(uuid=last_id)
+                    except Exception as e:
+                        print(e)
+                        return JsonResponse({'res': 0})
+                    posts = Post.objects.filter(~Q(user__is_followed__user=request.user) & Q(is_open=True) & Q(post_chat_created__lte=last_post.post_chat_created) & ~Q(user=request.user)).exclude(
+                        Q(post_follow__user=request.user) | Q(uuid=last_id)).order_by('-post_chat_created').distinct()[:20]
+
                 # 여기서 posts 옵션 준다. 20개씩 줄 것이므로 21로 잡는다. #########
-                posts = Post.objects.filter(~Q(user__is_followed__user=request.user) & Q(is_open=True)).order_by('-post_chat_created').distinct()[:21]
+                # 여기서 포스트 팔로우 된 건 피드에 뜨지 않게 Q 설정해야한다 .
                 ################################
                 output = []
                 count = 0
-                next = None
+                last = None
                 post_follow = None
                 for post in posts:
                     count = count + 1
-                    if count == 21:
-                        next = post.uuid
-                        break
+                    if count == 20:
+                        last = post.uuid
                     post_follow = True
                     if Follow.objects.filter(user=request.user, follow=post.user).exists():
                         post_follow = False
                     sub_output = {
                         'id': post.uuid,
                         'created': post.created,
-                        'post_follow': post_follow
+                        'post_follow': post_follow,
+                        'post_chat_created': post.post_chat_created,
+                    }
+
+                    output.append(sub_output)
+
+                return JsonResponse({'res': 1, 'set': output, 'last': last})
+
+        return JsonResponse({'res': 2})
+
+
+@ensure_csrf_cookie
+def re_note_all(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                next_id = request.POST.get('next_id', None)
+                notices = None
+                if next_id == '':
+                    notices = Notice.objects.filter(Q(user=request.user)).order_by('-created').distinct()[:31]
+                else:
+                    next_notice = None
+                    try:
+                        next_notice = Notice.objects.get(uuid=next_id)
+                    except Exception as e:
+                        print(e)
+                        return JsonResponse({'res': 0})
+                    notices = Notice.objects.filter(Q(user=request.user) & Q(pk__lte=next_notice.pk)).order_by('-created').distinct()[:31]
+
+                # 여기서 posts 옵션 준다. 20개씩 줄 것이므로 21로 잡는다. #########
+                # 여기서 포스트 팔로우 된 건 피드에 뜨지 않게 Q 설정해야한다 .
+                ################################
+                output = []
+                count = 0
+                next = None
+                for notice in notices:
+                    count = count + 1
+                    if count == 31:
+                        next = notice.uuid
+                        break
+                    sub_output = {
+                        'id': notice.uuid,
+                        'created': notice.created,
+                        'notice_kind': notice.kind,
+                        'notice_value': notice.get_value(),
                     }
 
                     output.append(sub_output)

@@ -8,7 +8,6 @@
     {% load static from staticfiles %}
     <script src="{% static 'js/navbar.js' %}"></script>
     <script src="{% static 'js/a_selected.js' %}"></script>
-    <script src="{% static 'js/re_socket.js' %}"></script>
     <script src="{% static 'js/nav_badge.js' %}"></script>
 
     <script src="{% static 'js/post_profile_upload_photo.js' %}"></script>
@@ -138,6 +137,13 @@
                     <br>
                     <br>
                     <br>
+                    <div class="col-xs-12">
+                        <div>
+                            <div><span class="now_open_close_explain">now this post is: </span><span class="now_open_close">{% if post.is_open %}opened{% else %}closed{% endif %}</span></div>
+                        </div>
+
+                    </div>
+
                     <div class="col-xs-6">
                         <a href="">
                             <div class="clickable padding_5 choice_selected" id="open" align="center">open</div>
@@ -153,7 +159,7 @@
                     <br>
                     <div class="col-xs-12">
                         <div align="center"><a href="">
-                            <div class="clickable padding_5 main_background_color write_new_post" id="ok">OK</div>
+                            <div class="clickable padding_5 main_background_color write_new_post" id="ok">Change</div>
                         </a></div>
 
                     </div>

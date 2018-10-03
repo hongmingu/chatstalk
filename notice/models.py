@@ -36,6 +36,7 @@ class Notice(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     kind = models.PositiveSmallIntegerField(choices=KINDS_CHOICES, default=0)
     checked = models.BooleanField(default=False)
+    uuid = models.CharField(max_length=34, unique=True, null=True, default=None)
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
 
@@ -43,54 +44,99 @@ class Notice(models.Model):
         return "Notice pk: %s, user: %s, kind: %s" % (self.pk, self.user.userusername.username, self.kind)
 
     def get_value(self):
+        result = None
+        get_result = None
         if self.kind == FOLLOW:
-            result = None
             try:
-                result = self.noticefollow.follow
-            except:
+                get_result = self.noticefollow.follow
+            except Exception as e:
+                print(e)
                 pass
+            if get_result is not None:
+                result = {'username': get_result.user.userusername.username,
+                          'user_photo': get_result.user.userphoto.file_50_url()}
             return result
         elif self.kind == POST_FOLLOW:
-            result = None
             try:
-                result = self.noticepostfollow.post_follow
-            except:
+                get_result = self.noticepostfollow.post_follow
+            except Exception as e:
+                print(e)
                 pass
+            if get_result is not None:
+                result = {'post_id': get_result.post.uuid,
+                          'username': get_result.user.userusername.username,
+                          'user_photo': get_result.user.userphoto.file_50_url()}
             return result
         elif self.kind == POST_COMMENT:
-            result = None
             try:
-                result = self.noticepostcomment.post_comment
-            except:
+                get_result = self.noticepostcomment.post_comment
+            except Exception as e:
+                print(e)
                 pass
+            if get_result is not None:
+                result = {'post_id': get_result.post.uuid,
+                          'username': get_result.user.userusername.username,
+                          'user_photo': get_result.user.userphoto.file_50_url(),
+                          'comment_text': escape(get_result.text)[0:10]}
             return result
         elif self.kind == POST_LIKE:
-            result = None
             try:
-                result = self.noticepostlike.post_like
-            except:
+                get_result = self.noticepostlike.post_like
+            except Exception as e:
+                print(e)
                 pass
+            if get_result is not None:
+                result = {
+                    'post_id': get_result.post.uuid,
+                    'username': get_result.user.userusername.username,
+                    'user_photo': get_result.user.userphoto.file_50_url()
+                }
             return result
         elif self.kind == POST_CHAT_LIKE:
-            result = None
             try:
-                result = self.noticepostchatlike.post_chat_like
-            except:
+                get_result = self.noticepostchatlike.post_chat_like
+            except Exception as e:
+                print(e)
                 pass
+            if get_result is not None:
+                result = {
+                    'post_chat_id': get_result.post_chat.uuid,
+                    'username': get_result.user.userusername.username,
+                    'user_photo': get_result.user.userphoto.file_50_url(),
+                    'post_id': get_result.post_chat.post.uuid,
+                }
             return result
         elif self.kind == POST_CHAT_REST:
-            result = None
             try:
-                result = self.noticepostchatrest.post_chat_rest
-            except:
+                get_result = self.noticepostchatrest.post_chat_rest
+            except Exception as e:
+                print(e)
                 pass
+            if get_result is not None:
+                result = {
+                    'post_chat_rest_id': get_result.uuid,
+                    'post_chat_id': get_result.post_chat.uuid,
+                    'post_id': get_result.post_chat.post.uuid,
+                    'username': get_result.user.userusername.username,
+                    'user_photo': get_result.user.userphoto.file_50_url(),
+                    'post_chat_rest_text': escape(get_result.text)[0:10],
+                }
             return result
         elif self.kind == POST_CHAT_REST_LIKE:
-            result = None
             try:
-                result = self.noticepostchatrestlike.post_chat_rest_like
-            except:
+                get_result = self.noticepostchatrestlike.post_chat_rest_like
+            except Exception as e:
+                print(e)
                 pass
+            if get_result is not None:
+                result = {
+                    'post_chat_rest_id': get_result.post_chat_rest_message.uuid,
+                    'post_chat_id': get_result.post_chat_rest_message.post_chat.uuid,
+                    'post_id': get_result.post_chat_rest_message.post_chat.post.uuid,
+                    'username': get_result.user.userusername.username,
+                    'user_photo': get_result.user.userphoto.file_50_url(),
+                    'post_chat_rest_text': escape(get_result.post_chat_rest_message.text)[0:10],
+                }
             return result
         return None
 
