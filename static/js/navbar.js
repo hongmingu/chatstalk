@@ -50,19 +50,34 @@
                                $("#nav_search").remove();
                            }
                            else {
-                              $('body').append('<nav class="navbar navbar-default navbar-fixed-top navbar_search_base top_50" id="nav_search">\n' +
-                                  '    <div class="container-fluid padding_right_0 padding_left_0 desktop_display_none">\n' +
-                                  '        <form class="navbar-form navbar_search_form_base width_100_i margin_auto">\n' +
-                                  '        <div class="input-group input-group-sm">\n' +
-                                  '            <input class="form-control" placeholder="Search" id="searchbar" type="text">\n' +
-                                  '            <div class="input-group-btn">\n' +
-                                  '                <i class="btn btn-default"><i class="glyphicon glyphicon-search"></i>\n' +
-                                  '                </i>\n' +
-                                  '            </div>\n' +
-                                  '        </div>\n' +
-                                  '        </form>\n' +
-                                  '    </div>\n' +
-                                  '</nav>')
+                               var appender = $('<nav class="navbar navbar-default navbar-fixed-top navbar_search_base top_50" id="nav_search">' +
+                                   '<div class="container-fluid padding_right_0 padding_left_0 desktop_display_none">' +
+                                   '<form class="navbar-form navbar_search_form_base width_100_i margin_auto">' +
+                                   '<div class="input-group input-group-sm">' +
+                                   '<input class="form-control" placeholder="Search" id="search_made" type="text">' +
+                                   '<div class="input-group-btn">' +
+                                   '<i class="btn btn-default"><i class="glyphicon glyphicon-search"></i>' +
+                                   '</i>' +
+                                   '</div>' +
+                                   '</div>' +
+                                   '</form>' +
+                                   '</div>' +
+                                   '</nav>')
+                               appender.find('#search_made').on('keypress', function (e) {
+                                   e.preventDefault()
+                                   console.log('keypress!')
+                                   if (e.keyCode == 13 && !e.shiftKey) {
+                                       console.log('not shift enter')
+                                       var passed_value = $(this).val()
+                                       if (passed_value === '') {
+                                            console.log('nothing was pressed')
+                                           return false;
+                                       }
+                                       console.log('passed value: ' + passed_value)
+                                   }
+                               })
+
+                              $('body').append(appender)
                            }
                        });
                     }
