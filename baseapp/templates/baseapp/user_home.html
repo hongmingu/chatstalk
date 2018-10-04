@@ -7,6 +7,7 @@
 
     {% load static from staticfiles %}
     <script src="{% static 'js/navbar.js' %}"></script>
+    <script src="{% static 'js/nav_badge.js' %}"></script>
     <script src="{% static 'js/a_selected.js' %}"></script>
     <script src="{% static 'js/re_socket.js' %}"></script>
     <script src="{% static 'js/date_differ.js' %}"></script>
@@ -16,6 +17,7 @@
     <script src="{% static 'js/modal_opens.js' %}"></script>
     <script src="{% static 'js/modal_reading.js' %}"></script>
 
+    <script src="{% static 'js/nav_badge_populate.js' %}"></script>
     <link href="https://fonts.googleapis.com/css?family=Tauri" rel="stylesheet">
     {% if user.is_authenticated %}
     {% else %}

@@ -41,6 +41,7 @@ def created_follow(sender, instance, created, **kwargs):
             return
         try:
             with transaction.atomic():
+                print('1')
                 notice = Notice.objects.create(user=instance.follow, kind=FOLLOW)
                 notice_follow = NoticeFollow.objects.create(notice=notice, follow=instance)
                 notice_count = instance.follow.noticecount

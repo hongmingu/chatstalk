@@ -2010,3 +2010,32 @@ def re_note_all(request):
 
         return JsonResponse({'res': 2})
 
+
+@ensure_csrf_cookie
+def re_nav_badge_populate(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if request.is_ajax():
+                try:
+                    notice_count = request.user.noticecount.count
+                except Exception as e:
+                    print(e)
+                    return JsonResponse({'res': 0})
+
+                return JsonResponse({'res': 1, 'notice_count': notice_count})
+
+        return JsonResponse({'res': 2})
+
+
+@ensure_csrf_cookie
+def re_search_all(request):
+    if request.method == "POST":
+        if request.is_ajax():
+            search_word = request.POST.get('search_word', None)
+            users = User.objects.filter(Q(userusername__username__icontains=search_word)).distinct()[:5]
+            posts = Post.objects.filter(Q(user__userusername__username__icontains=search_word))[:5]
+            print(posts)
+            return JsonResponse({'res': 1})
+
+        return JsonResponse({'res': 2})
+

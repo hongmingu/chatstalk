@@ -3,6 +3,9 @@ from .forms import PostCreateForm
 from relation.models import *
 from object.models import *
 from object.numbers import *
+from notice.models import *
+from django.db.models import Q
+from django.db import transaction
 import uuid
 
 from django.utils.timezone import now, timedelta
@@ -118,9 +121,28 @@ def explore_feed(request):
         else:
             return redirect(reverse('baseapp:main_create_log_in'))
 
+
 def note_all(request):
     if request.method == "GET":
         if request.user.is_authenticated:
+            try:
+                with transaction.atomic():
+                    notices_update = Notice.objects.filter(Q(user=request.user) & Q(checked=False)).update(
+                        checked=True)
+                    notice_count = request.user.noticecount
+                    notice_count.count = 0
+                    notice_count.save()
+            except Exception as e:
+                print(e)
+                pass
             return render(request, 'baseapp/user_note.html')
         else:
             return redirect(reverse('baseapp:main_create_log_in'))
+
+
+def search_all(request):
+    if request.method == "GET":
+        q = request.GET.get('q', None)
+        word = {}
+        word['q'] = q
+        return render(request, 'baseapp/user_search_all.html', {'word': word})
