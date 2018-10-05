@@ -2033,35 +2033,35 @@ def re_search_all(request):
         if request.is_ajax():
             search_word = request.POST.get('search_word', None)
             users = User.objects.filter(Q(userusername__username__icontains=search_word)
-                                        | Q(usertextname__name__icontains=search_word)).order_by('-created').distinct()[:11]
-            users_output = []
+                                        | Q(usertextname__name__icontains=search_word)).order_by('noticecount__created').distinct()[:11]
+            user_output = []
             users_count = 0
-            users_next = False
+            user_next = None
             for user in users:
                 users_count = users_count + 1
                 if users_count == 11:
-                    users_next  = True
+                    user_next = True
                     break
                 sub_output = {
-                    'username': user.username,
+                    'username': user.userusername.username,
                     'user_photo': user.userphoto.file_50_url(),
                     'user_text_name': user.usertextname.name,
                 }
 
-                users_output.append(sub_output)
+                user_output.append(sub_output)
 
             posts = Post.objects.filter(Q(user__userusername__username__icontains=search_word)
                                         | Q(title__icontains=search_word)
                                         | Q(description__icontains=search_word)
                                         | Q(user__usertextname__name__icontains=search_word)).order_by('-post_chat_created').distinct()[:11]
 
-            posts_output = []
+            post_output = []
             posts_count = 0
-            posts_next = False
+            post_next = None
             for post in posts:
                 posts_count = posts_count + 1
                 if posts_count == 11:
-                    posts_next = True
+                    post_next = True
                     break
 
                 if request.user.is_authenticated:
@@ -2076,12 +2076,12 @@ def re_search_all(request):
                     'post_follow': post_follow
                 }
 
-                posts_output.append(sub_output)
+                post_output.append(sub_output)
             return JsonResponse({'res': 1,
-                                 'users_set': users_output,
-                                 'users_next': users_next,
-                                 'posts_set': posts_output,
-                                 'posts_next': posts_next})
+                                 'user_set': user_output,
+                                 'user_next': user_next,
+                                 'post_set': post_output,
+                                 'post_next': post_next})
 
         return JsonResponse({'res': 2})
 
@@ -2106,27 +2106,28 @@ def re_search_user(request):
                 users = User.objects.filter((Q(userusername__username__icontains=search_word)
                                             | Q(usertextname__name__icontains=search_word)) & Q(pk__lte=next_user.pk)).order_by(
                     '-created').distinct()[:21]
-            users_output = []
+            user_output = []
             users_count = 0
-            users_next = False
+            user_next = None
             for user in users:
                 users_count = users_count + 1
                 if users_count == 21:
-                    users_next = user.username
+                    user_next = user.username
                     break
                 sub_output = {
-                    'username': user.username,
+                    'username': user.userusername.username,
                     'user_photo': user.userphoto.file_50_url(),
                     'user_text_name': user.usertextname.name,
                 }
 
-                users_output.append(sub_output)
+                user_output.append(sub_output)
 
             return JsonResponse({'res': 1,
-                                 'users_set': users_output,
-                                 'users_next': users_next,})
+                                 'users_set': user_output,
+                                 'users_next': user_next,})
 
         return JsonResponse({'res': 2})
+
 
 @ensure_csrf_cookie
 def re_search_post(request):
@@ -2148,19 +2149,18 @@ def re_search_post(request):
                     print(e)
                     return JsonResponse({'res': 0})
 
-
                 posts = Post.objects.filter((Q(user__userusername__username__icontains=search_word)
                                             | Q(title__icontains=search_word)
                                             | Q(description__icontains=search_word)
                                             | Q(user__usertextname__name__icontains=search_word)) & Q(post_chat_created__lte=next_post.post_chat_created)).order_by('-post_chat_created').distinct()[:21]
 
-            posts_output = []
+            post_output = []
             posts_count = 0
-            posts_next = False
+            post_next = None
             for post in posts:
                 posts_count = posts_count + 1
                 if posts_count == 21:
-                    posts_next = post.uuid
+                    post_next = post.uuid
                     break
 
                 if request.user.is_authenticated:
@@ -2175,9 +2175,9 @@ def re_search_post(request):
                     'post_follow': post_follow
                 }
 
-                posts_output.append(sub_output)
+                post_output.append(sub_output)
             return JsonResponse({'res': 1,
-                                 'posts_set': posts_output,
-                                 'posts_next': posts_next})
+                                 'post_set': post_output,
+                                 'post_next': post_next})
 
         return JsonResponse({'res': 2})

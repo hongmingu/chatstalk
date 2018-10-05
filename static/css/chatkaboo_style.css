@@ -869,3 +869,22 @@ transform: translateX(10px) translateY(-10px)
         .note_text_detail{
             padding: 3px; border-radius: 3px; background-color: #cdeb90
         }
+
+        .search_user_wrapper{
+            margin-top: 5px; font-size: 12px; background-color: white; padding: 5px; border-radius: 3px;
+        }
+        .search_user_img_wrapper{
+            display: inline-block; max-width: 50px
+        }
+        .search_user_img_small{
+            border-radius: 3px; height: 50px; width: 50px;
+        }
+        .search_user_detail_wrapper{
+            display: inline-block; margin-left: 5px;
+        }
+        .search_user_detail_username{
+            padding: 3px; font-size: 14px; font-weight: bold; margin-right: 3px;
+        }
+        .search_user_detail_name{
+            padding: 3px; border-radius: 3px; border-color: #d4d4d4; border-style: solid; font-size: 12px;
+        }
