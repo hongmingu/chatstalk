@@ -45,10 +45,7 @@
     <div class="row">
         <div class="col-xs-12 col-sm-offset-3 col-sm-6 col-md-offset-4 col-md-4">
             <div class="row">
-                <div id="content_users"></div>
-                <div class="hidden" align="center" id="more_user"><a href=""><div class="clickable padding_5 main_background_color write_new_post">more user</div></a></div>
-                <div id="content_posts"></div>
-                <div class="hidden" align="center" id="more_user"><a href=""><div class="clickable padding_5 main_background_color write_new_post">more user</div></a></div>
+
             </div>
         </div>
     </div>
@@ -58,6 +55,9 @@
 <script>
     $(function () {
         if(!($('#search_word').html()==='')){
+
+        }
+        else {
 
         }
         $.ajax({url:'/re/search/all/', type:'post', dataType:'json', cache:false,

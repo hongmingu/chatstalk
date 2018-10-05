@@ -146,3 +146,17 @@ def search_all(request):
         word = {}
         word['q'] = q
         return render(request, 'baseapp/user_search_all.html', {'word': word})
+
+def search_user(request):
+    if request.method == "GET":
+        q = request.GET.get('q', None)
+        word = {}
+        word['q'] = q
+        return render(request, 'baseapp/user_search_user.html', {'word': word})
+
+def search_post(request):
+    if request.method == "GET":
+        q = request.GET.get('q', None)
+        word = {}
+        word['q'] = q
+        return render(request, 'baseapp/user_search_post.html', {'word': word})
