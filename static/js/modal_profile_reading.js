@@ -283,11 +283,11 @@ $(function () {
                                             '<a href=""><span id="rest_like_span_'+value.id+'"class="glyphicon '+like+' reading_like"></span></a><span class="reading_like_text"> </span><a href=""><span class="reading_like_text" id="rest_like_'+value.id+'" data-u="'+value.like_count+'">'+like_count+'</span></a>' +
                                             '</div>' +
                                             '<div class="reading_chat_content">' +
-                                            '<div class="reading_chat_rest_name"><a href="/'+value.username+'/"><span>'+value.name+'</span></a></div>\n' +
+                                            '<div class="reading_chat_rest_name"><a href="/'+value.username+'/"><span>'+value.name+'['+value.username+']'+'</span></a></div>\n' +
                                             '<div class="reading_chat_rest_text">'+value.text+'<span>   </span><span class="reading_chat_rest_time">'+date_differ(value.created)+'</span></div>\n' +
                                             '</div>' +
                                             '<div class="reading_chat_img">' +
-                                            '<img class="img_small" src="'+ value.photo +'">' +
+                                            '<a href="/'+value.username+'/"><img class="img_small clickable" src="'+ value.photo +'"></a>' +
                                             '</div>' + delete_div +
                                             '</div>'
                                         var rest_appender = $(pre_rest_appender)
@@ -697,11 +697,11 @@ if (start === false){
                                             '<a href=""><span id="rest_like_span_'+value.id+'"class="glyphicon '+like+' reading_like"></span></a><span class="reading_like_text"> </span><a href=""><span class="reading_like_text" id="rest_like_'+value.id+'" data-u="'+value.like_count+'">'+like_count+'</span></a>' +
                                             '</div>' +
                                             '<div class="reading_chat_content">' +
-                                            '<div class="reading_chat_rest_name"><a href="/'+value.username+'/"><span>'+value.name+'</span></a></div>\n' +
+                                            '<div class="reading_chat_rest_name"><a href="/'+value.username+'/"><span>'+value.name+'['+value.username+']'+'</span></a></a></div>\n' +
                                             '<div class="reading_chat_rest_text">'+value.text+'<span>   </span><span class="reading_chat_rest_time">'+date_differ(value.created)+'</span></div>\n' +
                                             '</div>' +
                                             '<div class="reading_chat_img">' +
-                                            '<img class="img_small" src="'+ value.photo +'">' +
+                                            '<a href="/'+value.username+'/"><img class="img_small clickable" src="'+ value.photo +'"></a>' +
                                             '</div>' + delete_div +
                                             '</div>'
                                         var rest_appender = $(pre_rest_appender)
@@ -1084,11 +1084,11 @@ if (start === false){
                                     '<a href=""><span id="rest_like_span_'+value.id+'"class="glyphicon '+like+' reading_like"></span></a><span class="reading_like_text"> </span><a href=""><span class="reading_like_text" id="rest_like_'+value.id+'" data-u="'+value.like_count+'">'+like_count+'</span></a>' +
                                     '</div>' +
                                     '<div class="reading_chat_content">' +
-                                    '<div class="reading_chat_rest_name">'+value.name+'</div>\n' +
+                                    '<div class="reading_chat_rest_name"><a href="/'+value.username+'/"><span>'+value.name+'['+value.username+']'+'</span></a></div>\n' +
                                     '<div class="reading_chat_rest_text">'+value.text+'<span>   </span><span class="reading_chat_rest_time">'+date_differ(value.created)+'</span></div>\n' +
                                     '</div>' +
                                     '<div class="reading_chat_img">' +
-                                    '<img class="img_small" src="'+ value.photo +'">' +
+                                    '<a href="/'+value.username+'/"><img class="img_small clickable" src="'+ value.photo +'"></a>' +
                                     '</div>' + delete_div +
                                     '</div>'
                                 var rest_appender = $(pre_rest_appender)
@@ -1164,6 +1164,8 @@ if (start === false){
 
                 })
                 $('#modal_reading_chat').append(prepender)
+                $(".modal_reading_chat").animate({ scrollTop: $('.modal_reading_chat').prop("scrollHeight")}, 500);
+
 
             })
                 if (data.next === null){
