@@ -2089,7 +2089,6 @@ def re_search_user(request):
         if request.is_ajax():
             search_word = request.POST.get('search_word', None)
             next_id = request.POST.get('next_id', None)
-            print(next_id)
             if next_id == '':
                 users = User.objects.filter(Q(userusername__username__icontains=search_word)
                                             | Q(usertextname__name__icontains=search_word)).order_by('-noticecount__created').distinct()[:31]
