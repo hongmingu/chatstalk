@@ -1956,9 +1956,6 @@ def re_explore_feed(request):
                         post_follow = False
                     sub_output = {
                         'id': post.uuid,
-                        'created': post.created,
-                        'post_follow': post_follow,
-                        'post_chat_created': post.post_chat_created,
                     }
 
                     output.append(sub_output)
@@ -2033,7 +2030,7 @@ def re_search_all(request):
         if request.is_ajax():
             search_word = request.POST.get('search_word', None)
             users = User.objects.filter(Q(userusername__username__icontains=search_word)
-                                        | Q(usertextname__name__icontains=search_word)).order_by('noticecount__created').distinct()[:11]
+                                        | Q(usertextname__name__icontains=search_word)).order_by('-noticecount__created').distinct()[:11]
             user_output = []
             users_count = 0
             user_next = None
@@ -2091,10 +2088,11 @@ def re_search_user(request):
     if request.method == "POST":
         if request.is_ajax():
             search_word = request.POST.get('search_word', None)
-            next_id = request.POST.get('next_id')
+            next_id = request.POST.get('next_id', None)
+            print(next_id)
             if next_id == '':
                 users = User.objects.filter(Q(userusername__username__icontains=search_word)
-                                            | Q(usertextname__name__icontains=search_word)).order_by('-created').distinct()[:21]
+                                            | Q(usertextname__name__icontains=search_word)).order_by('-noticecount__created').distinct()[:31]
             else:
                 next_user = None
                 try:
@@ -2104,14 +2102,14 @@ def re_search_user(request):
                     return JsonResponse({'res': 0})
 
                 users = User.objects.filter((Q(userusername__username__icontains=search_word)
-                                            | Q(usertextname__name__icontains=search_word)) & Q(pk__lte=next_user.pk)).order_by(
-                    '-created').distinct()[:21]
+                                            | Q(usertextname__name__icontains=search_word)) & Q(noticecount__created__lte=next_user.noticecount.created)).exclude(pk=next_user.pk).order_by(
+                    '-noticecount__created').distinct()[:31]
             user_output = []
             users_count = 0
             user_next = None
             for user in users:
                 users_count = users_count + 1
-                if users_count == 21:
+                if users_count == 31:
                     user_next = user.username
                     break
                 sub_output = {
@@ -2123,8 +2121,8 @@ def re_search_user(request):
                 user_output.append(sub_output)
 
             return JsonResponse({'res': 1,
-                                 'users_set': user_output,
-                                 'users_next': user_next,})
+                                 'user_set': user_output,
+                                 'user_next': user_next})
 
         return JsonResponse({'res': 2})
 
@@ -2134,13 +2132,13 @@ def re_search_post(request):
     if request.method == "POST":
         if request.is_ajax():
             search_word = request.POST.get('search_word', None)
-            next_id = request.POST.get('next_id')
+            next_id = request.POST.get('next_id', None)
             if next_id == '':
                 posts = Post.objects.filter(Q(user__userusername__username__icontains=search_word)
                                             | Q(title__icontains=search_word)
                                             | Q(description__icontains=search_word)
                                             | Q(user__usertextname__name__icontains=search_word)).order_by(
-                    '-post_chat_created').distinct()[:11]
+                    '-post_chat_created').distinct()[:2]
             else:
                 next_post = None
                 try:
@@ -2152,27 +2150,20 @@ def re_search_post(request):
                 posts = Post.objects.filter((Q(user__userusername__username__icontains=search_word)
                                             | Q(title__icontains=search_word)
                                             | Q(description__icontains=search_word)
-                                            | Q(user__usertextname__name__icontains=search_word)) & Q(post_chat_created__lte=next_post.post_chat_created)).order_by('-post_chat_created').distinct()[:21]
+                                            | Q(user__usertextname__name__icontains=search_word))
+                                            & Q(post_chat_created__lte=next_post.post_chat_created)).order_by('-post_chat_created').distinct()[:2]
 
             post_output = []
             posts_count = 0
             post_next = None
             for post in posts:
                 posts_count = posts_count + 1
-                if posts_count == 21:
+                if posts_count == 2:
                     post_next = post.uuid
                     break
 
-                if request.user.is_authenticated:
-                    post_follow = True
-                    if Follow.objects.filter(user=request.user, follow=post.user).exists():
-                        post_follow = False
-                else:
-                    post_follow = False
                 sub_output = {
                     'id': post.uuid,
-                    'created': post.created,
-                    'post_follow': post_follow
                 }
 
                 post_output.append(sub_output)
